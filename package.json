@@ -1,0 +1,30 @@
+{
+  "name": "self-bot",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "eslint": "^8.36.0",
+    "eslint-config-prettier": "^8.7.0",
+    "prettier": "^2.8.4"
+  },
+  "dependencies": {
+    "@adiwajshing/baileys": "^5.0.0",
+    "@adiwajshing/keyed-db": "^0.2.4",
+    "@hapi/boom": "^10.0.1",
+    "@types/dotenv": "^8.2.0",
+    "@types/fluent-ffmpeg": "^2.1.21",
+    "@types/sharp": "^0.31.1",
+    "chalk": "4.1.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "moment-timezone": "^0.5.41",
+    "node-cache": "^5.1.2",
+    "qrcode-terminal": "^0.12.0",
+    "sharp": "^0.30.7"
+  }
+}

@@ -1,0 +1,5 @@
+baileys_auth_info
+baileys-store_multi.json
+tmp/*
+node_modules
+package-lock.json
