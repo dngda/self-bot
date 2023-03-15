@@ -1,12 +1,13 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
-import { sendMessageReply } from '../utils'
+import { replyText, sendMessageReply } from '../utils'
 
 export const pingHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
   data: Record<string, any>
 ) => {
-  await sendMessageReply(waSocket, data.from, { text: 'pong!' }, msg)
+  const processTime = Date.now() - msg.messageTimestamp * 1000
+  await replyText(waSocket, data.from, `Pong _${processTime} ms!_`, msg)
 }
 
 export const helpHandler = async (
@@ -14,15 +15,13 @@ export const helpHandler = async (
   msg: WAMessage,
   data: Record<string, any>
 ) => {
-  await sendMessageReply(
+  await replyText(
     waSocket,
     data.from,
-    {
-      text: `Commands yang tersedia:
+    `Commands yang tersedia:
 ping - balas dengan pong!
 help - tampilkan pesan ini
-s - convert media to sticker`,
-    },
+sticker - convert media to sticker`,
     msg
   )
 }
