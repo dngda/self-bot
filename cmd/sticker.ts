@@ -10,8 +10,8 @@ export const stickerHandler = async (
   data: Record<string, any>
 ) => {
   const {
-    cmd,
     from,
+    command,
     isMedia,
     isImage,
     isVideo,
@@ -21,7 +21,7 @@ export const stickerHandler = async (
     quotedMsg,
   } = data
   if (!isMedia)
-    throw `Error! Kirim gambar/video atau balas gambar/video dengan caption !${cmd}`
+    throw `Error! Kirim gambar/video atau balas gambar/video dengan caption !${command}`
   const mediaData = isQuoted
     ? await data.downloadQuoted()
     : await data.download()

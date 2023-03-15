@@ -1,8 +1,8 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
-import { helpHandler, pingHandler } from '../cmd/info'
+import { replyText, sendMessageReply, serializeMessage } from '../utils/index'
+import { evalJS, evalJSON, helpHandler, pingHandler } from '../cmd/info'
 import { changePublicHandler } from '../cmd/config'
 import { stickerHandler } from '../cmd/sticker'
-import { replyText, sendMessageReply, serializeMessage } from '../utils/index'
 import { logCmd } from '../utils/logger'
 import { expand } from '../utils/predefined'
 import chalk from 'chalk'
@@ -15,7 +15,9 @@ const actions: { [index: string]: any } = expand({
   'ping, p': pingHandler,
   'help, h, ?': helpHandler,
   'sticker, stiker, s': stickerHandler,
-  mode: changePublicHandler,
+  'mode, public': changePublicHandler,
+  '=': evalJSON,
+  '>': evalJS,
 })
 
 export const messageHandler = async (
