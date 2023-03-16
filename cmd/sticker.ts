@@ -10,8 +10,8 @@ export const stickerHandler = async (
   data: Record<string, any>
 ) => {
   const {
-    cmd,
     from,
+    command,
     isMedia,
     isImage,
     isVideo,
@@ -21,7 +21,7 @@ export const stickerHandler = async (
     quotedMsg,
   } = data
   if (!isMedia)
-    throw `Error! Kirim gambar/video atau balas gambar/video dengan caption !${cmd}`
+    throw `Error! Kirim gambar/video atau balas gambar/video dengan caption !${command}`
   const mediaData = isQuoted
     ? await data.downloadQuoted()
     : await data.download()
@@ -37,6 +37,11 @@ export const stickerHandler = async (
     await sendSticker(waSocket, from, buffer, msg)
   }
   if (isVideo || isQuotedVideo) {
+    if (
+      msg.message?.videoMessage?.seconds! > 5 ||
+      quotedMsg?.videoMessage?.seconds! > 5
+    )
+      throw 'Video terlalu panjang! max 5 detik'
     const inputFilename = `./tmp/${Math.floor(Math.random() * 10000)}.mp4`
     const outputFilename = `./tmp/${Math.floor(Math.random() * 10000)}.webp`
     fs.writeFileSync(inputFilename, mediaData)

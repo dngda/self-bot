@@ -16,27 +16,50 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
     msg?.message?.conversation ||
     msg.message?.extendedTextMessage?.text ||
     msg.message?.imageMessage?.caption ||
-    msg.message?.videoMessage?.caption
+    msg.message?.videoMessage?.caption ||
+    msg.message?.ephemeralMessage?.message?.conversation ||
+    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.text ||
+    msg.message?.ephemeralMessage?.message?.imageMessage?.caption ||
+    msg.message?.ephemeralMessage?.message?.videoMessage?.caption
   data.isCmd = data.body?.substring(0, 1).match(process.env.PREFIX) != null
 
   data.command = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
   data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
   data.args = data.body?.split(' ').slice(1)
   data.from = msg.key.remoteJid!
+  data.fromMe = msg.key.fromMe
   data.name = msg.pushName
-
+  data.quotedMsg =
+    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
+    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
+      ?.quotedMessage?.ephemeralMessage?.message
   data.isGroup = data.from.endsWith('@g.us')
-  data.quotedMsg = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
+  data.groupName = () => {
+    return waSocket.groupMetadata(data.from).then((res) => res.subject)
+  }
   data.isQuotedImage = data.quotedMsg?.imageMessage != null
   data.isQuotedVideo = data.quotedMsg?.videoMessage != null
   data.isQuoted = data.quotedMsg != null
-  data.isImage = msg.message?.imageMessage != null
-  data.isVideo = msg.message?.videoMessage != null
+  data.isImage =
+    msg.message?.imageMessage != null ||
+    msg.message?.ephemeralMessage?.message?.imageMessage != null
+  data.isVideo =
+    msg.message?.videoMessage != null ||
+    msg.message?.ephemeralMessage?.message?.videoMessage != null
   data.isMedia =
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
-  data.groupName = msg.message?.groupInviteMessage?.groupName
+
   data.download = async () => {
-    return await downloadMediaMessage(msg, 'buffer', {})
+    let msgData: WAMessage
+    if (Object.keys(msg.message!)[0] == 'ephemeralMessage') {
+      msgData = {
+        key: msg.key,
+        message: msg.message?.ephemeralMessage?.message,
+      }
+    } else {
+      msgData = msg
+    }
+    return await downloadMediaMessage(msgData, 'buffer', {})
   }
   data.downloadQuoted = async () => {
     return await downloadMediaMessage(
@@ -44,6 +67,10 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
       'buffer',
       {}
     )
+  }
+
+  data.reply = async (text: string) => {
+    await waSocket.sendMessage(data.from, { text: text }, { quoted: msg })
   }
 
   return data
@@ -73,4 +100,21 @@ export const sendSticker = async (
   msg: WAMessage
 ) => {
   await waSocket.sendMessage(jid, { sticker: inputMedia }, { quoted: msg })
+}
+
+export const sendText = async (
+  waSocket: WASocket,
+  jid: string,
+  text: string
+) => {
+  await waSocket.sendMessage(jid, { text: text })
+}
+
+export const replyText = async (
+  waSocket: WASocket,
+  jid: string,
+  text: string,
+  quoted: WAMessage
+) => {
+  await waSocket.sendMessage(jid, { text: text }, { quoted: quoted })
 }

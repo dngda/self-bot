@@ -11,8 +11,15 @@ import makeWASocket, {
   delay,
   proto,
 } from '@adiwajshing/baileys'
-import { pino as MAIN_LOGGER, logPrefix } from './utils/logger'
+import { pino as MAIN_LOGGER } from './utils/logger'
 import { messageHandler } from './src/handler'
+import {
+  sendMessageReply,
+  sendSticker,
+  sendTyping,
+  replyText,
+  sendText,
+} from './utils'
 
 const logger = MAIN_LOGGER.child({})
 logger.level = 'fatal'
@@ -27,10 +34,7 @@ setInterval(() => {
 const startSock = async () => {
   const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info')
   const { version, isLatest } = await fetchLatestBaileysVersion()
-  console.log(
-    logPrefix,
-    `using WA v${version.join('.')}, isLatest: ${isLatest}`
-  )
+  console.log(`START! using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
   const waSocket = makeWASocket({
     version,
