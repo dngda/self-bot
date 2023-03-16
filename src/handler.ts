@@ -7,8 +7,12 @@ import { logCmd } from '../utils/logger'
 import chalk from 'chalk'
 import { getCommand } from './menu'
 
-export const config = {
-  isPublic: [] as string[],
+interface BotConfig {
+  publicModeChats: string[]
+}
+
+export const config: BotConfig = {
+  publicModeChats: [],
 }
 
 const actions: { [index: string]: any } = {
@@ -34,7 +38,7 @@ export const messageHandler = async (
 
     for (const msg of messages) {
       const from = msg.key.remoteJid!
-      if (msg.key.fromMe || config.isPublic.includes(from)) {
+      if (msg.key.fromMe || config.publicModeChats.includes(from)) {
         const data = serializeMessage(waSocket, msg)
         console.log(chalk.green('[LOG]'), 'Serialized', data)
         if (data.isCmd) {

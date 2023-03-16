@@ -2,15 +2,15 @@ import { WAMessage } from '@adiwajshing/baileys'
 import moment from 'moment-timezone'
 import chalk from 'chalk'
 import P from 'pino'
+import { MessageData } from '.'
 moment.tz.setDefault('Asia/Jakarta').locale('id')
 
 const pino = P({ timestamp: () => `,"time":"${new Date().toJSON()}"` })
-const logCmd = (msg: WAMessage, data: Record<string, any>) =>
+const logCmd = (msg: WAMessage, data: MessageData) => {
+  const ts = msg.messageTimestamp
   console.log(
     chalk.green('[CMD]'),
-    chalk.yellow(
-      moment(msg.messageTimestamp * 1000).format('DD/MM/YY HH:mm:ss')
-    ),
+    chalk.yellow(moment(1000 * ts).format('DD/MM/YY HH:mm:ss')),
     'cmd:',
     chalk.green(`${data.command}`),
     'args:',
@@ -20,4 +20,5 @@ const logCmd = (msg: WAMessage, data: Record<string, any>) =>
     'Jid:',
     chalk.green(`${data.from}`)
   )
+}
 export { logCmd, pino }

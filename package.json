@@ -28,6 +28,7 @@
     "figlet": "^1.5.2",
     "moment-timezone": "^0.5.41",
     "node-cache": "^5.1.2",
-    "wa-sticker-formatter": "^4.4.4"
+    "wa-sticker-formatter": "^4.4.4",
+    "typescript": "^5.0.2"
   }
 }

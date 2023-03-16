@@ -1,4 +1,13 @@
-const langId: Record<string, any> = {}
+import { MessageData } from '../utils'
+
+type LangCommand = {
+  hint: string
+  error?: Record<string, string>
+  usage?: (data: MessageData) => string
+  info?: (data: any) => string
+}
+
+const langId: Record<string, LangCommand> = {}
 
 langId.menu = {
   hint: 'Menampilkan menu bot',
@@ -11,7 +20,7 @@ langId.sticker = {
   error: {
     videoLimit: 'Video terlalu panjang, maksimal 5 detik',
   },
-  usage: (data: Record<string, any>) =>
+  usage: (data: MessageData) =>
     `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.command}`,
 }
 langId.public = {

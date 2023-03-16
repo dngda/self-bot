@@ -1,13 +1,13 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter'
-import { sendSticker } from '../utils'
+import { MessageData, sendSticker } from '../utils'
 import langId from '../src/lang'
 import fs from 'fs'
 
 export const stickerHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: Record<string, any>
+  data: MessageData
 ) => {
   const {
     from,

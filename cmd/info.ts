@@ -1,11 +1,11 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
-import { replyText, sendMessageReply, sendText } from '../utils'
+import { MessageData, replyText, sendMessageReply, sendText } from '../utils'
 import { getMenu } from '../src/menu'
 
 export const pingHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: Record<string, any>
+  data: MessageData
 ) => {
   const processTime = Date.now() - msg.messageTimestamp * 1000
   await replyText(waSocket, data.from, `Pong _${processTime} ms!_`, msg)
@@ -14,7 +14,7 @@ export const pingHandler = async (
 export const menuHandler = (
   waSocket: WASocket,
   msg: WAMessage,
-  data: Record<string, any>
+  data: MessageData
 ) => {
   const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
 
@@ -48,7 +48,7 @@ export const menuHandler = (
 export const evalJSON = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: Record<string, any>
+  data: MessageData
 ) => {
   if (!data.fromMe) return
   const { quotedMsg } = data
@@ -72,7 +72,7 @@ export const evalJSON = async (
 export const evalJS = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: Record<string, any>
+  data: MessageData
 ) => {
   if (!data.fromMe) return
   eval(`(async () => { ${data.args} })()`)
