@@ -1,24 +1,24 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { replyText, sendMessageReply, serializeMessage } from '../utils/index'
-import { evalJS, evalJSON, helpHandler, pingHandler } from '../cmd/info'
+import { evalJS, evalJSON, menuHandler, pingHandler } from '../cmd/info'
 import { changePublicHandler } from '../cmd/config'
 import { stickerHandler } from '../cmd/sticker'
 import { logCmd } from '../utils/logger'
-import { expand } from '../utils/predefined'
 import chalk from 'chalk'
+import { getCommand } from './menu'
 
 export const config = {
   isPublic: [] as string[],
 }
 
-const actions: { [index: string]: any } = expand({
-  'ping, p': pingHandler,
-  'help, h, ?': helpHandler,
-  'sticker, stiker, s': stickerHandler,
-  'mode, public': changePublicHandler,
-  '=': evalJSON,
-  '>': evalJS,
-})
+const actions: { [index: string]: any } = {
+  ping: pingHandler,
+  menu: menuHandler,
+  sticker: stickerHandler,
+  public: changePublicHandler,
+  return: evalJSON,
+  eval: evalJS,
+}
 
 export const messageHandler = async (
   waSocket: WASocket,
@@ -40,8 +40,9 @@ export const messageHandler = async (
         if (data.isCmd) {
           try {
             logCmd(msg, data)
-            if (data.command in actions) {
-              await actions[data.command](waSocket, msg, data)
+            const cmd = getCommand(data.command) || ''
+            if (cmd in actions) {
+              await actions[cmd](waSocket, msg, data)
             }
           } catch (error) {
             console.log(error)

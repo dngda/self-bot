@@ -1,6 +1,7 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter'
 import { sendSticker } from '../utils'
+import langId from '../src/lang'
 import fs from 'fs'
 
 export const stickerHandler = async (
@@ -20,8 +21,7 @@ export const stickerHandler = async (
     isQuotedVideo,
     quotedMsg,
   } = data
-  if (!isMedia)
-    throw `Error! Kirim gambar/video atau balas gambar/video dengan caption !${command}`
+  if (!isMedia) throw `Error! ${langId.sticker.usage(data)}`
   const mediaData = isQuoted
     ? await data.downloadQuoted()
     : await data.download()
@@ -32,9 +32,8 @@ export const stickerHandler = async (
     const sticker = new Sticker(mediaData, {
       pack: packname,
       author: author,
-      type: StickerTypes.FULL,
+      type: StickerTypes.ROUNDED,
       quality: 80,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
   }
@@ -43,13 +42,12 @@ export const stickerHandler = async (
       msg.message?.videoMessage?.seconds! > 5 ||
       quotedMsg?.videoMessage?.seconds! > 5
     )
-      throw 'Video terlalu panjang! max 5 detik'
+      throw langId.sticker.error.videoLimit
     const sticker = new Sticker(mediaData, {
       pack: packname,
       author: author,
       type: StickerTypes.CROPPED,
       quality: 50,
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
     })
     await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
   }

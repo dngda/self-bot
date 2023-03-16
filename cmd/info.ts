@@ -1,5 +1,6 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { replyText, sendMessageReply, sendText } from '../utils'
+import { getMenu } from '../src/menu'
 
 export const pingHandler = async (
   waSocket: WASocket,
@@ -10,20 +11,38 @@ export const pingHandler = async (
   await replyText(waSocket, data.from, `Pong _${processTime} ms!_`, msg)
 }
 
-export const helpHandler = async (
+export const menuHandler = (
   waSocket: WASocket,
   msg: WAMessage,
   data: Record<string, any>
 ) => {
-  await replyText(
-    waSocket,
-    data.from,
-    `Commands yang tersedia:
-ping - balas dengan pong!
-help - tampilkan pesan ini
-sticker - convert media to sticker`,
-    msg
-  )
+  const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
+
+  let menuMsg = `  ╔══╗────────╔══╗───╔═╦╗──╔╗
+  ║══╬═╦╦╦═╦══╣══╬═╦╗║═╣╚╦═╣╚╗
+  ╠══║╩╣╔╣╬╠══╬══║╩╣╚╣╔╣╬║╬║╔╣
+  ╚══╩═╩╝╚═╝──╚══╩═╩═╩╝╚═╩═╩═╝
+  `
+  const menus = getMenu()
+  const menuTypes = menus.map((menu) => {
+    return menu.type
+  })
+  const setMenuTypes = [...new Set(menuTypes)]
+  for (const type of setMenuTypes) {
+    menuMsg += `\n╔══✪〘 ${type.replace(/^\w/, (c) => c.toUpperCase())} 〙✪`
+    for (const sub of menus.filter((menu) => menu.type === type)) {
+      const alias = sub.alias
+        .split(', ')
+        .concat(sub.command)
+        .map((a: string) => {
+          return m(a)
+        })
+      menuMsg += `\n╠> ${alias.join(' or ')}\n`
+      menuMsg += `║   ${sub.hint}`
+    }
+    menuMsg += '\n╚══✪\n'
+  }
+  sendText(waSocket, data.from, menuMsg)
 }
 
 export const evalJSON = async (
@@ -56,5 +75,5 @@ export const evalJS = async (
   data: Record<string, any>
 ) => {
   if (!data.fromMe) return
-  eval(data.args)
+  eval(`(async () => { ${data.args} })()`)
 }
