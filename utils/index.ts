@@ -8,6 +8,7 @@ import {
   delay,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
+import { config } from '../src/handler'
 dotenv.config()
 
 export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
@@ -25,10 +26,11 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
 
   data.command = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
   data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
-  data.args = data.body?.split(' ').slice(1)
+  data.args = data.body?.replace(data.prefix + data.command, '').trim()
   data.from = msg.key.remoteJid!
   data.fromMe = msg.key.fromMe
   data.name = msg.pushName
+  data.config = config
   data.quotedMsg =
     msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo

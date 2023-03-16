@@ -13,6 +13,8 @@ import makeWASocket, {
 } from '@adiwajshing/baileys'
 import { pino as MAIN_LOGGER } from './utils/logger'
 import { messageHandler } from './src/handler'
+import { textSync } from 'figlet'
+import chalk from 'chalk'
 import {
   sendMessageReply,
   sendSticker,
@@ -20,9 +22,10 @@ import {
   replyText,
   sendText,
 } from './utils'
-
+import dotenv from 'dotenv'
+dotenv.config()
 const logger = MAIN_LOGGER.child({})
-logger.level = 'fatal'
+logger.level = 'error'
 
 const store = makeInMemoryStore({ logger })
 store?.readFromFile('./baileys_store_multi.json')
@@ -34,7 +37,12 @@ setInterval(() => {
 const startSock = async () => {
   const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info')
   const { version, isLatest } = await fetchLatestBaileysVersion()
-  console.log(`START! using WA v${version.join('.')}, isLatest: ${isLatest}`)
+  console.log(
+    chalk.red(
+      textSync('SELF-BOT', { horizontalLayout: 'full', font: 'Alligator' })
+    )
+  )
+  console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
   const waSocket = makeWASocket({
     version,
@@ -63,7 +71,13 @@ const startSock = async () => {
           console.log('Connection closed. You are logged out.')
         }
       }
-      console.log('connection update', update)
+      console.log('Connection update:', update)
+
+      if (connection === 'open') {
+        console.log(
+          chalk.yellow('!---------------BOT IS READY---------------!')
+        )
+      }
     }
 
     if (events['creds.update']) {

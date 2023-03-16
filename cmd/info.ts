@@ -44,7 +44,7 @@ export const evalJSON = async (
     await replyText(
       waSocket,
       data.from,
-      JSON.stringify(eval(data.args.join(' ')), null, 2),
+      JSON.stringify(eval(data.args), null, 2),
       msg
     )
   }
@@ -56,5 +56,5 @@ export const evalJS = async (
   data: Record<string, any>
 ) => {
   if (!data.fromMe) return
-  eval(data.args.join(' '))
+  eval(data.args)
 }

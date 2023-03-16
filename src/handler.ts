@@ -8,7 +8,7 @@ import { expand } from '../utils/predefined'
 import chalk from 'chalk'
 
 export const config = {
-  isPublic: false,
+  isPublic: [] as string[],
 }
 
 const actions: { [index: string]: any } = expand({
@@ -29,17 +29,14 @@ export const messageHandler = async (
 ) => {
   const { type, messages } = event
   if (type === 'notify') {
-    console.log('[LOG]', 'Message received', messages)
-    console.log(
-      '[LOG]',
-      'Message extendedTextMessage',
-      messages[0].message?.extendedTextMessage
-    )
+    console.log(chalk.green('[LOG]'), 'Message received', messages)
+    console.log(chalk.green('[LOG]'), 'Data type', messages[0].message)
 
     for (const msg of messages) {
-      if (msg.key.fromMe || config.isPublic) {
+      const from = msg.key.remoteJid!
+      if (msg.key.fromMe || config.isPublic.includes(from)) {
         const data = serializeMessage(waSocket, msg)
-        console.log(data)
+        console.log(chalk.green('[LOG]'), 'Serialized', data)
         if (data.isCmd) {
           try {
             logCmd(msg, data)

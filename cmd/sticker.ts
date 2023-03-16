@@ -1,7 +1,6 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
-import { convertMp4ToWebp } from '../utils/converter'
+import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter'
 import { sendSticker } from '../utils'
-import sharp from 'sharp'
 import fs from 'fs'
 
 export const stickerHandler = async (
@@ -11,6 +10,7 @@ export const stickerHandler = async (
 ) => {
   const {
     from,
+    args,
     command,
     isMedia,
     isImage,
@@ -25,16 +25,18 @@ export const stickerHandler = async (
   const mediaData = isQuoted
     ? await data.downloadQuoted()
     : await data.download()
+
+  const packname = args.split('|')[0] || process.env.PACKNAME!
+  const author = args.split('|')[1] || process.env.AUTHOR!
   if (isImage || isQuotedImage) {
-    const buffer = await sharp(mediaData)
-      .flatten()
-      .resize(512, 512, {
-        fit: 'contain',
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      })
-      .webp()
-      .toBuffer()
-    await sendSticker(waSocket, from, buffer, msg)
+    const sticker = new Sticker(mediaData, {
+      pack: packname,
+      author: author,
+      type: StickerTypes.FULL,
+      quality: 80,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
   }
   if (isVideo || isQuotedVideo) {
     if (
@@ -42,12 +44,13 @@ export const stickerHandler = async (
       quotedMsg?.videoMessage?.seconds! > 5
     )
       throw 'Video terlalu panjang! max 5 detik'
-    const inputFilename = `./tmp/${Math.floor(Math.random() * 10000)}.mp4`
-    const outputFilename = `./tmp/${Math.floor(Math.random() * 10000)}.webp`
-    fs.writeFileSync(inputFilename, mediaData)
-    await convertMp4ToWebp(inputFilename, outputFilename)
-    await sendSticker(waSocket, from, { url: outputFilename }, msg)
-    fs.unlink(inputFilename, () => {})
-    fs.unlink(outputFilename, () => {})
+    const sticker = new Sticker(mediaData, {
+      pack: packname,
+      author: author,
+      type: StickerTypes.CROPPED,
+      quality: 50,
+      background: { r: 0, g: 0, b: 0, alpha: 0 },
+    })
+    await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
   }
 }
