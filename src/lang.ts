@@ -23,7 +23,7 @@ stringId.public = {
   hint: 'Toggle public mode pada chat ini',
   info: (isPublic: boolean) =>
     `Bot sekarang dalam mode ${
-      isPublic ? '*public*' : '*private*'
+      isPublic ? '*public, gunakan prefix !*' : '*private*'
     } di chat ini!`,
 }
 stringId.eval = {
