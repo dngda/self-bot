@@ -1,23 +1,38 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { replyText, sendMessageReply, serializeMessage } from '../utils/index'
-import { evalJS, evalJSON, menuHandler, pingHandler } from '../cmd/info'
+import { menuHandler, pingHandler } from '../cmd/general'
 import { changePublicHandler } from '../cmd/config'
 import { stickerHandler } from '../cmd/sticker'
+import { evalJS, evalJSON } from '../cmd/owner'
+import { flipHandler } from '../cmd/tools'
 import { logCmd } from '../utils/logger'
-import chalk from 'chalk'
 import { getCommand } from './menu'
+import chalk from 'chalk'
+import fs from 'fs'
 
 interface BotConfig {
   publicModeChats: string[]
 }
 
-export const config: BotConfig = {
+export let config: BotConfig = {
   publicModeChats: [],
 }
+
+fs.promises.readFile('./src/data/config.json', 'utf-8').then((data) => {
+  config = JSON.parse(data)
+})
+
+setInterval(() => {
+  fs.promises.writeFile(
+    './src/data/config.json',
+    JSON.stringify(config, null, 2)
+  )
+}, 5000)
 
 const actions: { [index: string]: any } = {
   ping: pingHandler,
   menu: menuHandler,
+  flip: flipHandler,
   sticker: stickerHandler,
   public: changePublicHandler,
   return: evalJSON,

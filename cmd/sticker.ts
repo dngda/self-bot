@@ -2,7 +2,7 @@ import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { MessageData, sendSticker } from '../utils'
-import stringId from '../src/lang'
+import stringId from '../src/language'
 import lodash from 'lodash'
 import fs from 'fs'
 

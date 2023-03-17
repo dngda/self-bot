@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
-import stringId from '../src/lang'
+import stringId from '../src/language'
 import { config } from '../src/handler'
 import { MessageData, replyText } from '../utils'
 
@@ -17,5 +17,5 @@ export const changePublicHandler = async (
   } else {
     config.publicModeChats.push(data.from)
   }
-  await replyText(waSocket, data.from, stringId.config.info(isPublic), msg)
+  await replyText(waSocket, data.from, stringId.public.info(isPublic), msg)
 }

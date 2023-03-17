@@ -1,23 +1,29 @@
-import stringId from './lang'
+import stringId from './language'
 
 const menu = [
   {
     command: 'menu',
     hint: stringId.menu.hint,
     alias: 'm, start, help, ?',
-    type: 'info',
+    type: 'general',
   },
   {
     command: 'ping',
     hint: stringId.ping.hint,
     alias: 'p',
-    type: 'info',
+    type: 'general',
   },
   {
     command: 'sticker',
     hint: stringId.sticker.hint,
     alias: 'stiker, s',
-    type: 'general',
+    type: 'sticker',
+  },
+  {
+    command: 'flip',
+    hint: stringId.flip.hint,
+    alias: 'flop',
+    type: 'tools',
   },
   {
     command: 'public',
@@ -28,13 +34,13 @@ const menu = [
   {
     command: 'eval',
     hint: stringId.eval.hint,
-    alias: '=',
+    alias: '>',
     type: 'owner',
   },
   {
     command: 'return',
     hint: stringId.return.hint,
-    alias: '>',
+    alias: '=',
     type: 'owner',
   },
 ]

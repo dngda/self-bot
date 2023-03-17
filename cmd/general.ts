@@ -46,36 +46,3 @@ export const menuHandler = (
   }
   sendText(waSocket, data.from, menuMsg)
 }
-
-export const evalJSON = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
-) => {
-  if (!data.fromMe) return
-  const { quotedMsg } = data
-  if (quotedMsg) {
-    await replyText(
-      waSocket,
-      data.from,
-      JSON.stringify(quotedMsg, null, 2),
-      msg
-    )
-  } else {
-    await replyText(
-      waSocket,
-      data.from,
-      JSON.stringify(eval(data.args), null, 2),
-      msg
-    )
-  }
-}
-
-export const evalJS = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
-) => {
-  if (!data.fromMe) return
-  eval(`(async () => { ${data.args} })()`)
-}

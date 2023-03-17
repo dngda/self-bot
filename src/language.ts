@@ -19,6 +19,12 @@ stringId.sticker = {
     edit packname/author dengan menambahkan argument packname|author,
     contoh: ${data.prefix}${data.command} -r packname|author`,
 }
+stringId.flip = {
+  hint: 'Flop gambar horizontal, Flip gambar vertikal',
+  error: {
+    noImage: 'Error! Gambar tidak ditemukan!',
+  },
+}
 stringId.public = {
   hint: 'Toggle public mode pada chat ini',
   info: (isPublic: boolean) =>
