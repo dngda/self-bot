@@ -1,5 +1,11 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
-import { replyText, sendMessageReply, serializeMessage } from '../utils/index'
+import {
+  MessageData,
+  replyText,
+  sendMessageReply,
+  sendText,
+  serializeMessage,
+} from '../utils/index'
 import { menuHandler, pingHandler } from '../cmd/general'
 import { changePublicHandler } from '../cmd/config'
 import { stickerHandler } from '../cmd/sticker'
@@ -52,9 +58,10 @@ export const messageHandler = async (
     console.log(chalk.green('[LOG]'), 'Data type', messages[0].message)
 
     for (const msg of messages) {
-      const from = msg.key.remoteJid!
-      if (msg.key.fromMe || config.publicModeChats.includes(from)) {
-        const data = serializeMessage(waSocket, msg)
+      const data = serializeMessage(waSocket, msg)
+      plainHandler(waSocket, msg, data)
+
+      if (msg.key.fromMe || config.publicModeChats.includes(data.from)) {
         console.log(chalk.green('[LOG]'), 'Serialized', data)
         if (data.isCmd) {
           try {
@@ -70,5 +77,20 @@ export const messageHandler = async (
         }
       }
     }
+  }
+}
+
+const plainHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  switch (data.body) {
+    case '--i':
+      sendText(waSocket, data.from, '/ingfo-atas')
+      break
+
+    default:
+      break
   }
 }
