@@ -39,7 +39,10 @@ const startSock = async () => {
   const { version, isLatest } = await fetchLatestBaileysVersion()
   console.log(
     chalk.red(
-      textSync('SELF-BOT', { horizontalLayout: 'full', font: 'Alligator' })
+      textSync('SERO SELFBOT', {
+        horizontalLayout: 'fitted',
+        font: 'Letters',
+      })
     )
   )
   console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)

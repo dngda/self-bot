@@ -1,5 +1,6 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData, replyText, sendMessageReply, sendText } from '../utils'
+import { textSync } from 'figlet'
 import { getMenu } from '../src/menu'
 
 export const pingHandler = async (
@@ -18,11 +19,10 @@ export const menuHandler = (
 ) => {
   const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
 
-  let menuMsg = `  ╔══╗────────╔══╗───╔═╦╗──╔╗
-  ║══╬═╦╦╦═╦══╣══╬═╦╗║═╣╚╦═╣╚╗
-  ╠══║╩╣╔╣╬╠══╬══║╩╣╚╣╔╣╬║╬║╔╣
-  ╚══╩═╩╝╚═╝──╚══╩═╩═╩╝╚═╩═╩═╝
-  `
+  let menuMsg = textSync('Sero', {
+    horizontalLayout: 'default',
+    font: 'Marquee',
+  })
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type
