@@ -32,8 +32,8 @@ export interface MessageData {
   isImage: boolean | null
   isVideo: boolean | null
   isMedia: boolean | null
-  download: () => Promise<Buffer | internal.Transform>
-  downloadQuoted: () => Promise<Buffer | internal.Transform>
+  download: () => Promise<Buffer>
+  downloadQuoted: () => Promise<Buffer>
   reply: (text: string) => Promise<void>
 }
 
@@ -89,14 +89,14 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
     } else {
       msgData = msg
     }
-    return await downloadMediaMessage(msgData, 'buffer', {})
+    return (await downloadMediaMessage(msgData, 'buffer', {})) as Buffer
   }
   data.downloadQuoted = async () => {
-    return await downloadMediaMessage(
+    return (await downloadMediaMessage(
       { key: msg.key, message: data.quotedMsg },
       'buffer',
       {}
-    )
+    )) as Buffer
   }
 
   data.reply = async (text: string) => {

@@ -1,39 +1,39 @@
-import langId from './lang'
+import stringId from './lang'
 
 const menu = [
   {
     command: 'menu',
-    hint: langId.menu.hint,
+    hint: stringId.menu.hint,
     alias: 'm, start, help, ?',
     type: 'info',
   },
   {
     command: 'ping',
-    hint: langId.ping.hint,
+    hint: stringId.ping.hint,
     alias: 'p',
     type: 'info',
   },
   {
     command: 'sticker',
-    hint: langId.sticker.hint,
+    hint: stringId.sticker.hint,
     alias: 'stiker, s',
     type: 'general',
   },
   {
     command: 'public',
-    hint: langId.public.hint,
+    hint: stringId.public.hint,
     alias: 'mode',
     type: 'config',
   },
   {
     command: 'eval',
-    hint: langId.eval.hint,
+    hint: stringId.eval.hint,
     alias: '=',
     type: 'owner',
   },
   {
     command: 'return',
-    hint: langId.return.hint,
+    hint: stringId.return.hint,
     alias: '>',
     type: 'owner',
   },

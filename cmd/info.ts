@@ -27,7 +27,9 @@ export const menuHandler = (
   const menuTypes = menus.map((menu) => {
     return menu.type
   })
-  const setMenuTypes = [...new Set(menuTypes)]
+  let setMenuTypes = [...new Set(menuTypes)]
+  if (!data.fromMe)
+    setMenuTypes = setMenuTypes.filter((type) => type.match(/owner|config/i))
   for (const type of setMenuTypes) {
     menuMsg += `\n╔══✪〘 ${type.replace(/^\w/, (c) => c.toUpperCase())} 〙✪`
     for (const sub of menus.filter((menu) => menu.type === type)) {
