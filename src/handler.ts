@@ -57,9 +57,12 @@ export const messageHandler = async (
   const { type, messages } = event
   if (type === 'notify') {
     console.log(chalk.green('[LOG]'), 'Message received', messages)
-    console.log(chalk.green('[LOG]'), 'Data type', messages[0].message)
-
     for (const msg of messages) {
+      console.log(chalk.green('[LOG]'), 'Data type', msg.message)
+      if (
+        msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast'
+      )
+        return
       const data = serializeMessage(waSocket, msg)
       plainHandler(waSocket, msg, data)
 
