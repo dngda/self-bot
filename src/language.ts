@@ -17,9 +17,12 @@ stringId.sticker = {
   },
   usage: (data: MessageData) =>
     `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.command}
-    tambahkan argument -r untuk membuat sticker rounded, -c untuk membuat sticker cropped,
+    tambahkan argument:
+    -r untuk membuat sticker rounded corner,
+    -c untuk membuat sticker square cropped,
+    -nobg untuk membuat sticker tanpa background,
     edit packname/author dengan menambahkan argument packname|author,
-    contoh: ${data.prefix}${data.command} -r packname|author`,
+    contoh: ${data.prefix}${data.command} -r -nobg created with|serobot✨`,
 }
 stringId.flip = {
   hint: 'Flop gambar horizontal, Flip gambar vertikal',

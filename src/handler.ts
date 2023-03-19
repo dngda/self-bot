@@ -88,10 +88,12 @@ const plainHandler = async (
   data: MessageData
 ) => {
   switch (data.body) {
-    case '--i':
+    case '-i':
       sendText(waSocket, data.from, '/ingfo-atas')
       break
-
+    case '-c':
+      sendText(waSocket, data.from, '/ingfo-cuaca')
+      break
     default:
       break
   }
