@@ -1,7 +1,6 @@
 import {
   downloadMediaMessage,
   WAMediaUpload,
-  MessageType,
   WAMessage,
   WASocket,
   delay,
@@ -9,7 +8,6 @@ import {
   WAMessageContent,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
-import internal from 'stream'
 import { config } from '../src/handler'
 dotenv.config()
 

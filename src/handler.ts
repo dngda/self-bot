@@ -2,7 +2,6 @@ import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import {
   MessageData,
   replyText,
-  sendMessageReply,
   sendText,
   serializeMessage,
 } from '../utils/index'
@@ -89,7 +88,7 @@ export const messageHandler = async (
 
 const plainHandler = async (
   waSocket: WASocket,
-  msg: WAMessage,
+  _: WAMessage,
   data: MessageData
 ) => {
   switch (data.body) {

@@ -10,7 +10,7 @@ const logCmd = (msg: WAMessage, data: MessageData) => {
   const ts = msg.messageTimestamp
   console.log(
     chalk.green('[CMD]'),
-    chalk.yellow(moment(1000 * ts).format('DD/MM/YY HH:mm:ss')),
+    chalk.yellow(moment(1000 * (ts as number)).format('DD/MM/YY HH:mm:ss')),
     'cmd:',
     chalk.green(`${data.command}`),
     'args:',

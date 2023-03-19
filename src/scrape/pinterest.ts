@@ -20,10 +20,10 @@ export default (query: string) =>
         let hasil: string[] = []
         $(
           'body > div > div > div > div > div > div > div > div > div > div > div'
-        ).each(function (a, b) {
+        ).each(function (_, b) {
           $(b)
             .find('div')
-            .each(function (c, d) {
+            .each(function (_, d) {
               let Link = $(d)
                 .find('div > div > div > div > a')
                 .find('img')

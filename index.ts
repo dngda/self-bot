@@ -3,25 +3,13 @@ import makeWASocket, {
   makeCacheableSignalKeyStore,
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
-  AnyMessageContent,
   makeInMemoryStore,
   DisconnectReason,
-  WAMessageContent,
-  WAMessageKey,
-  delay,
-  proto,
 } from '@adiwajshing/baileys'
 import { pino as MAIN_LOGGER } from './utils/logger'
 import { messageHandler } from './src/handler'
 import { textSync } from 'figlet'
 import chalk from 'chalk'
-import {
-  sendMessageReply,
-  sendSticker,
-  sendTyping,
-  replyText,
-  sendText,
-} from './utils'
 import dotenv from 'dotenv'
 dotenv.config()
 const logger = MAIN_LOGGER.child({})
