@@ -20,16 +20,16 @@ export interface MessageData {
   from: string
   fromMe: boolean | null | undefined
   name: string | null | undefined
-  config: Record<string, any>
   quotedMsg: WAMessageContent | null | undefined
   isGroup: boolean
-  groupName: () => Promise<string | null | undefined>
   isQuotedImage: boolean | null
   isQuotedVideo: boolean | null
   isQuoted: boolean | null
   isImage: boolean | null
   isVideo: boolean | null
   isMedia: boolean | null
+  config: Record<string, any>
+  groupName: () => Promise<string | null | undefined>
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
   reply: (text: string) => Promise<void>
