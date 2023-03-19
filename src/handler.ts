@@ -24,9 +24,11 @@ export let config: BotConfig = {
   publicModeChats: [],
 }
 
-fs.promises.readFile('./src/data/config.json', 'utf-8').then((data) => {
-  config = JSON.parse(data)
-})
+if (fs.existsSync('./src/data/config.json')) {
+  fs.promises.readFile('./src/data/config.json', 'utf-8').then((data) => {
+    config = JSON.parse(data)
+  })
+}
 
 setInterval(() => {
   fs.promises.writeFile(

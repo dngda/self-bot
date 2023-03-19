@@ -9,13 +9,15 @@ export const changePublicHandler = async (
   data: MessageData
 ) => {
   if (!data.fromMe) return
-  const isPublic = config.publicModeChats.includes(data.from)
+  let isPublic = config.publicModeChats.includes(data.from)
   if (isPublic) {
     config.publicModeChats = config.publicModeChats.filter(
       (x) => x !== data.from
     )
+    isPublic = false
   } else {
     config.publicModeChats.push(data.from)
+    isPublic = true
   }
   await replyText(waSocket, data.from, stringId.public.info(isPublic), msg)
 }

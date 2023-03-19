@@ -1,7 +1,7 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, createSticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
-import { MessageData, sendSticker } from '../utils'
+import { MessageData, sendSticker, sendText } from '../utils'
 import stringId from '../src/language'
 import lodash from 'lodash'
 import fs from 'fs'
@@ -56,12 +56,23 @@ export const stickerHandler = async (
     )
       throw stringId.sticker.error.videoLimit
     Stype = args.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.CROPPED
-    const sticker = new Sticker(mediaData, {
-      pack: packname,
-      author: author,
-      type: Stype,
-      quality: 50,
-    })
-    await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
+
+    let defaultQuality = 80
+    const doConvert = (quality: number = defaultQuality) => {
+      return new Sticker(mediaData, {
+        pack: packname,
+        author: author,
+        type: Stype,
+        quality: quality,
+      }).toBuffer()
+    }
+    let resultBuffer = await doConvert()
+    while (resultBuffer.length > 1024 * 1024) {
+      sendText(waSocket, from, stringId.sticker.error.quality(defaultQuality))
+      defaultQuality -= 10
+      resultBuffer = await doConvert(defaultQuality)
+    }
+
+    await sendSticker(waSocket, from, resultBuffer, msg)
   }
 }
