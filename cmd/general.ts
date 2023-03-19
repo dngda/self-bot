@@ -19,10 +19,7 @@ export const menuHandler = (
 ) => {
   const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
 
-  let menuMsg = textSync('Sero', {
-    horizontalLayout: 'default',
-    font: 'Marquee',
-  })
+  let menuMsg = `🤖 ------ SeroBot (Self) Menu ------ 🤖\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type
@@ -44,5 +41,8 @@ export const menuHandler = (
     }
     menuMsg += '\n╚══✪\n'
   }
+  menuMsg += `\nCode: https://github.com/dngda/self-bot `
+  menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
+  menuMsg += `\nThanks for using this bot! 🙏`
   sendText(waSocket, data.from, menuMsg)
 }

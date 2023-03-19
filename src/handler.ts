@@ -15,6 +15,7 @@ import { logCmd } from '../utils/logger'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
+import { pinterestHandler } from '../cmd/scrape'
 
 interface BotConfig {
   publicModeChats: string[]
@@ -38,13 +39,14 @@ setInterval(() => {
 }, 5000)
 
 const actions: { [index: string]: any } = {
-  ping: pingHandler,
-  menu: menuHandler,
+  eval: evalJS,
   flip: flipHandler,
-  sticker: stickerHandler,
+  menu: menuHandler,
+  ping: pingHandler,
+  pinterest: pinterestHandler,
   public: changePublicHandler,
   return: evalJSON,
-  eval: evalJS,
+  sticker: stickerHandler,
 }
 
 export const messageHandler = async (

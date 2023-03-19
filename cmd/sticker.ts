@@ -23,7 +23,7 @@ export const stickerHandler = async (
     isQuotedVideo,
     quotedMsg,
   } = data
-  if (!isMedia) throw `Error! ${stringId.sticker.usage(data)}`
+  if (!isMedia) throw `‼️Error! ${stringId.sticker.usage(data)}`
   let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
 
   let Stype = args.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL

@@ -26,6 +26,12 @@ const menu = [
     type: 'tools',
   },
   {
+    command: 'pinterest',
+    hint: stringId.pinterest.hint,
+    alias: 'pin',
+    type: 'scraper',
+  },
+  {
     command: 'public',
     hint: stringId.public.hint,
     alias: 'mode',
