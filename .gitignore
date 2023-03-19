@@ -1,8 +1,7 @@
-baileys_auth_info
-baileys_store_multi.json
+.env
+env/*
 tmp/*
 node_modules
 package-lock.json
-.env
 src/data/*
-build/
+build/*

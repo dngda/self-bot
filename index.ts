@@ -16,14 +16,16 @@ const logger = MAIN_LOGGER.child({})
 logger.level = 'error'
 
 const store = makeInMemoryStore({ logger })
-store?.readFromFile('./baileys_store_multi.json')
+store?.readFromFile('./env/baileys_store_multi.json')
 
 setInterval(() => {
-  store?.writeToFile('./baileys_store_multi.json')
+  store?.writeToFile('./env/baileys_store_multi.json')
 }, 10_000)
 
 const startSock = async () => {
-  const { state, saveCreds } = await useMultiFileAuthState('baileys_auth_info')
+  const { state, saveCreds } = await useMultiFileAuthState(
+    './env/baileys_auth_info'
+  )
   const { version, isLatest } = await fetchLatestBaileysVersion()
   console.log(
     chalk.red(
