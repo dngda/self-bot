@@ -1,7 +1,7 @@
 .env
-env/*
-tmp/*
+env
+tmp
 node_modules
 package-lock.json
-src/data/*
-build/*
+src/data
+build

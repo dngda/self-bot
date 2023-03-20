@@ -72,7 +72,7 @@ export const messageHandler = async (
         if (data.isCmd) {
           try {
             logCmd(msg, data)
-            const cmd = getCommand(data.command) || ''
+            const cmd = getCommand(data.cmd) || ''
             if (cmd in actions) {
               await actions[cmd](waSocket, msg, data)
             }

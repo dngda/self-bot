@@ -16,10 +16,10 @@ stringId.sticker = {
       `⏳ Hasil > 1MB dengan Q: ${q}%, mencoba menurunkan kualitas...`,
   },
   usage: (data: MessageData) =>
-    `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.command}
+    `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
 ⚙️ Gunakan: '-r' rounded corner, '-c' square cropped, '-nobg' hapus bg,
 ⚙️ Custom packname/author dengan args 'packname|author',
-➡️ Contoh: ${data.prefix}${data.command} -r -nobg created with|serobot✨`,
+➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
 }
 stringId.flip = {
   hint: '🖼️ flip = vertikal, flop = horizontal',
@@ -37,7 +37,7 @@ stringId.public = {
 stringId.pinterest = {
   hint: '🔍 Search gambar di pinterest',
   usage: (data: MessageData) =>
-    `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.command} <query>`,
+    `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.cmd} <query>`,
 }
 stringId.eval = {
   hint: 'Evaluate JS/TS code',

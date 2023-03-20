@@ -14,7 +14,7 @@ dotenv.config()
 export interface MessageData {
   body: string | null | undefined
   isCmd: boolean
-  command: string
+  cmd: string
   prefix: string
   args: string
   from: string
@@ -50,13 +50,12 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
     ? true
     : false
 
-  data.command = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
+  data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
   data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
-  data.args = data.body?.replace(data.prefix + data.command, '').trim() || ''
+  data.args = data.body?.replace(data.prefix + data.cmd, '').trim() || ''
   data.from = msg.key.remoteJid!
   data.fromMe = msg.key.fromMe
   data.name = msg.pushName
-  data.config = config
   data.quotedMsg =
     msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
@@ -76,6 +75,8 @@ export const serializeMessage = (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.ephemeralMessage?.message?.videoMessage != null
   data.isMedia =
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
+
+  data.config = config
 
   data.download = async () => {
     let msgData: WAMessage
