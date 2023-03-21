@@ -58,40 +58,41 @@ export const messageHandler = async (
   }
 ) => {
   const { type, messages } = event
-  if (type === 'notify') {
-    console.log(chalk.green('[LOG]'), 'Message received', messages)
-    for (const msg of messages) {
-      console.log(chalk.green('[LOG]'), 'Data type', msg.message)
-      if (
-        msg.message?.senderKeyDistributionMessage?.groupId ==
-          'status@broadcast' ||
-        msg.key.remoteJid == 'status@broadcast'
-      )
-        return
-      if (msg.message?.protocolMessage?.type == 5)
-        return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+  if (type === 'append') return null
+  console.log(chalk.green('[LOG]'), 'Message received', messages)
 
-      const data = await serializeMessage(waSocket, msg)
-      plainHandler(waSocket, msg, data)
+  for (const msg of messages) {
+    console.log(chalk.red('[LOG]'), 'Data type', msg.message)
+    if (isStatusMessage(msg)) return null
+    if (isHistorySync(msg))
+      return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
 
-      if (msg.key.fromMe || config.publicModeChats.includes(data.from)) {
-        console.log(chalk.green('[LOG]'), 'Serialized', data)
-        if (data.isCmd) {
-          try {
-            logCmd(msg, data)
-            const cmd = getCommand(data.cmd) || ''
-            if (cmd in actions) {
-              await actions[cmd](waSocket, msg, data)
-            }
-          } catch (error) {
-            console.log(error)
-            replyText(waSocket, data.from, `${error}`, msg)
-          }
+    const data = await serializeMessage(waSocket, msg)
+    plainHandler(waSocket, msg, data)
+
+    if ((msg.key.fromMe || isAllowedChat) && data.isCmd) {
+      console.log(chalk.green('[LOG]'), 'Serialized', data)
+      try {
+        logCmd(msg, data)
+        const cmd = getCommand(data.cmd) || ''
+        if (cmd in actions) {
+          await actions[cmd](waSocket, msg, data)
         }
+      } catch (error) {
+        console.log(error)
+        replyText(waSocket, data.from, `${error}`, msg)
       }
     }
   }
 }
+
+const isAllowedChat = (data: MessageData) =>
+  config.publicModeChats.includes(data.from)
+const isStatusMessage = (msg: WAMessage) =>
+  msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
+  msg.key.remoteJid == 'status@broadcast'
+const isHistorySync = (msg: WAMessage) =>
+  msg.message?.protocolMessage?.type == 5
 
 const plainHandler = async (
   waSocket: WASocket,

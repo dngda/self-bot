@@ -8,14 +8,8 @@ export const flipHandler = async (
   msg: WAMessage,
   data: MessageData
 ) => {
-  const {
-    isQuotedImage,
-    isImage,
-    cmd,
-    download,
-    downloadQuoted,
-  } = data
-  if (!isImage && !isQuotedImage) throw stringId.flip.error.noImage
+  const { isQuotedImage, isImage, cmd, download, downloadQuoted } = data
+  if (!isImage && !isQuotedImage) throw new Error(stringId.flip.error.noImage)
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
   const image = await sharp(mediaData)
   if (cmd === 'flip')

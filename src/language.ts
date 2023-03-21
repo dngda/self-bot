@@ -12,7 +12,7 @@ stringId.ping = {
 stringId.sticker = {
   hint: '🖼️ Convert media ke sticker',
   error: {
-    videoLimit: '‼️ Video terlalu panjang, maksimal 5 detik',
+    videoLimit: (s: number) => `‼️ Video terlalu panjang, maksimal ${s} detik`,
     quality: (q: number) =>
       `⏳ Hasil > 1MB dengan Q: ${q}%, mencoba menurunkan kualitas...`,
   },
@@ -26,7 +26,7 @@ stringId.sticker = {
 stringId.flip = {
   hint: '🖼️ flip = vertikal, flop = horizontal',
   error: {
-    noImage: '‼️Error! Gambar tidak ditemukan!',
+    noImage: '‼️ Gambar tidak ditemukan!',
   },
 }
 

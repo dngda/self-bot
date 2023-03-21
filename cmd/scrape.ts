@@ -13,7 +13,7 @@ export const pinterestHandler = async (
   data: MessageData
 ) => {
   const { from, args } = data
-  if (!args || args == '') throw stringId.pinterest.usage(data)
+  if (!args || args == '') throw new Error(stringId.pinterest.usage(data))
   const result = await pinterest(args)
   const image = sample(result) as string
   await waSocket.sendMessage(
@@ -34,9 +34,10 @@ export const tiktokDLHandler = async (
 ) => {
   const { from, args, isQuoted, quotedMsg } = data
   const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : args
-  if ((!args || args == '') && !isQuoted) throw stringId.tiktokdl.usage(data)
+  if ((!args || args == '') && !isQuoted)
+    throw new Error(stringId.tiktokdl.usage(data))
   if (!url.match(tiktokPattern) && !url.match(tiktokShortPattern))
-    throw stringId.tiktokdl.error.invalidUrl
+    throw new Error(stringId.tiktokdl.error.invalidUrl)
   const result = await tiktokScraper(url)
   await waSocket.sendMessage(
     from,
