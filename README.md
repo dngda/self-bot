@@ -19,9 +19,9 @@
 ## Getting Started
 
 <a href="https://saweria.co/dngda" target="_blank"><img id="wse-buttons-preview" src=".github\saweria.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
-<a href="https://trakteer.id/dngda/tip?quantity=1" target="_blank"><img id="wse-buttons-preview" src="https://cdn.trakteer.id/images/embed/trbtn-red-5.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
+<a href="https://trakteer.id/dngda/tip?quantity=1" target="_blank"><img id="wse-buttons-preview" src="https://cdn.trakteer.id/images/embed/trbtn-red-3.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
 
-### Install
+### How to
 
 Clone this project or download zip
 
@@ -34,6 +34,7 @@ Install the dependencies:
 
 ```bash
 > npm install
+> npm install ts-node typescript -g
 ```
 
 Setup your `.env` files
@@ -46,7 +47,7 @@ and fill it with your related data!
 
 ### Usage
 
-Run the Whatsapp bot
+Run the WhatsApp Bot
 
 ```bash
 > npm start
@@ -57,8 +58,9 @@ After running it you need to scan the QR
 ## Features
 
 - Sticker Creator
+- Search Pinterest Image
 
-wes mung kui tok mas 🙏
+Wes mung kui tok, mas 🙏
 
 ## Thanks to
 
