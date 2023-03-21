@@ -1,5 +1,1 @@
-import pinterest from './pinterest'
-
-export default {
-  pinterest,
-}
+export * from './pinterest'

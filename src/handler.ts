@@ -4,17 +4,17 @@ import {
   replyText,
   sendText,
   serializeMessage,
-} from '../utils/index'
+  logCmd,
+} from '../utils'
 import { menuHandler, pingHandler } from '../cmd/general'
 import { changePublicHandler } from '../cmd/config'
+import { pinterestHandler } from '../cmd/scrape'
 import { stickerHandler } from '../cmd/sticker'
 import { evalJS, evalJSON } from '../cmd/owner'
 import { flipHandler } from '../cmd/tools'
-import { logCmd } from '../utils/logger'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
-import { pinterestHandler } from '../cmd/scrape'
 
 interface BotConfig {
   publicModeChats: string[]
@@ -61,10 +61,15 @@ export const messageHandler = async (
     for (const msg of messages) {
       console.log(chalk.green('[LOG]'), 'Data type', msg.message)
       if (
-        msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast'
+        msg.message?.senderKeyDistributionMessage?.groupId ==
+          'status@broadcast' ||
+        msg.key.remoteJid == 'status@broadcast'
       )
         return
-      const data = serializeMessage(waSocket, msg)
+      if (msg.message?.protocolMessage?.type == 5)
+        return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+
+      const data = await serializeMessage(waSocket, msg)
       plainHandler(waSocket, msg, data)
 
       if (msg.key.fromMe || config.publicModeChats.includes(data.from)) {

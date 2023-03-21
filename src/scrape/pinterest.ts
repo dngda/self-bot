@@ -2,7 +2,7 @@ import axios from 'axios'
 import cheerio from 'cheerio'
 
 // cookie by RA :c
-export default (query: string) =>
+export const pinterest = (query: string) =>
   new Promise<string[]>((resolve, reject) => {
     axios
       .get(`https://id.pinterest.com/search/pins/?q=` + query, {

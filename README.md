@@ -18,6 +18,9 @@
 
 ## Getting Started
 
+<a href="https://saweria.co/dngda" target="_blank"><img id="wse-buttons-preview" src=".github\saweria.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
+<a href="https://trakteer.id/dngda/tip?quantity=1" target="_blank"><img id="wse-buttons-preview" src="https://cdn.trakteer.id/images/embed/trbtn-red-5.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
+
 ### Install
 
 Clone this project or download zip
