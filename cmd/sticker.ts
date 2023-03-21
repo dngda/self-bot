@@ -1,4 +1,4 @@
-import { WAMessage, WAMessageContent, WASocket } from '@adiwajshing/baileys'
+import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { MessageData, sendSticker, sendText } from '../utils'
@@ -19,7 +19,6 @@ export const stickerHandler = async (
     isQuoted,
     isQuotedImage,
     isQuotedVideo,
-    quotedMsg,
   } = data
   if (!isMedia) throw new Error(stringId.sticker.usage(data))
   let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
@@ -50,17 +49,7 @@ export const stickerHandler = async (
   }
 
   if (isVideo || isQuotedVideo) {
-    processVideo(
-      waSocket,
-      msg,
-      mediaData,
-      quotedMsg,
-      from,
-      args,
-      packname,
-      author,
-      Stype
-    )
+    processVideo(waSocket, msg, mediaData, data, packname, author, Stype)
   }
 }
 
@@ -68,35 +57,41 @@ const processVideo = async (
   waSocket: WASocket,
   msg: WAMessage,
   mediaData: Buffer,
-  quotedMsg: WAMessageContent | null | undefined,
-  from: string,
-  args: string,
+  data: MessageData,
   packname: string,
   author: string,
   Stype: StickerTypes
 ) => {
   const seconds =
-    msg.message?.videoMessage?.seconds! || quotedMsg?.videoMessage?.seconds!
+    msg.message?.videoMessage?.seconds! ||
+    data.quotedMsg?.videoMessage?.seconds!
   const videoLimit = 5
   if (seconds > videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
 
-  Stype = args.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.CROPPED
+  let stickerType = Stype
+  stickerType = data.args.includes('-r')
+    ? StickerTypes.ROUNDED
+    : StickerTypes.CROPPED
   let defaultQuality = 80
   const doConvert = (quality: number = defaultQuality) => {
     return new Sticker(mediaData, {
       pack: packname,
       author: author,
-      type: Stype,
+      type: stickerType,
       quality: quality,
     }).toBuffer()
   }
   let resultBuffer = await doConvert()
   while (resultBuffer.length > 1024 * 1024) {
-    sendText(waSocket, from, stringId.sticker.error.quality(defaultQuality))
+    sendText(
+      waSocket,
+      data.from,
+      stringId.sticker.error.quality(defaultQuality)
+    )
     defaultQuality -= 10
     resultBuffer = await doConvert(defaultQuality)
   }
 
-  await sendSticker(waSocket, from, resultBuffer, msg)
+  await sendSticker(waSocket, data.from, resultBuffer, msg)
 }

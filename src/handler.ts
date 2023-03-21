@@ -70,18 +70,18 @@ export const messageHandler = async (
     const data = await serializeMessage(waSocket, msg)
     plainHandler(waSocket, msg, data)
 
-    if ((msg.key.fromMe || isAllowedChat(data)) && data.isCmd) {
-      console.log(chalk.green('[LOG]'), 'Serialized', data)
-      try {
+    try {
+      if ((msg.key.fromMe || isAllowedChat(data)) && data.isCmd) {
+        console.log(chalk.green('[LOG]'), 'Serialized', data)
         logCmd(msg, data)
-        const cmd = getCommand(data.cmd) || ''
+        const cmd = getCommand(data.cmd) as string
         if (cmd in actions) {
           await actions[cmd](waSocket, msg, data)
         }
-      } catch (error) {
-        console.log(error)
-        replyText(waSocket, data.from, `${error}`, msg)
       }
+    } catch (error) {
+      console.log(error)
+      replyText(waSocket, data.from, `${error}`, msg)
     }
   }
 }

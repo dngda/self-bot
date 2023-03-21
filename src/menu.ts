@@ -58,9 +58,10 @@ const menu = [
 ]
 
 export const getCommand = (cmd: string) => {
-  return menu.find(
-    (m) => m.alias.split(', ').concat(m.command).indexOf(cmd) !== -1
-  )?.command
+  return (
+    menu.find((m) => m.alias.split(', ').concat(m.command).indexOf(cmd) !== -1)
+      ?.command || ''
+  )
 }
 
 export const getMenu = () => {
