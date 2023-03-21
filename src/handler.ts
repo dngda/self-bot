@@ -62,10 +62,10 @@ export const messageHandler = async (
   console.log(chalk.green('[LOG]'), 'Message received', messages)
 
   for (const msg of messages) {
-    console.log(chalk.red('[LOG]'), 'Data type', msg.message)
     if (isStatusMessage(msg)) return null
     if (isHistorySync(msg))
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+    console.log(chalk.red('[LOG]'), 'Data type', msg.message)
 
     const data = await serializeMessage(waSocket, msg)
     plainHandler(waSocket, msg, data)
