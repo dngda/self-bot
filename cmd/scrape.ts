@@ -1,8 +1,11 @@
-import { pinterest } from '../src/scrape'
+import { pinterest, tiktokScraper } from '../src/scrape'
 import { sample } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
 import stringId from '../src/language'
+
+// const urlPattern =
+//   /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
 
 export const pinterestHandler = async (
   waSocket: WASocket,
@@ -16,6 +19,28 @@ export const pinterestHandler = async (
   await waSocket.sendMessage(
     from,
     { image: { url: image }, caption: `HD: ${image}` },
+    { quoted: msg }
+  )
+}
+
+const tiktokPattern =
+  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)\/video\/(\d+)/
+const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
+
+export const tiktokDLHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  const { from, args, isQuoted, quotedMsg } = data
+  const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : args
+  if ((!args || args == '') && !isQuoted) throw stringId.tiktokdl.usage(data)
+  if (!url.match(tiktokPattern) && !url.match(tiktokShortPattern))
+    throw stringId.tiktokdl.error.invalidUrl
+  const result = await tiktokScraper(url)
+  await waSocket.sendMessage(
+    from,
+    { video: { url: result.url[0].url }, caption: `Niki, nggih.` },
     { quoted: msg }
   )
 }

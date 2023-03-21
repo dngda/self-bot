@@ -8,6 +8,7 @@ stringId.menu = {
 stringId.ping = {
   hint: '➡️ Balas dengan pong!',
 }
+
 stringId.sticker = {
   hint: '🖼️ Convert media ke sticker',
   error: {
@@ -21,12 +22,14 @@ stringId.sticker = {
 ⚙️ Custom packname/author dengan args 'packname|author',
 ➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
 }
+
 stringId.flip = {
   hint: '🖼️ flip = vertikal, flop = horizontal',
   error: {
     noImage: '‼️Error! Gambar tidak ditemukan!',
   },
 }
+
 stringId.public = {
   hint: '⚙️ Toggle public mode pada chat ini',
   info: (isPublic: boolean) =>
@@ -34,11 +37,22 @@ stringId.public = {
       isPublic ? '*Publik*.\nCoba kirimkan "!help"' : '*Private*'
     } di chat ini!`,
 }
+
 stringId.pinterest = {
   hint: '🔍 Search gambar di pinterest',
   usage: (data: MessageData) =>
     `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.cmd} <query>`,
 }
+
+stringId.tiktokdl = {
+  hint: '📩 Download video tiktok',
+  error: {
+    invalidUrl: '‼️ URL tiktok tidak valid!',
+  },
+  usage: (data: MessageData) =>
+    `📩 Download video tiktok dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
+}
+
 stringId.eval = {
   hint: 'Evaluate JS/TS code',
 }

@@ -32,6 +32,12 @@ const menu = [
     type: 'scraper',
   },
   {
+    command: 'tiktokdl',
+    hint: stringId.tiktokdl.hint,
+    alias: 'ttdl, tiktok',
+    type: 'scraper',
+  },
+  {
     command: 'public',
     hint: stringId.public.hint,
     alias: 'mode',

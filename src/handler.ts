@@ -8,7 +8,7 @@ import {
 } from '../utils'
 import { menuHandler, pingHandler } from '../cmd/general'
 import { changePublicHandler } from '../cmd/config'
-import { pinterestHandler } from '../cmd/scrape'
+import { pinterestHandler, tiktokDLHandler } from '../cmd/scrape'
 import { stickerHandler } from '../cmd/sticker'
 import { evalJS, evalJSON } from '../cmd/owner'
 import { flipHandler } from '../cmd/tools'
@@ -37,12 +37,14 @@ setInterval(() => {
   )
 }, 5000)
 
+// 'src/menu' command : 'cmd/type' related handler
 const actions: { [index: string]: any } = {
   eval: evalJS,
   flip: flipHandler,
   menu: menuHandler,
   ping: pingHandler,
   pinterest: pinterestHandler,
+  tiktokdl: tiktokDLHandler,
   public: changePublicHandler,
   return: evalJSON,
   sticker: stickerHandler,
