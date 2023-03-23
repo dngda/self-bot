@@ -26,14 +26,15 @@ export const pinterestHandler = async (
         { quoted: msg }
       )
     }
+    return null
   } else {
-    if (typeof qty == 'number') {
-      data.reply(`Max 10, bro.`)
+    if (qty.match(/\d+/)) {
+      return data.reply(`Max 10, bro.`)
     }
   }
 
   const image = sample(result) as string
-  await waSocket.sendMessage(
+  return await waSocket.sendMessage(
     from,
     { image: { url: image }, caption: `HD: ${image}` },
     { quoted: msg }
