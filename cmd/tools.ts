@@ -1,8 +1,9 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import stringId from '../src/language'
+import * as math from 'mathjs'
 import sharp from 'sharp'
-import math from 'mathjs'
+import chalk from 'chalk'
 
 export const flipHandler = async (
   waSocket: WASocket,
@@ -31,6 +32,7 @@ export const mathHandler = async (data: MessageData) => {
   const { body } = data
   if (!body?.startsWith('=')) return null
   const args = body?.replace('=', '')
+  console.log(chalk.blue('[MATH]'), 'Doing =', args)
   if (!args || args == '') throw new Error(stringId.math.error.noArgs)
   const result: string = math.evaluate(args)
   return await data.reply(result)
