@@ -9,9 +9,9 @@ import {
 import { menuHandler, pingHandler } from '../cmd/general'
 import { changePublicHandler } from '../cmd/config'
 import { pinterestHandler, tiktokDLHandler } from '../cmd/scrape'
+import { flipHandler, mathHandler } from '../cmd/tools'
 import { stickerHandler } from '../cmd/sticker'
 import { evalJS, evalJSON } from '../cmd/owner'
-import { flipHandler } from '../cmd/tools'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -100,6 +100,9 @@ const plainHandler = async (
   data: MessageData
 ) => {
   switch (data.body) {
+    case data.body?.startsWith('='):
+      mathHandler(data)
+      break
     case '-i':
       sendText(waSocket, data.from, '/ingfo-atas')
       break

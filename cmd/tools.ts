@@ -2,6 +2,7 @@ import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import stringId from '../src/language'
 import sharp from 'sharp'
+import math from 'mathjs'
 
 export const flipHandler = async (
   waSocket: WASocket,
@@ -24,4 +25,11 @@ export const flipHandler = async (
       { image: await image.flop().toBuffer() },
       { quoted: msg }
     )
+}
+
+export const mathHandler = async (data: MessageData) => {
+  const { args } = data
+  if (!args || args == '') throw new Error(stringId.math.error.noArgs)
+  const result: string = math.evaluate(args)
+  await data.reply(result)
 }

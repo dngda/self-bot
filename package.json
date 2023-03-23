@@ -29,6 +29,7 @@
     "cheerio": "^1.0.0-rc.12",
     "figlet": "^1.5.2",
     "lodash": "^4.17.21",
+    "mathjs": "^11.7.0",
     "moment-timezone": "^0.5.41",
     "node-cache": "^5.1.2",
     "qrcode-terminal": "^0.12.0",

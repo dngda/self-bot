@@ -21,6 +21,11 @@
 <a href="https://saweria.co/dngda" target="_blank"><img id="wse-buttons-preview" src=".github\saweria.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
 <a href="https://trakteer.id/dngda/tip?quantity=1" target="_blank"><img id="wse-buttons-preview" src="https://cdn.trakteer.id/images/embed/trbtn-red-3.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
 
+## Prerequisite
+
+- Minimum Node.js version `v14` as this project works well in `v16`
+- Need to install `ffmpeg` globally to be able use animated sticker converter
+
 ### How to
 
 Clone this project or download zip
@@ -48,6 +53,13 @@ and fill it with your related data!
 ### Usage
 
 Run the WhatsApp Bot
+
+```bash
+> tsc
+> node build
+```
+
+or use `ts-node` without compile to `.js`
 
 ```bash
 > npm start
