@@ -38,16 +38,16 @@ const menu = [
     type: 'scraper',
   },
   {
-    command: 'public',
-    hint: stringId.public.hint,
-    alias: 'mode',
-    type: 'config',
-  },
-  {
     command: 'jsholat',
     hint: stringId.jsholat.hint,
     alias: 'jsh, jadwalsholat',
     type: 'islam',
+  },
+  {
+    command: 'public',
+    hint: stringId.public.hint,
+    alias: 'mode',
+    type: 'config',
   },
   {
     command: 'eval',

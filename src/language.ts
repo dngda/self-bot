@@ -64,6 +64,8 @@ stringId.jsholat = {
   hint: '🕌 Jadwal sholat',
   error: {
     noArgs: '‼️ Tidak ada argumen yang diberikan!',
+    notFound: (data: MessageData) => `‼️ Daerah "${data.args}" tidak ditemukan!
+    cek daerah dengan cara ➡️ ${data.prefix}jsh daerah`,
   },
   usage: (data: MessageData) =>
     `🕌 Jadwal sholat dengan cara ➡️ ${data.prefix}${data.cmd} <daerah>

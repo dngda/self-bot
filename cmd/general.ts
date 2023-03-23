@@ -44,7 +44,7 @@ export const menuHandler = (
     menuMsg += '\n╚══✪\n'
   }
   menuMsg += `\nPerhitungan mathjs gunakan prefiks '='`
-  menuMsg += `\nContoh: =1+2`
+  menuMsg += `\nContoh: =1+2\n`
   if (!data.fromMe) {
     menuMsg += `\nCode: https://github.com/dngda/self-bot `
     menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`

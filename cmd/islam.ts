@@ -13,14 +13,15 @@ export const jadwalSholatHandler = async (
   data: MessageData
 ) => {
   const args = data.args.split(' ')
-  if (!args || args.length == 0) return data.reply(stringId.jsholat.usage(data))
+  if (!data.args || data.args == '')
+    return data.reply(stringId.jsholat.usage(data))
   if (args[0] == 'daerah') {
     let { data: semuaKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/semua'
     )
     let hasil = '╔══✪〘 Daftar Kota 〙✪\n'
     for (let kota of semuaKota) {
-      hasil += '╠➥ '
+      hasil += '╠> '
       hasil += `${kota.lokasi}\n`
     }
     hasil += '╚═〘 *SeroBot* 〙'
@@ -32,7 +33,7 @@ export const jadwalSholatHandler = async (
     try {
       var kodek = cariKota.data[0].id
     } catch (err) {
-      return data.reply('Kota tidak ditemukan')
+      return data.reply(stringId.jsholat.error.notFound(data))
     }
     var tgl = moment((msg.messageTimestamp as number) * 1000).format(
       'YYYY/MM/DD'
