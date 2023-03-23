@@ -26,7 +26,7 @@ export const menuHandler = (
   })
   let setMenuTypes = lodash.uniq(menuTypes)
   if (!data.fromMe)
-    setMenuTypes = setMenuTypes.filter((type) => type.match(/owner|config/i))
+    setMenuTypes = setMenuTypes.filter((type) => !type.match(/owner|config/i))
   for (const type of setMenuTypes) {
     menuMsg += `\n╔══✪〘 ${type.replace(/^\w/, (c: string) =>
       c.toUpperCase()
@@ -43,8 +43,12 @@ export const menuHandler = (
     }
     menuMsg += '\n╚══✪\n'
   }
-  menuMsg += `\nCode: https://github.com/dngda/self-bot `
-  menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
-  menuMsg += `\nThanks for using this bot! 🙏`
+  menuMsg += `\nPerhitungan mathjs gunakan prefiks '='`
+  menuMsg += `\nContoh: =1+2`
+  if (!data.fromMe) {
+    menuMsg += `\nCode: https://github.com/dngda/self-bot `
+    menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
+    menuMsg += `\nThanks for using this bot! 🙏`
+  }
   sendText(waSocket, data.from, menuMsg)
 }
