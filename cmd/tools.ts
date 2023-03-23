@@ -34,6 +34,6 @@ export const mathHandler = async (data: MessageData) => {
   const args = body?.replace('=', '')
   console.log(chalk.blue('[MATH]'), 'Doing =', args)
   if (!args || args == '') throw new Error(stringId.math.error.noArgs)
-  const result: string = math.evaluate(args)
-  return await data.reply(result)
+  const result = math.evaluate(args)
+  return await data.reply(`${result}`)
 }
