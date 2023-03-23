@@ -30,6 +30,13 @@ stringId.flip = {
   },
 }
 
+stringId.math = {
+  hint: '🧮 Hitung rumus matematika',
+  error: {
+    noArgs: '‼️ Tidak ada argumen yang diberikan!',
+  },
+}
+
 stringId.public = {
   hint: '⚙️ Toggle public mode pada chat ini',
   info: (isPublic: boolean) =>
