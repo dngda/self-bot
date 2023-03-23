@@ -69,8 +69,8 @@ stringId.jsholat = {
   },
   usage: (data: MessageData) =>
     `🕌 Jadwal sholat dengan cara ➡️ ${data.prefix}${data.cmd} <daerah>
-    ⚠️ Daerah harus berupa nama kota atau kabupaten
-    ⚠️ Contoh: ${data.prefix}${data.cmd} sleman`,
+⚠️ Daerah harus berupa nama kota atau kabupaten
+⚠️ Contoh: ${data.prefix}${data.cmd} sleman`,
 }
 
 stringId.eval = {
