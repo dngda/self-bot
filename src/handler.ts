@@ -74,6 +74,7 @@ export const messageHandler = async (
       if ((msg.key.fromMe || isAllowedChat(data)) && data.isCmd) {
         console.log(chalk.green('[LOG]'), 'Serialized', data)
         logCmd(msg, data)
+        mathHandler(data)
         const cmd = getCommand(data.cmd) as string
         if (cmd in actions) {
           await actions[cmd](waSocket, msg, data)
@@ -100,9 +101,6 @@ const plainHandler = async (
   data: MessageData
 ) => {
   switch (data.body) {
-    case data.body?.startsWith('='):
-      mathHandler(data)
-      break
     case '-i':
       sendText(waSocket, data.from, '/ingfo-atas')
       break

@@ -29,8 +29,9 @@ export const flipHandler = async (
 
 export const mathHandler = async (data: MessageData) => {
   const { body } = data
+  if (!body?.startsWith('=')) return null
   const args = body?.replace('=', '')
   if (!args || args == '') throw new Error(stringId.math.error.noArgs)
   const result: string = math.evaluate(args)
-  await data.reply(result)
+  return await data.reply(result)
 }
