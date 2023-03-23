@@ -28,7 +28,7 @@ export const pinterestHandler = async (
     }
     return null
   } else {
-    if (qty.match(/\d+/)) {
+    if (qty > 10) {
       return data.reply(`Max 10, bro.`)
     }
   }
