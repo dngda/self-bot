@@ -41,8 +41,8 @@ stringId.public = {
   hint: '⚙️ Toggle public mode pada chat ini',
   info: (isPublic: boolean) =>
     `ℹ️ Bot sekarang dalam mode ${
-      isPublic ? '*Publik*.\nCoba kirimkan "!help"' : '*Private*'
-    } di chat ini!`,
+      isPublic ? '*Publik* di chat ini.\nCoba kirimkan "!help"' : '*Private*'
+    }`,
 }
 
 stringId.pinterest = {
@@ -58,6 +58,17 @@ stringId.tiktokdl = {
   },
   usage: (data: MessageData) =>
     `📩 Download video tiktok dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
+}
+
+stringId.jsholat = {
+  hint: '🕌 Jadwal sholat',
+  error: {
+    noArgs: '‼️ Tidak ada argumen yang diberikan!',
+  },
+  usage: (data: MessageData) =>
+    `🕌 Jadwal sholat dengan cara ➡️ ${data.prefix}${data.cmd} <daerah>
+    ⚠️ Daerah harus berupa nama kota atau kabupaten
+    ⚠️ Contoh: ${data.prefix}${data.cmd} sleman`,
 }
 
 stringId.eval = {

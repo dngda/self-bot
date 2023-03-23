@@ -15,6 +15,7 @@ import { evalJS, evalJSON } from '../cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
+import { jadwalSholatHandler } from '../cmd/islam'
 
 interface BotConfig {
   publicModeChats: string[]
@@ -41,6 +42,7 @@ setInterval(() => {
 const actions: { [index: string]: any } = {
   eval: evalJS,
   flip: flipHandler,
+  jsholat: jadwalSholatHandler,
   menu: menuHandler,
   ping: pingHandler,
   pinterest: pinterestHandler,

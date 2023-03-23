@@ -44,6 +44,12 @@ const menu = [
     type: 'config',
   },
   {
+    command: 'jsholat',
+    hint: stringId.jsholat.hint,
+    alias: 'jsh, jadwalsholat',
+    type: 'islam',
+  },
+  {
     command: 'eval',
     hint: stringId.eval.hint,
     alias: '>',
