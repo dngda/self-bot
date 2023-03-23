@@ -1,5 +1,5 @@
 import { pinterest, tiktokScraper } from '../src/scrape'
-import { sample } from 'lodash'
+import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
 import stringId from '../src/language'
@@ -15,6 +15,23 @@ export const pinterestHandler = async (
   const { from, args } = data
   if (!args || args == '') throw new Error(stringId.pinterest.usage(data))
   const result = await pinterest(args)
+
+  const qty = Number(args.split(' ')[0])
+  if (qty <= 10) {
+    const images = sampleSize(result, qty)
+    for (const image of images) {
+      await waSocket.sendMessage(
+        from,
+        { image: { url: image }, caption: `HD: ${image}` },
+        { quoted: msg }
+      )
+    }
+  } else {
+    if (typeof qty == 'number') {
+      data.reply(`Max 10, bro.`)
+    }
+  }
+
   const image = sample(result) as string
   await waSocket.sendMessage(
     from,

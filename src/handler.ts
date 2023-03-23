@@ -1,21 +1,15 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
-import {
-  MessageData,
-  replyText,
-  sendText,
-  serializeMessage,
-  logCmd,
-} from '../utils'
-import { menuHandler, pingHandler } from '../cmd/general'
-import { changePublicHandler } from '../cmd/config'
+import { serializeMessage, MessageData, sendText, logCmd } from '../utils'
 import { pinterestHandler, tiktokDLHandler } from '../cmd/scrape'
+import { menuHandler, pingHandler } from '../cmd/general'
 import { flipHandler, mathHandler } from '../cmd/tools'
+import { changePublicHandler } from '../cmd/config'
+import { jadwalSholatHandler } from '../cmd/islam'
 import { stickerHandler } from '../cmd/sticker'
 import { evalJS, evalJSON } from '../cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
-import { jadwalSholatHandler } from '../cmd/islam'
 
 interface BotConfig {
   publicModeChats: string[]
@@ -71,13 +65,13 @@ export const messageHandler = async (
 
     const data = await serializeMessage(waSocket, msg)
     if (msg.key.fromMe || isAllowedChat(data)) {
-      plainHandler(waSocket, msg, data)
+      plainTxtHandler(waSocket, msg, data)
       mathHandler(data)
     }
 
     try {
       if ((msg.key.fromMe || isAllowedChat(data)) && data.isCmd) {
-        console.log(chalk.green('[LOG]'), 'Serialized', data)
+        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
         logCmd(msg, data)
         const cmd = getCommand(data.cmd) as string
         if (cmd in actions) {
@@ -86,7 +80,7 @@ export const messageHandler = async (
       }
     } catch (error) {
       console.log(error)
-      replyText(waSocket, data.from, `${error}`, msg)
+      data.reply(`${error}`)
     }
   }
 }
@@ -99,7 +93,7 @@ const isStatusMessage = (msg: WAMessage) =>
 const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type == 5
 
-const plainHandler = async (
+const plainTxtHandler = async (
   waSocket: WASocket,
   _: WAMessage,
   data: MessageData
