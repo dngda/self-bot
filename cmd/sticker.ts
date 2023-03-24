@@ -1,17 +1,16 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
-import { MessageData, sendSticker, sendText } from '../utils'
+import { MessageData } from '../utils'
 import stringId from '../src/language'
 import lodash from 'lodash'
 
 export const stickerHandler = async (
-  waSocket: WASocket,
+  _wa: WASocket,
   msg: WAMessage,
   data: MessageData
 ) => {
   const {
-    from,
     args,
     isMedia,
     isImage,
@@ -19,6 +18,7 @@ export const stickerHandler = async (
     isQuoted,
     isQuotedImage,
     isQuotedVideo,
+    replySticker,
   } = data
   if (!isMedia) throw new Error(stringId.sticker.usage(data))
   let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
@@ -45,16 +45,15 @@ export const stickerHandler = async (
       type: Stype,
       quality: 100,
     })
-    await sendSticker(waSocket, from, await sticker.toBuffer(), msg)
+    await replySticker(await sticker.toBuffer())
   }
 
   if (isVideo || isQuotedVideo) {
-    processVideo(waSocket, msg, mediaData, data, packname, author, Stype)
+    processVideo(msg, mediaData, data, packname, author, Stype)
   }
 }
 
 const processVideo = async (
-  waSocket: WASocket,
   msg: WAMessage,
   mediaData: Buffer,
   data: MessageData,
@@ -84,14 +83,10 @@ const processVideo = async (
   }
   let resultBuffer = await doConvert()
   while (resultBuffer.length > 1024 * 1024) {
-    sendText(
-      waSocket,
-      data.from,
-      stringId.sticker.error.quality(defaultQuality)
-    )
+    data.send(stringId.sticker.error.quality(defaultQuality))
     defaultQuality -= 10
     resultBuffer = await doConvert(defaultQuality)
   }
 
-  await sendSticker(waSocket, data.from, resultBuffer, msg)
+  await data.replySticker(resultBuffer)
 }

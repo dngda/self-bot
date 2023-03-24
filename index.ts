@@ -3,6 +3,7 @@ import makeWASocket, {
   makeCacheableSignalKeyStore,
   fetchLatestBaileysVersion,
   useMultiFileAuthState,
+  makeInMemoryStore,
   DisconnectReason,
 } from '@adiwajshing/baileys'
 import { pino as MAIN_LOGGER } from './utils/logger'
@@ -16,12 +17,12 @@ dotenv.config()
 logger.level = 'error'
 
 // Remove the following comment to enable data store.
-// const store = makeInMemoryStore({ logger })
-// store?.readFromFile('./env/baileys_store_multi.json')
+const store = makeInMemoryStore({ logger })
+store?.readFromFile('./env/baileys_store_multi.json')
 
-// setInterval(() => {
-//   store?.writeToFile('./env/baileys_store_multi.json')
-// }, 10_000)
+setInterval(() => {
+  store?.writeToFile('./env/baileys_store_multi.json')
+}, 10_000)
 
 const startSock = async () => {
   const { state, saveCreds } = await useMultiFileAuthState(
@@ -50,7 +51,7 @@ const startSock = async () => {
   })
 
   // Remove the following comment to enable data store.
-  // store?.bind(waSocket.ev)
+  store?.bind(waSocket.ev)
 
   waSocket.ev.process(async (events) => {
     if (events['connection.update']) {

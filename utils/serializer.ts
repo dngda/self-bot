@@ -3,6 +3,7 @@ import {
   WAMessageContent,
   WAMessage,
   WASocket,
+  WAMediaUpload,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
 import { config } from '../src/handler'
@@ -25,11 +26,15 @@ export interface MessageData {
   isImage: boolean | null
   isVideo: boolean | null
   isMedia: boolean | null
+  isEphemeral: boolean | null
+  expiration: number | null
   config: Record<string, any>
   groupName: string | null
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
   reply: (text: string) => Promise<void>
+  send: (text: string) => Promise<void>
+  replySticker: (inputMedia: WAMediaUpload) => Promise<void>
 }
 
 export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
@@ -72,7 +77,10 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.ephemeralMessage?.message?.videoMessage != null
   data.isMedia =
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
-
+  data.isEphemeral = msg.message?.ephemeralMessage != null
+  data.expiration =
+    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
+      ?.expiration || null
   data.config = config
 
   data.download = async () => {
@@ -96,7 +104,43 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   data.reply = async (text: string) => {
-    await waSocket.sendMessage(data.from, { text: text }, { quoted: msg })
+    if (data.isEphemeral) {
+      waSocket.sendMessage(
+        data.from,
+        { text: text },
+        { quoted: msg, ephemeralExpiration: data.expiration! }
+      )
+    } else {
+      await waSocket.sendMessage(data.from, { text: text }, { quoted: msg })
+    }
+  }
+
+  data.send = async (text: string) => {
+    if (data.isEphemeral) {
+      waSocket.sendMessage(
+        data.from,
+        { text: text },
+        { ephemeralExpiration: data.expiration! }
+      )
+    } else {
+      await waSocket.sendMessage(data.from, { text: text })
+    }
+  }
+
+  data.replySticker = async (inputMedia: WAMediaUpload) => {
+    if (data.isEphemeral) {
+      waSocket.sendMessage(
+        data.from,
+        { sticker: inputMedia },
+        { quoted: msg, ephemeralExpiration: data.expiration! }
+      )
+    } else {
+      await waSocket.sendMessage(
+        data.from,
+        { sticker: inputMedia },
+        { quoted: msg }
+      )
+    }
   }
 
   return data

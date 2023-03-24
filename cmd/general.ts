@@ -1,20 +1,20 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
-import { MessageData, replyText, sendText } from '../utils'
+import { MessageData } from '../utils'
 import { getMenu } from '../src/menu'
 import lodash from 'lodash'
 
 export const pingHandler = async (
-  waSocket: WASocket,
+  _wa: WASocket,
   msg: WAMessage,
   data: MessageData
 ) => {
   const processTime = Date.now() - (msg.messageTimestamp as number) * 1000
-  await replyText(waSocket, data.from, `Pong _${processTime} ms!_`, msg)
+  await data.reply(`Pong _${processTime} ms!_`)
 }
 
 export const menuHandler = (
-  waSocket: WASocket,
-  _: WAMessage,
+  _wa: WASocket,
+  _msg: WAMessage,
   data: MessageData
 ) => {
   const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
@@ -50,5 +50,5 @@ export const menuHandler = (
     menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
     menuMsg += `\nThanks for using this bot! 🙏`
   }
-  sendText(waSocket, data.from, menuMsg)
+  data.send(menuMsg)
 }

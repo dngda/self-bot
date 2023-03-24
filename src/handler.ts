@@ -1,5 +1,5 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
-import { serializeMessage, MessageData, sendText, logCmd } from '../utils'
+import { serializeMessage, MessageData, logCmd } from '../utils'
 import { pinterestHandler, tiktokDLHandler } from '../cmd/scrape'
 import { menuHandler, pingHandler } from '../cmd/general'
 import { flipHandler, mathHandler } from '../cmd/tools'
@@ -33,6 +33,7 @@ setInterval(() => {
 }, 5000)
 
 // 'src/menu' command : 'cmd/type' related handler
+// every handler must have 3 parameters:
 const actions: { [index: string]: any } = {
   eval: evalJS,
   flip: flipHandler,
@@ -94,16 +95,17 @@ const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type == 5
 
 const plainTxtHandler = async (
-  waSocket: WASocket,
+  _wa: WASocket,
   _: WAMessage,
   data: MessageData
 ) => {
-  switch (data.body) {
-    case '-i':
-      sendText(waSocket, data.from, '/ingfo-atas')
+  const { body, send } = data
+  switch (true) {
+    case /-i/.test(body as string):
+      send('/ingfo-atas')
       break
-    case '-c':
-      sendText(waSocket, data.from, '/ingfo-cuaca')
+    case /-c/.test(body as string):
+      send('/ingfo-cuaca')
       break
     default:
       break
