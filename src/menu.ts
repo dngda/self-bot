@@ -1,6 +1,6 @@
 import stringId from './language'
 
-const menu = [
+export const menu = [
   {
     command: 'menu',
     hint: stringId.menu.hint,
@@ -42,12 +42,6 @@ const menu = [
     hint: stringId.jsholat.hint,
     alias: 'jsh, jadwalsholat',
     type: 'islam',
-  },
-  {
-    command: 'public',
-    hint: stringId.public.hint,
-    alias: 'mode',
-    type: 'config',
   },
   {
     command: 'eval',

@@ -3,10 +3,10 @@ import { serializeMessage, MessageData, logCmd } from './utils'
 import { pinterestHandler, tiktokDLHandler } from './cmd/scrape'
 import { menuHandler, pingHandler } from './cmd/general'
 import { flipHandler, mathHandler } from './cmd/tools'
-import { changePublicHandler } from './cmd/config'
 import { jadwalSholatHandler } from './cmd/islam'
 import { stickerHandler } from './cmd/sticker'
 import { evalJS, evalJSON } from './cmd/owner'
+import initConfigCmd from './cmd/config'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -34,7 +34,7 @@ setInterval(() => {
 
 // 'src/menu' command : 'cmd/type' related handler
 // every handler must have 3 parameters:
-const actions: { [index: string]: any } = {
+export const actions: { [index: string]: any } = {
   eval: evalJS,
   flip: flipHandler,
   jsholat: jadwalSholatHandler,
@@ -42,10 +42,11 @@ const actions: { [index: string]: any } = {
   ping: pingHandler,
   pinterest: pinterestHandler,
   tiktokdl: tiktokDLHandler,
-  public: changePublicHandler,
   return: evalJSON,
   sticker: stickerHandler,
 }
+
+initConfigCmd()
 
 export const messageHandler = async (
   waSocket: WASocket,

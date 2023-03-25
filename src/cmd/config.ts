@@ -1,7 +1,29 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import stringId from '../language'
-import { config } from '../handler'
+import { actions, config } from '../handler'
+import { menu } from '../menu'
+
+export default function () {
+  Object.assign(actions, {
+    public: changePublicHandler,
+  })
+
+  stringId.public = {
+    hint: '⚙️ Toggle public mode pada chat ini',
+    info: (isPublic: boolean) =>
+      `ℹ️ Bot sekarang dalam mode ${
+        isPublic ? '*Publik* di chat ini.\nCoba kirimkan "!help"' : '*Private*'
+      }`,
+  }
+
+  menu.push({
+    command: 'public',
+    hint: stringId.public.hint,
+    alias: 'mode',
+    type: 'config',
+  })
+}
 
 export const changePublicHandler = async (
   _wa: WASocket,
