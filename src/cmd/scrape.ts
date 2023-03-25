@@ -1,8 +1,8 @@
-import { pinterest, tiktokScraper } from '../src/scrape'
+import { pinterest, tiktokScraper } from '../scrape'
 import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
-import stringId from '../src/language'
+import stringId from '../language'
 
 // const urlPattern =
 //   /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/

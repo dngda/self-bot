@@ -1,4 +1,4 @@
-import { MessageData } from '../utils'
+import { MessageData } from './utils'
 
 const stringId: Record<string, any> = {}
 

@@ -1,12 +1,12 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
-import { serializeMessage, MessageData, logCmd } from '../utils'
-import { pinterestHandler, tiktokDLHandler } from '../cmd/scrape'
-import { menuHandler, pingHandler } from '../cmd/general'
-import { flipHandler, mathHandler } from '../cmd/tools'
-import { changePublicHandler } from '../cmd/config'
-import { jadwalSholatHandler } from '../cmd/islam'
-import { stickerHandler } from '../cmd/sticker'
-import { evalJS, evalJSON } from '../cmd/owner'
+import { serializeMessage, MessageData, logCmd } from './utils'
+import { pinterestHandler, tiktokDLHandler } from './cmd/scrape'
+import { menuHandler, pingHandler } from './cmd/general'
+import { flipHandler, mathHandler } from './cmd/tools'
+import { changePublicHandler } from './cmd/config'
+import { jadwalSholatHandler } from './cmd/islam'
+import { stickerHandler } from './cmd/sticker'
+import { evalJS, evalJSON } from './cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -19,8 +19,8 @@ export let config: BotConfig = {
   publicModeChats: [],
 }
 
-if (fs.existsSync('./src/data/config.json')) {
-  fs.promises.readFile('./src/data/config.json', 'utf-8').then((data) => {
+if (fs.existsSync('./data/config.json')) {
+  fs.promises.readFile('./data/config.json', 'utf-8').then((data) => {
     config = JSON.parse(data)
   })
 }

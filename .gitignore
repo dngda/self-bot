@@ -3,6 +3,6 @@ env
 tmp
 node_modules
 package-lock.json
-src/data
+data
 build
 test

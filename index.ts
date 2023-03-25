@@ -6,7 +6,7 @@ import makeWASocket, {
   makeInMemoryStore,
   DisconnectReason,
 } from '@adiwajshing/baileys'
-import { pino as MAIN_LOGGER } from './utils/logger'
+import { pino as MAIN_LOGGER } from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import { textSync } from 'figlet'
 import dotenv from 'dotenv'

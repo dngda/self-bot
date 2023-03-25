@@ -6,7 +6,7 @@ import {
   WAMediaUpload,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
-import { config } from '../src/handler'
+import { config } from '../handler'
 dotenv.config()
 
 export interface MessageData {

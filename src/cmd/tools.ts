@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
-import stringId from '../src/language'
+import stringId from '../language'
 import * as math from 'mathjs'
 import sharp from 'sharp'
 import chalk from 'chalk'

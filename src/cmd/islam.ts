@@ -1,4 +1,4 @@
-import stringId from '../src/language'
+import stringId from '../language'
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import moment from 'moment-timezone'

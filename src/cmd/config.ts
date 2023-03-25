@@ -1,7 +1,7 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
-import stringId from '../src/language'
-import { config } from '../src/handler'
+import stringId from '../language'
+import { config } from '../handler'
 
 export const changePublicHandler = async (
   _wa: WASocket,

@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
-import { getMenu } from '../src/menu'
+import { getMenu } from '../menu'
 import lodash from 'lodash'
 
 export const pingHandler = async (
