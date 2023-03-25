@@ -14,7 +14,7 @@ stringId.sticker = {
   error: {
     videoLimit: (s: number) => `‼️ Video terlalu panjang, maksimal ${s} detik`,
     quality: (q: number) =>
-      `⏳ Hasil > 1MB dengan Q: ${q}%, mencoba menurunkan kualitas...`,
+      `⚠️ Result exceeded 1 megabytes with Q: ${q}%\n⏳ Hold on, decreasing Quality...`,
   },
   usage: (data: MessageData) =>
     `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
