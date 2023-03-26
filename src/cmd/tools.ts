@@ -72,6 +72,7 @@ export const mathHandler = async (data: MessageData) => {
         .replace(/×/g, '*')
         .replace(/÷/g, '/')
         .replace(/%/g, '/100')
+        .replace("**", '^')
     )}`
   )
 }
