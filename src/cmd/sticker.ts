@@ -2,8 +2,38 @@ import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { MessageData } from '../utils'
+import { actions } from '../handler'
 import stringId from '../language'
 import lodash from 'lodash'
+import { menu } from '../menu'
+
+export default function () {
+  Object.assign(actions, {
+    sticker: stickerHandler,
+  })
+
+  stringId.sticker = {
+    hint: '🖼️ Convert media ke sticker',
+    error: {
+      videoLimit: (s: number) =>
+        `‼️ Video terlalu panjang, maksimal ${s} detik`,
+      quality: (q: number) =>
+        `⚠️ Result exceeded 1 megabytes with Q: ${q}%\n⏳ Hold on, decreasing Quality...`,
+    },
+    usage: (data: MessageData) =>
+      `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
+⚙️ Gunakan: '-r' rounded corner, '-c' square cropped, '-nobg' hapus bg,
+⚙️ Custom packname/author dengan args 'packname|author',
+➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
+  }
+
+  menu.push({
+    command: 'sticker',
+    hint: stringId.sticker.hint,
+    alias: 'stiker, s',
+    type: 'sticker',
+  })
+}
 
 export const stickerHandler = async (
   _wa: WASocket,

@@ -5,9 +5,11 @@ import makeWASocket, {
   useMultiFileAuthState,
   makeInMemoryStore,
   DisconnectReason,
+  proto,
 } from '@adiwajshing/baileys'
 import { pino as MAIN_LOGGER } from './src/utils/logger'
 import { messageHandler } from './src/handler'
+import NodeCache from 'node-cache'
 import { textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
@@ -16,7 +18,8 @@ const logger = MAIN_LOGGER.child({})
 dotenv.config()
 logger.level = 'error'
 
-// Remove the following comment to enable data store.
+const msgRetryCounterCache = new NodeCache()
+
 const store = makeInMemoryStore({ logger })
 store?.readFromFile('./env/baileys_store_multi.json')
 
@@ -47,10 +50,17 @@ const startSock = async () => {
       creds: state.creds,
       keys: makeCacheableSignalKeyStore(state.keys, logger),
     },
+    msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
+    getMessage: async (key) => {
+      if (store) {
+        const msg = await store.loadMessage(key.remoteJid!, key.id!)
+        return msg?.message || undefined
+      }
+      return proto.Message.fromObject({})
+    },
   })
 
-  // Remove the following comment to enable data store.
   store?.bind(waSocket.ev)
 
   waSocket.ev.process(async (events) => {
@@ -70,6 +80,7 @@ const startSock = async () => {
       console.log('Connection update:', update)
 
       if (connection === 'open') {
+        waSocket.sendPresenceUpdate('unavailable')
         console.log(
           chalk.yellow('!---------------BOT IS READY---------------!')
         )

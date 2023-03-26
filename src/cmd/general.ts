@@ -1,7 +1,38 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
-import { getMenu } from '../menu'
+import { actions } from '../handler'
+import { getMenu, menu } from '../menu'
+import stringId from '../language'
 import lodash from 'lodash'
+
+export default function () {
+  Object.assign(actions, {
+    ping: pingHandler,
+    menu: menuHandler,
+  })
+
+  stringId.ping = {
+    hint: '➡️ Balas dengan pong!',
+  }
+  stringId.menu = {
+    hint: '📜 Menampilkan pesan ini',
+  }
+
+  menu.push(
+    {
+      command: 'ping',
+      hint: stringId.ping.hint,
+      alias: 'p',
+      type: 'general',
+    },
+    {
+      command: 'menu',
+      hint: stringId.menu.hint,
+      alias: 'm, start, help, ?',
+      type: 'general',
+    }
+  )
+}
 
 export const pingHandler = async (
   _wa: WASocket,
@@ -12,6 +43,8 @@ export const pingHandler = async (
   await data.reply(`Pong _${processTime} ms!_`)
 }
 
+const q3 = '```'
+
 export const menuHandler = (
   _wa: WASocket,
   _msg: WAMessage,
@@ -19,7 +52,13 @@ export const menuHandler = (
 ) => {
   const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
 
-  let menuMsg = `🤖 ------ SeroBot (Self) Menu ------ 🤖\n`
+  let menuMsg = `${q3} ___              ___      _   
+/ __| ___ _ _ ___| _ ) ___| |_ 
+\\__ \\/ -_) '_/ _ \\ _ \\/ _ \\  _|
+|___/\\___|_| \\___/___/\\___/\\__|${q3}
+`
+
+  menuMsg += `!-\t-\t-\tHelp - Usage\t-\t-\t-!\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type
@@ -44,7 +83,7 @@ export const menuHandler = (
     menuMsg += '\n╚══✪\n'
   }
   menuMsg += `\nPerhitungan mathjs gunakan prefiks '='`
-  menuMsg += `\nContoh: =1+2\n`
+  menuMsg += `\n(cth: =10x1+2)\n`
   if (!data.fromMe) {
     menuMsg += `\nCode: https://github.com/dngda/self-bot `
     menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`

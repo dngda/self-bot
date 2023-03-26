@@ -2,7 +2,46 @@ import { pinterest, tiktokScraper } from '../scrape'
 import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
+import { actions } from '../handler'
 import stringId from '../language'
+import { menu } from '../menu'
+
+export default function () {
+  Object.assign(actions, {
+    pinterest: pinterestHandler,
+    tiktok: tiktokHandler,
+  })
+
+  stringId.pinterest = {
+    hint: '🔍 Search gambar di pinterest',
+    usage: (data: MessageData) =>
+      `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.cmd} <query>`,
+  }
+
+  stringId.tiktokdl = {
+    hint: '📩 Download video tiktok',
+    error: {
+      invalidUrl: '‼️ URL tiktok tidak valid!',
+    },
+    usage: (data: MessageData) =>
+      `📩 Download video tiktok dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
+  }
+
+  menu.push(
+    {
+      command: 'pinterest',
+      hint: stringId.pinterest.hint,
+      alias: 'pin',
+      type: 'scraper',
+    },
+    {
+      command: 'tiktok',
+      hint: stringId.tiktokdl.hint,
+      alias: 'ttdl, tiktokdl',
+      type: 'scraper',
+    }
+  )
+}
 
 // const urlPattern =
 //   /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
@@ -45,7 +84,7 @@ const tiktokPattern =
   /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 
-export const tiktokDLHandler = async (
+export const tiktokHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
   data: MessageData

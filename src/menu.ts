@@ -1,61 +1,11 @@
-import stringId from './language'
+type Menu = {
+  command: string
+  hint: string
+  alias: string
+  type: string
+}
 
-export const menu = [
-  {
-    command: 'menu',
-    hint: stringId.menu.hint,
-    alias: 'm, start, help, ?',
-    type: 'general',
-  },
-  {
-    command: 'ping',
-    hint: stringId.ping.hint,
-    alias: 'p',
-    type: 'general',
-  },
-  {
-    command: 'sticker',
-    hint: stringId.sticker.hint,
-    alias: 'stiker, s',
-    type: 'sticker',
-  },
-  {
-    command: 'flip',
-    hint: stringId.flip.hint,
-    alias: 'flop',
-    type: 'tools',
-  },
-  {
-    command: 'pinterest',
-    hint: stringId.pinterest.hint,
-    alias: 'pin',
-    type: 'scraper',
-  },
-  {
-    command: 'tiktokdl',
-    hint: stringId.tiktokdl.hint,
-    alias: 'ttdl, tiktok',
-    type: 'scraper',
-  },
-  {
-    command: 'jsholat',
-    hint: stringId.jsholat.hint,
-    alias: 'jsh, jadwalsholat',
-    type: 'islam',
-  },
-  {
-    command: 'eval',
-    hint: stringId.eval.hint,
-    alias: '>',
-    type: 'owner',
-  },
-  {
-    command: 'return',
-    hint: stringId.return.hint,
-    alias: '=',
-    type: 'owner',
-  },
-]
+export const menu: Menu[] = []
 
 export const getCommand = (cmd: string) => {
   return (

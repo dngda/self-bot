@@ -2,7 +2,37 @@ import stringId from '../language'
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import moment from 'moment-timezone'
+import { actions } from '../handler'
+import { menu } from '../menu'
 import axios from 'axios'
+
+export default function () {
+  Object.assign(actions, {
+    jsholat: jadwalSholatHandler,
+  })
+
+  stringId.jsholat = {
+    hint: '🕌 Jadwal sholat',
+    error: {
+      noArgs: '‼️ Tidak ada argumen yang diberikan!',
+      notFound: (
+        data: MessageData
+      ) => `‼️ Daerah "${data.args}" tidak ditemukan!
+      cek daerah dengan cara ➡️ ${data.prefix}jsh daerah`,
+    },
+    usage: (data: MessageData) =>
+      `🕌 Jadwal sholat dengan cara ➡️ ${data.prefix}${data.cmd} <daerah>
+⚠️ Daerah harus berupa nama kota atau kabupaten
+⚠️ Contoh: ${data.prefix}${data.cmd} sleman`,
+  }
+
+  menu.push({
+    command: 'jsholat',
+    hint: stringId.jsholat.hint,
+    alias: 'jsh, jadwalsholat',
+    type: 'islam',
+  })
+}
 
 const q3 = '```'
 const get = axios.get

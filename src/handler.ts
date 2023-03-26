@@ -1,12 +1,12 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
-import { pinterestHandler, tiktokDLHandler } from './cmd/scrape'
-import { menuHandler, pingHandler } from './cmd/general'
-import { flipHandler, mathHandler } from './cmd/tools'
-import { jadwalSholatHandler } from './cmd/islam'
-import { stickerHandler } from './cmd/sticker'
-import { evalJS, evalJSON } from './cmd/owner'
+import initToolsCmd, { mathHandler } from './cmd/tools'
+import initStickerCmd from './cmd/sticker'
+import initGeneralCmd from './cmd/general'
+import initScrapeCmd from './cmd/scrape'
 import initConfigCmd from './cmd/config'
+import initIslamCmd from './cmd/islam'
+import initOwnerCmd from './cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -32,21 +32,16 @@ setInterval(() => {
   )
 }, 5000)
 
-// 'src/menu' command : 'cmd/type' related handler
 // every handler must have 3 parameters:
-export const actions: { [index: string]: any } = {
-  eval: evalJS,
-  flip: flipHandler,
-  jsholat: jadwalSholatHandler,
-  menu: menuHandler,
-  ping: pingHandler,
-  pinterest: pinterestHandler,
-  tiktokdl: tiktokDLHandler,
-  return: evalJSON,
-  sticker: stickerHandler,
-}
+export const actions: { [index: string]: any } = {}
 
+initGeneralCmd()
+initStickerCmd()
+initScrapeCmd()
+initIslamCmd()
+initToolsCmd()
 initConfigCmd()
+initOwnerCmd()
 
 export const messageHandler = async (
   waSocket: WASocket,
@@ -67,7 +62,7 @@ export const messageHandler = async (
 
     const data = await serializeMessage(waSocket, msg)
     if (msg.key.fromMe || isAllowedChat(data)) {
-      plainTxtHandler(waSocket, msg, data)
+      sanesCmdHandler(waSocket, msg, data)
       mathHandler(data)
     }
 
@@ -95,7 +90,7 @@ const isStatusMessage = (msg: WAMessage) =>
 const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type == 5
 
-const plainTxtHandler = async (
+const sanesCmdHandler = async (
   _wa: WASocket,
   _: WAMessage,
   data: MessageData

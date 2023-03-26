@@ -1,9 +1,38 @@
 import { WAMessage, WASocket } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
+import { actions } from '../handler'
 import stringId from '../language'
+import { menu } from '../menu'
 import * as math from 'mathjs'
 import sharp from 'sharp'
 import chalk from 'chalk'
+
+export default function () {
+  Object.assign(actions, {
+    flip: flipHandler,
+  })
+
+  stringId.flip = {
+    hint: '🖼️ flip = vertikal, flop = horizontal',
+    error: {
+      noImage: '‼️ Gambar tidak ditemukan!',
+    },
+  }
+
+  stringId.math = {
+    hint: '🧮 Hitung rumus matematika',
+    error: {
+      noArgs: '‼️ Tidak ada argumen yang diberikan!',
+    },
+  }
+
+  menu.push({
+    command: 'flip',
+    hint: stringId.flip.hint,
+    alias: 'flop',
+    type: 'tools',
+  })
+}
 
 export const flipHandler = async (
   waSocket: WASocket,
@@ -31,9 +60,16 @@ export const flipHandler = async (
 export const mathHandler = async (data: MessageData) => {
   const { body } = data
   if (!body?.startsWith('=')) return null
-  const args = body?.replace('=', '')
+  const args = body.slice(1)
   if (!args || args == '') return null
   console.log(chalk.blue('[MATH]'), 'Doing =', args)
-  const result = math.evaluate(args)
-  return await data.reply(`${result}`)
+  return await data.reply(
+    `${math.evaluate(
+      args
+        .replace(/x/gi, '*')
+        .replace(/×/g, '*')
+        .replace(/÷/g, '/')
+        .replace(/%/g, '/100')
+    )}`
+  )
 }
