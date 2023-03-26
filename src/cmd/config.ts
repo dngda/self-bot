@@ -13,7 +13,7 @@ export default function () {
     hint: '⚙️ Toggle public mode pada chat ini',
     info: (isPublic: boolean) =>
       `ℹ️ Bot sekarang dalam mode ${
-        isPublic ? '*Publik* di chat ini.\nCoba kirimkan "!help"' : '*Private*'
+        isPublic ? '*Publik* di chat ini.\n➡️ Coba kirimkan "!help"' : '*Private*'
       }`,
   }
 

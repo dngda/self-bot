@@ -45,6 +45,7 @@ export const jadwalSholatHandler = async (
   const args = data.args.split(' ')
   if (!data.args || data.args == '')
     return data.reply(stringId.jsholat.usage(data))
+  data.reactWait()
   if (args[0] == 'daerah') {
     let { data: semuaKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/semua'
@@ -85,4 +86,5 @@ export const jadwalSholatHandler = async (
     jadwalMsg += '╚═〘 *SeroBot* 〙'
     data.reply(jadwalMsg)
   }
+  data.reactSuccess()
 }

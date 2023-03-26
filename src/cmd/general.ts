@@ -58,7 +58,8 @@ export const menuHandler = (
 |___/\\___|_| \\___/___/\\___/\\__|${q3}
 `
 
-  menuMsg += `!-\t-\t-\tHelp - Usage\t-\t-\t-!\n`
+  menuMsg += `
+!-------------- Help - Usage --------------!\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type

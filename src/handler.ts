@@ -77,6 +77,7 @@ export const messageHandler = async (
       }
     } catch (error) {
       console.log(error)
+      data.reactError()
       data.reply(`${error}`)
     }
   }

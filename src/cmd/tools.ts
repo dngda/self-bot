@@ -41,6 +41,7 @@ export const flipHandler = async (
 ) => {
   const { isQuotedImage, isImage, cmd, download, downloadQuoted } = data
   if (!isImage && !isQuotedImage) throw new Error(stringId.flip.error.noImage)
+  data.reactWait()
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
   const image = await sharp(mediaData)
   if (cmd === 'flip')
@@ -55,6 +56,7 @@ export const flipHandler = async (
       { image: await image.flop().toBuffer() },
       { quoted: msg }
     )
+  data.reactSuccess()
 }
 
 export const mathHandler = async (data: MessageData) => {

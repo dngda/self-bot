@@ -51,8 +51,8 @@ export const stickerHandler = async (
     replySticker,
   } = data
   if (!isMedia) throw new Error(stringId.sticker.usage(data))
+  data.reactWait()
   let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
-
   let Stype = args.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
   Stype = args.includes('-c') ? StickerTypes.CROPPED : Stype
   if (args.includes('-nobg')) {
@@ -75,6 +75,7 @@ export const stickerHandler = async (
       type: Stype,
       quality: 100,
     })
+    data.reactSuccess()
     await replySticker(await sticker.toBuffer())
   }
 
@@ -117,6 +118,6 @@ const processVideo = async (
     defaultQuality -= 10
     resultBuffer = await doConvert(defaultQuality)
   }
-
+  data.reactSuccess()
   await data.replySticker(resultBuffer)
 }

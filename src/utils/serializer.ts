@@ -35,6 +35,9 @@ export interface MessageData {
   reply: (text: string) => Promise<void>
   send: (text: string) => Promise<void>
   replySticker: (inputMedia: WAMediaUpload) => Promise<void>
+  reactWait: () => Promise<void>
+  reactSuccess: () => Promise<void>
+  reactError: () => Promise<void>
 }
 
 export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
@@ -141,6 +144,18 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         { quoted: msg }
       )
     }
+  }
+
+  data.reactWait = async () => {
+    await waSocket.sendMessage(data.from, { react: {text: '⏳', key: msg.key} })
+  }
+
+  data.reactSuccess = async () => {
+    await waSocket.sendMessage(data.from, { react: {text: '✅', key: msg.key} })
+  }
+
+  data.reactError = async () => {
+    await waSocket.sendMessage(data.from, { react: {text: '❌', key: msg.key} })
   }
 
   return data

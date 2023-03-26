@@ -53,6 +53,7 @@ export const pinterestHandler = async (
 ) => {
   const { from, args } = data
   if (!args || args == '') throw new Error(stringId.pinterest.usage(data))
+  data.reactWait()
   const result = await pinterest(args)
 
   const qty = Number(args.split(' ')[0])
@@ -65,14 +66,17 @@ export const pinterestHandler = async (
         { quoted: msg }
       )
     }
+    data.reactSuccess()
     return null
   } else {
     if (qty > 10) {
+      data.reactError()
       return data.reply(`Max 10, bro.`)
     }
   }
 
   const image = sample(result) as string
+  data.reactSuccess()
   return await waSocket.sendMessage(
     from,
     { image: { url: image }, caption: `HD: ${image}` },
@@ -95,10 +99,12 @@ export const tiktokHandler = async (
     throw new Error(stringId.tiktokdl.usage(data))
   if (!url.match(tiktokPattern) && !url.match(tiktokShortPattern))
     throw new Error(stringId.tiktokdl.error.invalidUrl)
+  data.reactWait()
   const result = await tiktokScraper(url)
   await waSocket.sendMessage(
     from,
     { video: { url: result.url[0].url }, caption: `Niki, nggih.` },
     { quoted: msg }
   )
+  data.reactSuccess()
 }
