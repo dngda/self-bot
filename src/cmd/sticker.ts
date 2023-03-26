@@ -18,7 +18,7 @@ export default function () {
       videoLimit: (s: number) =>
         `‼️ Video terlalu panjang, maksimal ${s} detik`,
       quality: (q: number) =>
-        `⚠️ Result exceeded 1 megabytes with Q: ${q}%\n⏳ Hold on, decreasing Quality...`,
+        `⚠️ Result exceeded 1 MB with Q: ${q}%\n⏳ Hold on, decreasing quality...`,
     },
     usage: (data: MessageData) =>
       `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
@@ -80,7 +80,7 @@ export const stickerHandler = async (
   }
 
   if (isVideo || isQuotedVideo) {
-    processVideo(msg, mediaData, data, packname, author, Stype)
+    await processVideo(msg, mediaData, data, packname, author, Stype)
   }
 }
 
@@ -99,16 +99,12 @@ const processVideo = async (
   if (seconds > videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
 
-  let stickerType = Stype
-  stickerType = data.args.includes('-r')
-    ? StickerTypes.ROUNDED
-    : StickerTypes.CROPPED
   let defaultQuality = 80
   const doConvert = (quality: number = defaultQuality) => {
     return new Sticker(mediaData, {
       pack: packname,
       author: author,
-      type: stickerType,
+      type: Stype,
       quality: quality,
     }).toBuffer()
   }
