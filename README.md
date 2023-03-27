@@ -23,6 +23,7 @@
 
 ## Prerequisite
 
+- Star this repository 🌟
 - Minimum Node.js version `v14` as this project works well in `v16`
 - Need to install `ffmpeg` globally to be able use animated sticker converter
 
