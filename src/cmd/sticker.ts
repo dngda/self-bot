@@ -95,8 +95,8 @@ const processVideo = async (
   const seconds =
     msg.message?.videoMessage?.seconds! ||
     data.quotedMsg?.videoMessage?.seconds!
-  const videoLimit = 5
-  if (seconds > videoLimit)
+  const videoLimit = 10
+  if (seconds >= videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
 
   let defaultQuality = 80
