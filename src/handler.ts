@@ -96,10 +96,10 @@ const sanesCmdHandler = async (
 ) => {
   const { body, send } = data
   switch (true) {
-    case /-i/.test(body as string):
+    case /^(-i)/.test(body as string):
       send('/ingfo-atas')
       break
-    case /-c/.test(body as string):
+    case /^(-c)/.test(body as string):
       send('/ingfo-cuaca')
       break
     default:
