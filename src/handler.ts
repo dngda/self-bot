@@ -19,15 +19,12 @@ export let config: BotConfig = {
   publicModeChats: [],
 }
 
-if (fs.existsSync('./src/data/config.json')) {
-  config = JSON.parse(fs.readFileSync('./src/data/config.json', 'utf-8'))
+if (fs.existsSync('./data/config.json')) {
+  config = JSON.parse(fs.readFileSync('./data/config.json', 'utf-8'))
 }
 
 setInterval(() => {
-  fs.promises.writeFile(
-    './src/data/config.json',
-    JSON.stringify(config, null, 2)
-  )
+  fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
 }, 5000)
 
 // every handler must have 3 parameters:
