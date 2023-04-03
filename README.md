@@ -48,7 +48,7 @@ Setup your `.env` files
 ```bash
 > cp .env.sample .env
 ```
-
+or copy paste `.env.sample` and rename to `.env`
 and fill it with your related data!
 
 ### Usage
