@@ -88,7 +88,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
   data.download = async () => {
     let msgData: WAMessage
-    if (Object.keys(msg.message!)[0] == 'ephemeralMessage') {
+    if (data.isEphemeral) {
       msgData = {
         key: msg.key,
         message: msg.message?.ephemeralMessage?.message,
@@ -147,15 +147,21 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   data.reactWait = async () => {
-    await waSocket.sendMessage(data.from, { react: {text: '⏳', key: msg.key} })
+    await waSocket.sendMessage(data.from, {
+      react: { text: '⏳', key: msg.key },
+    })
   }
 
   data.reactSuccess = async () => {
-    await waSocket.sendMessage(data.from, { react: {text: '✅', key: msg.key} })
+    await waSocket.sendMessage(data.from, {
+      react: { text: '✅', key: msg.key },
+    })
   }
 
   data.reactError = async () => {
-    await waSocket.sendMessage(data.from, { react: {text: '❌', key: msg.key} })
+    await waSocket.sendMessage(data.from, {
+      react: { text: '❌', key: msg.key },
+    })
   }
 
   return data

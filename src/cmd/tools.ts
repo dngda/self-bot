@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@adiwajshing/baileys'
+import { WAMessage, WASocket, downloadMediaMessage } from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
@@ -10,6 +10,7 @@ import chalk from 'chalk'
 export default function () {
   Object.assign(actions, {
     flip: flipHandler,
+    onev: oneViewHandler,
   })
 
   stringId.flip = {
@@ -26,12 +27,27 @@ export default function () {
     },
   }
 
-  menu.push({
-    command: 'flip',
-    hint: stringId.flip.hint,
-    alias: 'flop',
-    type: 'tools',
-  })
+  stringId.onev = {
+    hint: '👁️‍🗨️ get pesan view once',
+    error: {
+      noOneView: '‼️ Pesan view once tidak ditemukan!',
+    },
+  }
+
+  menu.push(
+    {
+      command: 'flip',
+      hint: stringId.flip.hint,
+      alias: 'flop',
+      type: 'tools',
+    },
+    {
+      command: 'onev',
+      hint: stringId.onev.hint,
+      alias: '1v',
+      type: 'tools',
+    }
+  )
 }
 
 export const flipHandler = async (
@@ -64,15 +80,56 @@ export const mathHandler = async (data: MessageData) => {
   if (!body?.startsWith('=')) return null
   const args = body.slice(1)
   if (!args || args == '') return null
+  if (/[\(\)$&_`~'":\\,|;\]\[?><!%]/g.test(args)) return null
   console.log(chalk.blue('[MATH]'), 'Doing =', args)
-  return await data.reply(
-    `${math.evaluate(
-      args
-        .replace(/x/gi, '*')
-        .replace(/×/g, '*')
-        .replace(/÷/g, '/')
-        .replace(/%/g, '/100')
-        .replace("**", '^')
-    )}`
+  const result = math.evaluate(
+    args
+      .replace(/x/gi, '*')
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/%/g, '/100')
+      .replace('**', '^')
   )
+  return await data.reply(`${result}`)
+}
+
+export const oneViewHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  const viewOnce =
+    data.quotedMsg?.viewOnceMessageV2 ||
+    data.quotedMsg?.viewOnceMessage ||
+    data.quotedMsg?.viewOnceMessageV2Extension
+  const isQuotedOneView = viewOnce != null
+  if (!isQuotedOneView) return stringId.onev.error.noOneView
+  data.reactWait()
+  const { message } = viewOnce!
+  const { imageMessage, videoMessage } = message!
+  if (imageMessage) {
+    const mediaData = await downloadMediaMessage(
+      { key: msg.key, message: message! },
+      'buffer',
+      {}
+    )
+    await waSocket.sendMessage(
+      data.from,
+      { image: mediaData as Buffer },
+      { quoted: msg }
+    )
+  }
+  if (videoMessage) {
+    const mediaData = await downloadMediaMessage(
+      { key: msg.key, message: message! },
+      'buffer',
+      {}
+    )
+    await waSocket.sendMessage(
+      data.from,
+      { video: mediaData as Buffer },
+      { quoted: msg }
+    )
+  }
+  data.reactSuccess()
 }
