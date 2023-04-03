@@ -1,1 +1,1 @@
-### use this folder to store runtime configuration data
+### Use this folder to store configuration data at runtime
