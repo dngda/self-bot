@@ -37,7 +37,7 @@ export default function () {
 const q3 = '```'
 const get = axios.get
 
-export const jadwalSholatHandler = async (
+const jadwalSholatHandler = async (
   _: WASocket,
   msg: WAMessage,
   data: MessageData

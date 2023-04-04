@@ -25,7 +25,7 @@ export default function () {
   })
 }
 
-export const changePublicHandler = async (
+const changePublicHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData

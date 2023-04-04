@@ -46,7 +46,7 @@ export default function () {
 // const urlPattern =
 //   /(?:https?):\/\/(\w+:?\w*)?(\S+)(:\d+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/
 
-export const pinterestHandler = async (
+const pinterestHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
   data: MessageData

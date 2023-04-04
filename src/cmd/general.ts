@@ -42,7 +42,7 @@ export default function () {
   )
 }
 
-export const pingHandler = async (
+const pingHandler = async (
   _wa: WASocket,
   msg: WAMessage,
   data: MessageData
@@ -53,7 +53,7 @@ export const pingHandler = async (
 
 const q3 = '```'
 
-export const menuHandler = (
+const menuHandler = (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData

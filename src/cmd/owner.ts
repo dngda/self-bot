@@ -33,7 +33,7 @@ export default function () {
   )
 }
 
-export const evalJSON = async (
+const evalJSON = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData
@@ -43,7 +43,7 @@ export const evalJSON = async (
   return await data.reply(JSON.stringify(eval(data.args), null, 2))
 }
 
-export const evalJS = async (
+const evalJS = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData

@@ -35,7 +35,7 @@ export default function () {
   })
 }
 
-export const stickerHandler = async (
+const stickerHandler = async (
   _wa: WASocket,
   msg: WAMessage,
   data: MessageData
