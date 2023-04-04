@@ -3,14 +3,14 @@ import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
-import * as math from 'mathjs'
 import sharp from 'sharp'
-import chalk from 'chalk'
+import { browser } from '../..'
 
 export default function () {
   Object.assign(actions, {
     flip: flipHandler,
     onev: oneViewHandler,
+    crjogja: crjogjaHandler,
   })
 
   stringId.flip = {
@@ -20,17 +20,17 @@ export default function () {
     },
   }
 
-  stringId.math = {
-    hint: '🧮 Hitung rumus matematika',
-    error: {
-      noArgs: '‼️ Tidak ada argumen yang diberikan!',
-    },
-  }
-
   stringId.onev = {
     hint: '👁️‍🗨️ get pesan view once',
     error: {
       noOneView: '‼️ Pesan view once tidak ditemukan!',
+    },
+  }
+
+  stringId.crjogja = {
+    hint: '🌐 Citra radar cuaca di Jogja',
+    error: {
+      timeOut: '‼️ Gagal mendapatkan citra radar!',
     },
   }
 
@@ -46,11 +46,17 @@ export default function () {
       hint: stringId.onev.hint,
       alias: '1v',
       type: 'tools',
+    },
+    {
+      command: 'crjogja',
+      hint: stringId.crjogja.hint,
+      alias: 'crj',
+      type: 'tools',
     }
   )
 }
 
-export const flipHandler = async (
+const flipHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
   data: MessageData
@@ -75,25 +81,7 @@ export const flipHandler = async (
   data.reactSuccess()
 }
 
-export const mathHandler = async (data: MessageData) => {
-  const { body } = data
-  if (!body?.startsWith('=')) return null
-  const args = body.slice(1)
-  if (!args || args == '') return null
-  if (/[\(\)$&_`~'":\\,|;\]\[?><!%]/g.test(args)) return null
-  console.log(chalk.blue('[MATH]'), 'Doing =', args)
-  const result = math.evaluate(
-    args
-      .replace(/x/gi, '*')
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/%/g, '/100')
-      .replace('**', '^')
-  )
-  return await data.reply(`${result}`)
-}
-
-export const oneViewHandler = async (
+const oneViewHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
   data: MessageData
@@ -132,4 +120,36 @@ export const oneViewHandler = async (
     )
   }
   data.reactSuccess()
+}
+
+const crjogjaHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  data.reactWait()
+  browser
+    .takeScreenshot(
+      'http://sipora.staklimyogyakarta.com/radar/',
+      'tmp/radar.png',
+      { width: 600, height: 600 }
+    )
+    .then((r) => {
+      if (!r) {
+        return data.reply(stringId.crjogja.error.timeOut)
+        data.reactError()
+      }
+
+      waSocket.sendMessage(
+        data.from,
+        { image: { url: 'tmp/radar.png' } },
+        { quoted: msg }
+      )
+      return data.reactSuccess()
+    })
+    .catch((e) => {
+      console.log(e)
+      return data.reply(stringId.crjogja.error.timeOut)
+      data.reactError()
+    })
 }

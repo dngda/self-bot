@@ -3,7 +3,9 @@ import { MessageData } from '../utils'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
+import * as math from 'mathjs'
 import lodash from 'lodash'
+import chalk from 'chalk'
 
 export default function () {
   Object.assign(actions, {
@@ -16,6 +18,12 @@ export default function () {
   }
   stringId.menu = {
     hint: '📜 Menampilkan pesan ini',
+  }
+  stringId.math = {
+    hint: '🧮 Hitung rumus matematika',
+    error: {
+      noArgs: '‼️ Tidak ada argumen yang diberikan!',
+    },
   }
 
   menu.push(
@@ -91,4 +99,22 @@ export const menuHandler = (
     menuMsg += `\nThanks for using this bot! 🙏`
   }
   data.send(menuMsg)
+}
+
+export const mathHandler = async (data: MessageData) => {
+  const { body } = data
+  if (!body?.startsWith('=')) return null
+  const args = body.slice(1)
+  if (!args || args == '') return null
+  if (/[\(\)$&_`~'":\\,|;\]\[?><!%]/g.test(args)) return null
+  console.log(chalk.blue('[MATH]'), 'Doing =', args)
+  const result = math.evaluate(
+    args
+      .replace(/x/gi, '*')
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/%/g, '/100')
+      .replace('**', '^')
+  )
+  return await data.reply(`${result}`)
 }

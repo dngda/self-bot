@@ -1,11 +1,11 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
-import initToolsCmd, { mathHandler } from './cmd/tools'
+import initGeneralCmd, {mathHandler} from './cmd/general'
 import initStickerCmd from './cmd/sticker'
-import initGeneralCmd from './cmd/general'
 import initScrapeCmd from './cmd/scrape'
 import initConfigCmd from './cmd/config'
 import initIslamCmd from './cmd/islam'
+import initToolsCmd from './cmd/tools'
 import initOwnerCmd from './cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
@@ -70,10 +70,10 @@ export const messageHandler = async (
           await actions[cmd](waSocket, msg, data)
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.log(error)
-      data.reactError()
       data.reply(`${error}`)
+      data.reactError()
     }
   }
 }

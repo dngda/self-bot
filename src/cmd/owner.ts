@@ -39,6 +39,7 @@ export const evalJSON = async (
   data: MessageData
 ) => {
   if (!data.fromMe) return null
+  data.reactSuccess()
   return await data.reply(JSON.stringify(eval(data.args), null, 2))
 }
 
@@ -48,5 +49,6 @@ export const evalJS = async (
   data: MessageData
 ) => {
   if (!data.fromMe) return null
+  data.reactSuccess()
   return eval(`(async () => { ${data.args} })()`)
 }
