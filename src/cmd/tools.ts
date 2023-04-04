@@ -136,8 +136,8 @@ const crjogjaHandler = async (
     )
     .then((r) => {
       if (!r) {
-        return data.reply(stringId.crjogja.error.timeOut)
         data.reactError()
+        return data.reply(stringId.crjogja.error.timeOut)
       }
 
       waSocket.sendMessage(
@@ -149,7 +149,7 @@ const crjogjaHandler = async (
     })
     .catch((e) => {
       console.log(e)
-      return data.reply(stringId.crjogja.error.timeOut)
       data.reactError()
+      return data.reply(stringId.crjogja.error.timeOut)
     })
 }
