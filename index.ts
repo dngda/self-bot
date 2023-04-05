@@ -14,7 +14,7 @@ import { textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser } from './src/scrape'
+import { PlaywrightBrowser } from './src/source'
 export const browser = new PlaywrightBrowser()
 
 const logger = MAIN_LOGGER.child({})
@@ -55,6 +55,8 @@ const startSock = async () => {
     },
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
+    markOnlineOnConnect: false,
+    shouldIgnoreJid: (jid) => jid.endsWith('@broadcast'),
     getMessage: async (key) => {
       if (store) {
         const msg = await store.loadMessage(key.remoteJid!, key.id!)
@@ -83,7 +85,7 @@ const startSock = async () => {
       console.log('Connection update:', update)
 
       if (connection === 'open') {
-        waSocket.sendPresenceUpdate('unavailable')
+        // waSocket.sendPresenceUpdate('unavailable')
         console.log(
           chalk.yellow('!---------------BOT IS READY---------------!')
         )

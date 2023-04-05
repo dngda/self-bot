@@ -143,7 +143,7 @@ const crjogjaHandler = async (
       waSocket.sendMessage(
         data.from,
         { image: { url: 'tmp/radar.png' } },
-        { quoted: msg }
+        { quoted: msg, ephemeralExpiration: data.expiration! }
       )
       return data.reactSuccess()
     })

@@ -1,6 +1,6 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
-import initGeneralCmd, {mathHandler} from './cmd/general'
+import initGeneralCmd, { mathHandler } from './cmd/general'
 import initStickerCmd from './cmd/sticker'
 import initScrapeCmd from './cmd/scrape'
 import initConfigCmd from './cmd/config'
