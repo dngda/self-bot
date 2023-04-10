@@ -45,12 +45,8 @@ export async function getNoteContent(title: string) {
 }
 
 export async function updateNoteContent(title: string, content: string) {
-  const note = await Note.findOne({ where: { title } })
-  if (note) {
-    note.toJSON().content = content
-    await note.save()
-  }
-  return note
+  const note = await Note.update({ content }, { where: { title } })
+  return note[0] > 0
 }
 
 export async function deleteNote(title: string) {
