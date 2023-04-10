@@ -40,7 +40,7 @@ const evalJSON = async (
 ) => {
   if (!data.fromMe) return null
   data.reactSuccess()
-  return await data.reply(JSON.stringify(eval(data.args), null, 2))
+  return await data.reply(JSON.stringify(eval(data.arg), null, 2))
 }
 
 const evalJS = async (
@@ -50,5 +50,5 @@ const evalJS = async (
 ) => {
   if (!data.fromMe) return null
   data.reactSuccess()
-  return eval(`(async () => { ${data.args} })()`)
+  return eval(`(async () => { ${data.arg} })()`)
 }

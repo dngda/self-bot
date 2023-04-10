@@ -5,12 +5,20 @@ import stringId from '../language'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import { browser } from '../..'
+import {
+  createNote,
+  deleteNote,
+  getNotesNames,
+  initNoteDatabase,
+  updateNoteContent,
+} from '../lib'
 
 export default function () {
   Object.assign(actions, {
     flip: flipHandler,
     onev: oneViewHandler,
     crjogja: crjogjaHandler,
+    note: noteHandler,
   })
 
   stringId.flip = {
@@ -34,6 +42,15 @@ export default function () {
     },
   }
 
+  stringId.note = {
+    hint: '📝 Database catatan',
+    error: {
+      noNote: '‼️ Catatan tidak ditemukan!',
+    },
+    usage: (data: MessageData) =>
+      `📝 Simpan catatan dengan cara ➡️ ${data.prefix}addnote #nama <catatan>`,
+  }
+
   menu.push(
     {
       command: 'flip',
@@ -52,8 +69,16 @@ export default function () {
       hint: stringId.crjogja.hint,
       alias: 'crj',
       type: 'tools',
+    },
+    {
+      command: 'note',
+      hint: stringId.note.hint,
+      alias: 'addnote, delnote, editnote',
+      type: 'tools',
     }
   )
+
+  initNoteDatabase()
 }
 
 const flipHandler = async (
@@ -152,4 +177,41 @@ const crjogjaHandler = async (
       data.reactError()
       return data.reply(stringId.crjogja.error.timeOut)
     })
+}
+
+const noteHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { cmd, args } = data
+  if (args.length === 0) return data.reply(stringId.note.usage(data))
+  const noteName = args[0].toLowerCase()
+  if (cmd === 'note') {
+    const note = await getNotesNames()
+    if (note.length == 0) return data.reply(stringId.note.error.noNote)
+    let noteList = '📝 Daftar catatan:\n'
+    note.forEach((n) => {
+      noteList += `- ${n}\n`
+    })
+    return data.reply(noteList)
+  }
+  if (cmd === 'addnote') {
+    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    const note = args.slice(1).join(' ')
+    await createNote(noteName, note)
+    return data.reply('📝 Catatan berhasil disimpan!')
+  }
+  if (cmd === 'delnote') {
+    const res = await deleteNote(noteName)
+    if (!res) return data.reply(stringId.note.error.noNote)
+    return data.reply('🗑️ Catatan berhasil dihapus!')
+  }
+  if (cmd === 'editnote') {
+    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    const note = args.slice(1).join(' ')
+    const res = await updateNoteContent(noteName, note)
+    if (!res) return data.reply(stringId.note.error.noNote)
+    return data.reply('✏️ Catatan berhasil diedit!')
+  }
 }

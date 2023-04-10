@@ -10,6 +10,7 @@ import initOwnerCmd from './cmd/owner'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
+import { getNoteContent } from './lib'
 
 interface BotConfig {
   publicModeChats: string[]
@@ -91,13 +92,17 @@ const sanesCmdHandler = async (
   _: WAMessage,
   data: MessageData
 ) => {
-  const { body, send } = data
+  const { body, send, reply } = data
   switch (true) {
     case /^(-i)/.test(body as string):
       send('/ingfo-atas')
       break
     case /^(-c)/.test(body as string):
       send('/ingfo-cuaca')
+      break
+    case /^#\w+$/.test(body as string):
+      const note = await getNoteContent(body as string)
+      if (note) reply(note)
       break
     default:
       break

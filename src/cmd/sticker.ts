@@ -41,7 +41,7 @@ const stickerHandler = async (
   data: MessageData
 ) => {
   const {
-    args,
+    arg,
     isMedia,
     isImage,
     isVideo,
@@ -53,9 +53,9 @@ const stickerHandler = async (
   if (!isMedia) throw new Error(stringId.sticker.usage(data))
   data.reactWait()
   let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
-  let Stype = args.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
-  Stype = args.includes('-c') ? StickerTypes.CROPPED : Stype
-  if (args.includes('-nobg')) {
+  let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
+  Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
+  if (arg.includes('-nobg')) {
     const base64 = mediaData.toString('base64')
     const res = await removeBackgroundFromImageBase64({
       base64img: base64,
@@ -64,9 +64,9 @@ const stickerHandler = async (
     })
     mediaData = Buffer.from(res.base64img, 'base64')
   }
-  const argsMeta = args.replace(/-r|-c|-nobg/g, '').trim()
-  const packname = argsMeta.split('|')[0] || process.env.PACKNAME!
-  const author = argsMeta.split('|')[1] || process.env.AUTHOR!
+  const argMeta = arg.replace(/-r|-c|-nobg/g, '').trim()
+  const packname = argMeta.split('|')[0] || process.env.PACKNAME!
+  const author = argMeta.split('|')[1] || process.env.AUTHOR!
 
   if (isImage || isQuotedImage) {
     const sticker = new Sticker(mediaData, {

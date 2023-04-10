@@ -1,4 +1,4 @@
-import { pinterest, tinyUrl, videoDownloader } from '../source'
+import { pinterest, tinyUrl, videoDownloader } from '../lib'
 import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
@@ -48,12 +48,12 @@ const pinterestHandler = async (
   msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, args } = data
-  if (!args || args == '') throw new Error(stringId.pinterest.usage(data))
+  const { from, arg, args } = data
+  if (arg == '') throw new Error(stringId.pinterest.usage(data))
   data.reactWait()
-  const result = await pinterest(args)
+  const result = await pinterest(arg)
 
-  const qty = Number(args.split(' ')[0])
+  const qty = Number(args[0])
   if (qty <= 10) {
     const images = sampleSize(result, qty)
     for (const image of images) {
@@ -96,10 +96,9 @@ export const videoHandler = async (
   msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, args, isQuoted, quotedMsg } = data
-  const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : args
-  if ((!args || args == '') && !isQuoted)
-    throw new Error(stringId.videodl.usage(data))
+  const { from, arg, isQuoted, quotedMsg } = data
+  const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : arg
+  if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(data))
 
   data.reactWait()
   switch (true) {

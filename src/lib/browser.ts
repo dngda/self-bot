@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import { BrowserContext, chromium } from 'playwright'
 
 export class PlaywrightBrowser {
@@ -10,7 +11,7 @@ export class PlaywrightBrowser {
   async initBrowser() {
     const browser = await chromium.launch()
     const context = await browser.newContext()
-    console.log('Browser initialized')
+    console.log(chalk.green('Browser initialized!'))
     this.browser = context
   }
 

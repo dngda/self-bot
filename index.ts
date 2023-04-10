@@ -14,7 +14,7 @@ import { textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser } from './src/source'
+import { PlaywrightBrowser } from './src/lib'
 export const browser = new PlaywrightBrowser()
 
 const logger = MAIN_LOGGER.child({})

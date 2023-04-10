@@ -17,7 +17,7 @@ export default function () {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
       notFound: (
         data: MessageData
-      ) => `‼️ Daerah "${data.args}" tidak ditemukan!
+      ) => `‼️ Daerah "${data.args[0]}" tidak ditemukan!
       cek daerah dengan cara ➡️ ${data.prefix}jsh daerah`,
     },
     usage: (data: MessageData) =>
@@ -42,8 +42,8 @@ const jadwalSholatHandler = async (
   msg: WAMessage,
   data: MessageData
 ) => {
-  const args = data.args.split(' ')
-  if (!data.args || data.args == '')
+  const args = data.args
+  if (!data.arg || data.arg == '')
     return data.reply(stringId.jsholat.usage(data))
   data.reactWait()
   if (args[0] == 'daerah') {

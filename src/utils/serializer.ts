@@ -14,7 +14,8 @@ export interface MessageData {
   isCmd: boolean
   cmd: string
   prefix: string
-  args: string
+  arg: string
+  args: string[]
   from: string
   fromMe: boolean | null | undefined
   name: string | null | undefined
@@ -57,7 +58,8 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
   data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
   data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
-  data.args = data.body?.replace(data.prefix + data.cmd, '').trim() || ''
+  data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() || ''
+  data.args = data.arg.split(' ')
   data.from = msg.key.remoteJid!
   data.fromMe = msg.key.fromMe
   data.name = msg.pushName
