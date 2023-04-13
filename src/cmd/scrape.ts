@@ -82,7 +82,7 @@ const pinterestHandler = async (
 }
 
 const tiktokPattern =
-  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)\/video\/(\d+)/
+  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)((\.)?(\w+)?)+\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reel\/(\w+)/
