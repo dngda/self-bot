@@ -67,6 +67,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
       ?.quotedMessage?.ephemeralMessage?.message
+  
   data.isGroup = data.from.endsWith('@g.us')
   data.groupName = data.isGroup
     ? (await waSocket.groupMetadata(data.from)).subject
@@ -84,8 +85,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
   data.isEphemeral = msg.message?.ephemeralMessage != null
   data.expiration =
-    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
-      ?.expiration
+    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo?.expiration
   data.config = config
 
   data.download = async () => {

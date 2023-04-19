@@ -243,8 +243,8 @@ const toMp3Handler = async (
   const audio = await videoToMp3(mediaData)
   await waSocket.sendMessage(
     data.from,
-    { audio: { url: audio } },
-    { quoted: msg }
+    { audio: { url: audio }, mimetype: 'audio/mp4' },
+    { quoted: msg, ephemeralExpiration: data.expiration! }
   )
   data.reactSuccess()
 }
