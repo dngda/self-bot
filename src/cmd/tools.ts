@@ -11,6 +11,7 @@ import {
   getNotesNames,
   initNoteDatabase,
   updateNoteContent,
+  videoToMp3,
 } from '../lib'
 
 export default function () {
@@ -19,6 +20,7 @@ export default function () {
     onev: oneViewHandler,
     crjogja: crjogjaHandler,
     note: noteHandler,
+    tomp3: toMp3Handler,
   })
 
   stringId.flip = {
@@ -51,6 +53,13 @@ export default function () {
       `📝 Simpan catatan dengan cara ➡️ ${data.prefix}addnote #nama <catatan>`,
   }
 
+  stringId.tomp3 = {
+    hint: '🎵 Convert video to mp3',
+    error: {
+      noVideo: '‼️ Video tidak ditemukan!',
+    },
+  }
+
   menu.push(
     {
       command: 'flip',
@@ -74,6 +83,12 @@ export default function () {
       command: 'note',
       hint: stringId.note.hint,
       alias: 'addnote, delnote, editnote',
+      type: 'tools',
+    },
+    {
+      command: 'tomp3',
+      hint: stringId.tomp3.hint,
+      alias: 'mp3',
       type: 'tools',
     }
   )
@@ -214,4 +229,22 @@ const noteHandler = async (
     if (!res) return data.reply(stringId.note.error.noNote)
     return data.reply('✏️ Catatan berhasil diedit!')
   }
+}
+
+const toMp3Handler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  const { isQuotedVideo, isVideo, download, downloadQuoted } = data
+  if (!isVideo && !isQuotedVideo) throw new Error(stringId.tomp3.error.noVideo)
+  data.reactWait()
+  const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
+  const audio = await videoToMp3(mediaData)
+  await waSocket.sendMessage(
+    data.from,
+    { audio: { url: audio } },
+    { quoted: msg }
+  )
+  data.reactSuccess()
 }
