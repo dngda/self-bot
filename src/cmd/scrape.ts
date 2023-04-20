@@ -44,11 +44,11 @@ export default function () {
 }
 
 const pinterestHandler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
+  _wa: WASocket,
+  _msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, arg, args } = data
+  const { arg, args } = data
   if (arg == '') throw new Error(stringId.pinterest.usage(data))
   data.reactWait()
   const result = await pinterest(arg)
@@ -57,11 +57,10 @@ const pinterestHandler = async (
   if (qty <= 10) {
     const images = sampleSize(result, qty)
     for (const image of images) {
-      await waSocket.sendMessage(
-        from,
-        { image: { url: image }, caption: `HD: ${image}` },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
+      await data.replyContent({
+        image: { url: image },
+        caption: `Origin: ${image}`,
+      })
     }
     data.reactSuccess()
     return null
@@ -74,11 +73,10 @@ const pinterestHandler = async (
 
   const image = sample(result) as string
   data.reactSuccess()
-  return await waSocket.sendMessage(
-    from,
-    { image: { url: image }, caption: `HD: ${image}` },
-    { quoted: msg, ephemeralExpiration: data.expiration! }
-  )
+  return await data.replyContent({
+    image: { url: image },
+    caption: `Origin: ${image}`,
+  })
 }
 
 const tiktokPattern =
@@ -92,11 +90,11 @@ const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
 export const videoHandler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
+  _wa: WASocket,
+  _msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, arg, isQuoted, quotedMsg } = data
+  const { arg, isQuoted, quotedMsg } = data
   const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : arg
   if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(data))
 
@@ -117,7 +115,7 @@ export const videoHandler = async (
     case youtubeShortPattern.test(url):
     case youtubeShortsPattern.test(url):
       await youtube()
-      return data.reactError()
+      return data.reactSuccess()
       break
     default:
       data.reply(stringId.videodl.error.invalidUrl)
@@ -127,38 +125,56 @@ export const videoHandler = async (
 
   async function tiktokReels() {
     const result = await videoDownloader(url)
-    await waSocket.sendMessage(
-      from,
-      { video: { url: result.url[0].url }, caption: `Niki, nggih.` },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
-    )
+    await data.replyContent({ video: { url: result.url[0].url } })
   }
 
   async function twitter() {
     const result = await videoDownloader(url)
+    let selectedUrl = result.url[0].url
     let captions = ''
     for (const video of result.url) {
-      captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
+      if (video?.url == selectedUrl) continue
+      captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
     }
 
-    await waSocket.sendMessage(
-      from,
-      { video: { url: result.url[0].url }, caption: captions },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
-    )
+    await data.replyContent({
+      video: { url: selectedUrl },
+      caption: captions,
+    })
   }
 
   async function youtube() {
     const result = await videoDownloader(url)
+    let selectedUrl: string | URL
+    let selectedQuality: string
     let captions = ''
-    for (const video of result.url) {
-      captions += `📩 ${video.attr.title}:\n- ${await tinyUrl(video.url)}\n`
+
+    if (result.url[0].quality == '720') {
+      selectedUrl = result.url[1].url
+      selectedQuality = result.url[1].quality
+      captions += `Sent ${result.url[1].quality}p\nOther format:\n`
+    } else {
+      selectedUrl = result.url[0].url
+      selectedQuality = result.url[0].quality
+      captions += `Sent ${result.url[0].quality}p\nOther format:\n`
     }
 
-    await waSocket.sendMessage(
-      from,
-      { video: { url: result.url[0].url }, caption: captions },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
-    )
+    for (const video of result.url) {
+      if (video?.no_audio) continue
+      if (video?.audio) continue
+      if (video?.quality == selectedQuality) continue
+      if (!video?.attr?.title) {
+        captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
+        continue
+      }
+      captions += `📩 ${video.attr.title}:\n- ${await tinyUrl(video.url)}\n`
+    }
+    captions += `\n🔉 Get mp3 by replying this message with ${data.prefix}mp3`
+
+
+    await data.replyContent({
+      video: { url: selectedUrl },
+      caption: captions.trim(),
+    })
   }
 }

@@ -4,6 +4,7 @@ import {
   WAMessage,
   WASocket,
   WAMediaUpload,
+  AnyMessageContent,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
 import { config } from '../handler'
@@ -36,6 +37,8 @@ export interface MessageData {
   reply: (text: string) => Promise<void>
   send: (text: string) => Promise<void>
   replySticker: (inputMedia: WAMediaUpload) => Promise<void>
+  replyContent: (content: AnyMessageContent) => Promise<void>
+
   reactWait: () => Promise<void>
   reactSuccess: () => Promise<void>
   reactError: () => Promise<void>
@@ -67,7 +70,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
       ?.quotedMessage?.ephemeralMessage?.message
-  
+
   data.isGroup = data.from.endsWith('@g.us')
   data.groupName = data.isGroup
     ? (await waSocket.groupMetadata(data.from)).subject
@@ -146,6 +149,13 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         { quoted: msg }
       )
     }
+  }
+
+  data.replyContent = async (content: AnyMessageContent) => {
+    waSocket.sendMessage(data.from, content, {
+      quoted: msg,
+      ephemeralExpiration: data.expiration!,
+    })
   }
 
   data.reactWait = async () => {
