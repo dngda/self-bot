@@ -12,6 +12,10 @@ const Note = sequelize.define('note', {
     autoIncrement: true,
     primaryKey: true,
   },
+  from: {
+    type: new DataTypes.STRING(128),
+    allowNull: false,
+  },
   title: {
     type: new DataTypes.STRING(128),
     unique: true,
@@ -29,28 +33,32 @@ export async function initNoteDatabase() {
   console.log(chalk.green('Database synced!'))
 }
 
-export async function createNote(title: string, content: string) {
-  const note = await Note.create({ title, content })
+export async function createNote(from: string, title: string, content: string) {
+  const note = await Note.create({ from, title, content })
   return note.toJSON()
 }
 
-export async function getNotesNames() {
-  const notes = await Note.findAll()
+export async function getNotesNames(from: string) {
+  const notes = await Note.findAll({ where: { from } })
   return notes.map((note) => note.toJSON().title)
 }
 
-export async function getNoteContent(title: string) {
-  const note = await Note.findOne({ where: { title } })
+export async function getNoteContent(from: string, title: string) {
+  const note = await Note.findOne({ where: { from, title } })
   return note?.toJSON().content
 }
 
-export async function updateNoteContent(title: string, content: string) {
-  const note = await Note.update({ content }, { where: { title } })
+export async function updateNoteContent(
+  from: string,
+  title: string,
+  content: string
+) {
+  const note = await Note.update({ content }, { where: { from, title } })
   return note[0] > 0
 }
 
-export async function deleteNote(title: string) {
-  const note = await Note.findOne({ where: { title } })
+export async function deleteNote(from: string, title: string) {
+  const note = await Note.findOne({ where: { from, title } })
   await note?.destroy()
   return note?.toJSON()
 }
