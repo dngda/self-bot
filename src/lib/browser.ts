@@ -27,12 +27,12 @@ export class PlaywrightBrowser {
       await page.goto(url)
       await page.waitForLoadState('networkidle')
       await page.screenshot({ path: filePath })
+      await page.close()
       return true
     } catch (e) {
       console.log(e)
+      await page.close()
       return false
     }
-
-    await page.close()
   }
 }

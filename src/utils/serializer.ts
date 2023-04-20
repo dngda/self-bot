@@ -112,43 +112,27 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   data.reply = async (text: string) => {
-    if (data.isEphemeral) {
-      waSocket.sendMessage(
-        data.from,
-        { text: text },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
-    } else {
-      await waSocket.sendMessage(data.from, { text: text }, { quoted: msg })
-    }
+    waSocket.sendMessage(
+      data.from,
+      { text: text },
+      { quoted: msg, ephemeralExpiration: data.expiration! }
+    )
   }
 
   data.send = async (text: string) => {
-    if (data.isEphemeral) {
-      waSocket.sendMessage(
-        data.from,
-        { text: text },
-        { ephemeralExpiration: data.expiration! }
-      )
-    } else {
-      await waSocket.sendMessage(data.from, { text: text })
-    }
+    waSocket.sendMessage(
+      data.from,
+      { text: text },
+      { ephemeralExpiration: data.expiration! }
+    )
   }
 
   data.replySticker = async (inputMedia: WAMediaUpload) => {
-    if (data.isEphemeral) {
-      waSocket.sendMessage(
-        data.from,
-        { sticker: inputMedia },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
-    } else {
-      await waSocket.sendMessage(
-        data.from,
-        { sticker: inputMedia },
-        { quoted: msg }
-      )
-    }
+    waSocket.sendMessage(
+      data.from,
+      { sticker: inputMedia },
+      { quoted: msg, ephemeralExpiration: data.expiration! }
+    )
   }
 
   data.replyContent = async (content: AnyMessageContent) => {

@@ -61,12 +61,13 @@ const jadwalSholatHandler = async (
     let { data: cariKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/cari/' + args
     )
+    let kodek = ''
     try {
-      var kodek = cariKota.data[0].id
+      kodek = cariKota.data[0].id
     } catch (err) {
       return data.reply(stringId.jsholat.error.notFound(data))
     }
-    var tgl = moment((msg.messageTimestamp as number) * 1000).format(
+    const tgl = moment((msg.messageTimestamp as number) * 1000).format(
       'YYYY/MM/DD'
     )
     let { data: jadwalData } = await get(
@@ -74,7 +75,7 @@ const jadwalSholatHandler = async (
     )
     if (jadwalData.status === 'false')
       return data.reply('Internal server error')
-    var jadwal = jadwalData.data.jadwal
+    const jadwal = jadwalData.data.jadwal
     let jadwalMsg = `╔══✪〘 Jadwal Sholat di ${jadwalData.data.lokasi} 〙✪\n`
     jadwalMsg += `╠> ${jadwal.tanggal}\n`
     jadwalMsg += `╠> ${q3}Imsak    : ${jadwal.imsak}${q3}\n`

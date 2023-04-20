@@ -55,19 +55,16 @@ export const messageHandler = async (
     if (isHistorySync(msg))
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
     console.log(chalk.red('[LOG]'), 'Data type', msg.message)
-
     const data = await serializeMessage(waSocket, msg)
-    if (msg.key.fromMe || isAllowedChat(data)) {
-      sanesCmdHandler(waSocket, msg, data)
-      mathHandler(data)
-    }
-
     try {
-      if ((msg.key.fromMe || isAllowedChat(data)) && data.isCmd) {
-        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
-        logCmd(msg, data)
+      if (msg.key.fromMe || isAllowedChat(data)) {
+        sanesCmdHandler(waSocket, msg, data)
+        mathHandler(data)
+
         const cmd = getCommand(data.cmd) as string
-        if (cmd in actions) {
+        if (data.isCmd && cmd in actions) {
+          console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
+          logCmd(msg, data)
           await actions[cmd](waSocket, msg, data)
         }
       }

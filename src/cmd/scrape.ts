@@ -80,7 +80,7 @@ const pinterestHandler = async (
 }
 
 const tiktokPattern =
-  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)((\.)?(\w+)?)+\/video\/(\d+)/
+  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)(\.)?(\w+)\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reel\/(\w+)/
@@ -106,21 +106,17 @@ export const videoHandler = async (
     case instagramPattern.test(url):
       await tiktokReels()
       return data.reactSuccess()
-      break
     case twitterPattern.test(url):
       await twitter()
       return data.reactSuccess()
-      break
     case youtubePattern.test(url):
     case youtubeShortPattern.test(url):
     case youtubeShortsPattern.test(url):
       await youtube()
       return data.reactSuccess()
-      break
     default:
       data.reply(stringId.videodl.error.invalidUrl)
       return data.reactError()
-      break
   }
 
   async function tiktokReels() {
@@ -170,7 +166,6 @@ export const videoHandler = async (
       captions += `📩 ${video.attr.title}:\n- ${await tinyUrl(video.url)}\n`
     }
     captions += `\n🔉 Get mp3 by replying this message with ${data.prefix}mp3`
-
 
     await data.replyContent({
       video: { url: selectedUrl },

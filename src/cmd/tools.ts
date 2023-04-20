@@ -1,4 +1,9 @@
-import { WAMessage, WASocket, downloadMediaMessage } from '@adiwajshing/baileys'
+import {
+  WAMessage,
+  WASocket,
+  downloadMediaMessage,
+  proto,
+} from '@adiwajshing/baileys'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
@@ -133,11 +138,11 @@ const oneViewHandler = async (
   const isQuotedOneView = viewOnce != null
   if (!isQuotedOneView) return stringId.onev.error.noOneView
   data.reactWait()
-  const { message } = viewOnce!
-  const { imageMessage, videoMessage } = message!
+  const { message } = viewOnce
+  const { imageMessage, videoMessage } = message as proto.IMessage
   if (imageMessage) {
     const mediaData = await downloadMediaMessage(
-      { key: msg.key, message: message! },
+      { key: msg.key, message: message },
       'buffer',
       {}
     )
@@ -149,7 +154,7 @@ const oneViewHandler = async (
   }
   if (videoMessage) {
     const mediaData = await downloadMediaMessage(
-      { key: msg.key, message: message! },
+      { key: msg.key, message: message },
       'buffer',
       {}
     )
