@@ -120,12 +120,19 @@ export const videoHandler = async (
   }
 
   async function tiktokReels() {
-    const result = await videoDownloader(url)
+    let urls: string[] =
+      url.match(tiktokPattern) ||
+      url.match(tiktokShortPattern) ||
+      url.match(reelsPattern) ||
+      url.match(instagramPattern) ||
+      []
+    const result = await videoDownloader(urls[0])
     await data.replyContent({ video: { url: result.url[0].url } })
   }
 
   async function twitter() {
-    const result = await videoDownloader(url)
+    let urls: string[] = url.match(twitterPattern) || []
+    const result = await videoDownloader(urls[0])
     let selectedUrl = result.url[0].url
     let captions = ''
     for (const video of result.url) {
@@ -140,7 +147,12 @@ export const videoHandler = async (
   }
 
   async function youtube() {
-    const result = await videoDownloader(url)
+    let urls: string[] =
+      url.match(youtubePattern) ||
+      url.match(youtubeShortPattern) ||
+      url.match(youtubeShortsPattern) ||
+      []
+    const result = await videoDownloader(urls[0])
     let selectedUrl: string | URL
     let selectedQuality: string
     let captions = ''
