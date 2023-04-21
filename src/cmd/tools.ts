@@ -236,7 +236,7 @@ const noteHandler = async (
   if (cmd === 'editnote') {
     let note: string
     if (isQuoted) {
-      note = quotedMsg?.conversation!
+      note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
     } else {
       if (args.length < 2) return data.reply(stringId.note.usage(data))
       note = args.slice(1).join(' ')
