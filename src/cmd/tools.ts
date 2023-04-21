@@ -204,11 +204,12 @@ const noteHandler = async (
   _msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, cmd, args, isQuoted, quotedMsg } = data
+  const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = data
   if (args.length === 0) return data.reply(stringId.note.usage(data))
   const noteName = args[0].toLowerCase()
+  const id = fromMe ? 'me' : participant || from
   if (cmd === 'note') {
-    const note = await getNotesNames(from)
+    const note = await getNotesNames(id)
     if (note.length == 0) return data.reply(stringId.note.error.noNote)
     let noteList = '📝 Daftar catatanmu:\n'
     note.forEach((n) => {
@@ -224,18 +225,23 @@ const noteHandler = async (
       if (args.length < 2) return data.reply(stringId.note.usage(data))
       note = args.slice(1).join(' ')
     }
-    await createNote(from, noteName, note)
+    await createNote(id, noteName, note)
     return data.reply('📝 Catatan berhasil disimpan!')
   }
   if (cmd === 'delnote') {
-    const res = await deleteNote(from, noteName)
+    const res = await deleteNote(id, noteName)
     if (!res) return data.reply(stringId.note.error.noNote)
     return data.reply('🗑️ Catatan berhasil dihapus!')
   }
   if (cmd === 'editnote') {
-    if (args.length < 2) return data.reply(stringId.note.usage(data))
-    const note = args.slice(1).join(' ')
-    const res = await updateNoteContent(from, noteName, note)
+    let note: string
+    if (isQuoted) {
+      note = quotedMsg?.conversation!
+    } else {
+      if (args.length < 2) return data.reply(stringId.note.usage(data))
+      note = args.slice(1).join(' ')
+    }
+    const res = await updateNoteContent(id, noteName, note)
     if (!res) return data.reply(stringId.note.error.noNote)
     return data.reply('✏️ Catatan berhasil diedit!')
   }

@@ -89,7 +89,7 @@ const sanesCmdHandler = async (
   _: WAMessage,
   data: MessageData
 ) => {
-  const { from, body, send, reply } = data
+  const { from, fromMe, participant, body, send, reply } = data
   switch (true) {
     case /^(-i)/.test(body as string):
       send('/ingfo-atas')
@@ -98,7 +98,8 @@ const sanesCmdHandler = async (
       send('/ingfo-cuaca')
       break
     case /^#\w+$/.test(body as string):
-      const note = await getNoteContent(from, body as string)
+      const id = fromMe ? 'me' : participant || from
+      const note = await getNoteContent(id, body as string)
       if (note) reply(note)
       break
     default:

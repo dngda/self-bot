@@ -14,11 +14,12 @@ const Note = sequelize.define('note', {
   },
   from: {
     type: new DataTypes.STRING(128),
+    key: 'from',
     allowNull: false,
   },
   title: {
     type: new DataTypes.STRING(128),
-    unique: true,
+    key: 'title',
     allowNull: false,
   },
   content: {
