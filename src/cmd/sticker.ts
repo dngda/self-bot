@@ -6,10 +6,12 @@ import { actions } from '../handler'
 import stringId from '../language'
 import lodash from 'lodash'
 import { menu } from '../menu'
+import { textToPicture } from '../lib'
 
 export default function () {
   Object.assign(actions, {
     sticker: stickerHandler,
+    ttp: ttpHandler,
   })
 
   stringId.sticker = {
@@ -27,12 +29,30 @@ export default function () {
 ➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
   }
 
-  menu.push({
-    command: 'sticker',
-    hint: stringId.sticker.hint,
-    alias: 'stiker, s',
-    type: 'sticker',
-  })
+  stringId.ttp = {
+    hint: '🖼️ Convert teks ke sticker',
+    error: {
+      textLimit: (s: number) =>
+        `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
+    },
+    usage: (data: MessageData) =>
+      `Tambahkan teks atau balas teks dengan ${data.prefix}${data.cmd} <teks>`,
+  }
+
+  menu.push(
+    {
+      command: 'sticker',
+      hint: stringId.sticker.hint,
+      alias: 'stiker, s',
+      type: 'sticker',
+    },
+    {
+      command: 'ttp',
+      hint: stringId.ttp.hint,
+      alias: 'ttpc',
+      type: 'sticker',
+    }
+  )
 }
 
 const stickerHandler = async (
@@ -116,4 +136,38 @@ const processVideo = async (
   }
   data.reactSuccess()
   await data.replySticker(resultBuffer)
+}
+
+const ttpHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { arg, args, cmd, isQuoted, isMedia, replySticker } = data
+  if ((!arg && !isQuoted) || isMedia) throw new Error(stringId.ttp.usage(data))
+  data.reactWait()
+  const text =
+    arg ||
+    data.quotedMsg?.conversation! ||
+    data.quotedMsg?.extendedTextMessage?.text!
+  const textLimit = 100
+  if (text.length > textLimit)
+    throw new Error(stringId.ttp.error.textLimit(textLimit))
+
+  let image: Buffer
+  if (cmd === 'ttpc') {
+    const col = args[0].split('|')[0]
+    const col2 = args[0].split('|')[1] || col
+    image = await textToPicture(text.replace(args[0], ''), col, col2)
+  } else {
+    image = await textToPicture(text)
+  }
+  const sticker = await new Sticker(image, {
+    pack: process.env.PACKNAME!,
+    author: process.env.AUTHOR!,
+    type: StickerTypes.FULL,
+    quality: 100,
+  }).toFile('tmp/sticker-ttp.webp')
+  data.reactSuccess()
+  await replySticker({ url: sticker })
 }
