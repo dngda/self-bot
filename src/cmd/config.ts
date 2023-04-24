@@ -6,26 +6,28 @@ import { menu } from '../menu'
 
 export default function () {
   Object.assign(actions, {
-    public: changePublicHandler,
+    toggle: togglePublicHandler,
   })
 
   stringId.public = {
     hint: '⚙️ Toggle public mode pada chat ini',
-    info: (isPublic: boolean) =>
+    info: (isPublic: boolean, prefix: string) =>
       `ℹ️ Bot sekarang dalam mode ${
-        isPublic ? '*Publik* di chat ini.\n➡️ Coba kirimkan "!help"' : '*Private*'
+        isPublic
+          ? `*Public* di chat ini.\n➡️ Coba kirimkan "${prefix}help"`
+          : '*Private*'
       }`,
   }
 
   menu.push({
-    command: 'public',
+    command: 'toggle',
     hint: stringId.public.hint,
     alias: 'mode',
     type: 'config',
   })
 }
 
-const changePublicHandler = async (
+const togglePublicHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData
@@ -41,5 +43,5 @@ const changePublicHandler = async (
     config.publicModeChats.push(data.from)
     isPublic = true
   }
-  data.reply(stringId.public.info(isPublic))
+  data.reply(stringId.public.info(isPublic, data.prefix))
 }

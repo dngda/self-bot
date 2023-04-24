@@ -64,6 +64,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
 
   menuMsg += `
 !-------------- Help - Usage --------------!\n`
+  menuMsg += `*Accepted prefix:* ${process.env.PREFIX!}\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type
@@ -102,7 +103,8 @@ export const mathHandler = async (data: MessageData) => {
   if (!body?.startsWith('=')) return null
   const args = body.slice(1)
   if (!args || args == '') return null
-  if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\(.+\)/g.test(args)) return null
+  if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\(.+\)/g.test(args))
+    return null
   console.log(chalk.blue('[MATH]'), 'Doing =', args)
   const result = math.evaluate(
     args

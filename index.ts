@@ -85,7 +85,6 @@ const startSock = async () => {
       console.log('Connection update:', update)
 
       if (connection === 'open') {
-        // waSocket.sendPresenceUpdate('unavailable')
         console.log(
           chalk.yellow('!---------------BOT IS READY---------------!')
         )
@@ -106,6 +105,11 @@ const startSock = async () => {
       messageHandler(waSocket, upsert)
     }
   })
+
+  setInterval(() => {
+    // send offline presence update every 5 minutes
+    waSocket.sendPresenceUpdate('unavailable')
+  }, 1000 * 60 * 5)
 }
 
 startSock()

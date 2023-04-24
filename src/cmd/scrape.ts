@@ -19,12 +19,12 @@ export default function () {
   }
 
   stringId.videodl = {
-    hint: '📩 Download video tiktok/reels/twitter/youtube',
+    hint: '📩 Download video tiktok/reel/twitter/yt',
     error: {
       invalidUrl: '‼️ URL tidak valid!',
     },
     usage: (data: MessageData) =>
-      `📩 Download video tiktok/reels/twitter dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
+      `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
   }
 
   menu.push(
