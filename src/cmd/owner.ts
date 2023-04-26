@@ -11,10 +11,10 @@ export default function () {
   })
 
   stringId.eval = {
-    hint: 'Evaluate JS/TS code',
+    hint: '_Evaluate JS/TS code_',
   }
   stringId.return = {
-    hint: 'Evaluate JS/TS variable dan return hasilnya',
+    hint: '_Evaluate JS/TS variable dan return hasilnya_',
   }
 
   menu.push(

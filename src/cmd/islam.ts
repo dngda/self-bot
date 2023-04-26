@@ -12,7 +12,7 @@ export default function () {
   })
 
   stringId.jsholat = {
-    hint: '🕌 Jadwal sholat',
+    hint: '🕌 _Jadwal sholat_',
     error: {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
       notFound: (

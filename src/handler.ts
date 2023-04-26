@@ -1,6 +1,7 @@
 import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
 import initGeneralCmd, { mathHandler } from './cmd/general'
+import initBrowserCmd from './cmd/browser'
 import initStickerCmd from './cmd/sticker'
 import initScrapeCmd from './cmd/scrape'
 import initConfigCmd from './cmd/config'
@@ -34,8 +35,10 @@ export const actions: { [index: string]: any } = {}
 initGeneralCmd()
 initStickerCmd()
 initScrapeCmd()
-initIslamCmd()
+initBrowserCmd()
 initToolsCmd()
+initIslamCmd()
+
 initConfigCmd()
 initOwnerCmd()
 

@@ -14,13 +14,13 @@ export default function () {
   })
 
   stringId.ping = {
-    hint: '➡️ Balas dengan pong!',
+    hint: '➡️ _Balas dengan pong!_',
   }
   stringId.menu = {
-    hint: '📜 Menampilkan pesan ini',
+    hint: '📜 _Menampilkan pesan ini_',
   }
   stringId.math = {
-    hint: '🧮 Hitung rumus matematika',
+    hint: '🧮 _Hitung rumus matematika_',
     error: {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
     },
@@ -64,7 +64,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
 
   menuMsg += `
 !-------------- Help - Usage --------------!\n`
-  menuMsg += `*Accepted prefix:* ${process.env.PREFIX!}\n`
+  menuMsg += `_Accepted prefix:_ ${process.env.PREFIX!}\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type

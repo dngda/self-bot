@@ -9,7 +9,6 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
 import sharp from 'sharp'
-import { browser } from '../..'
 import {
   createNote,
   deleteNote,
@@ -23,34 +22,26 @@ export default function () {
   Object.assign(actions, {
     flip: flipHandler,
     onev: oneViewHandler,
-    crjogja: crjogjaHandler,
     note: noteHandler,
     tomp3: toMp3Handler,
   })
 
   stringId.flip = {
-    hint: '🖼️ flip = vertikal, flop = horizontal',
+    hint: '🖼️ _flip = vertikal, flop = horizontal_',
     error: {
       noImage: '‼️ Gambar tidak ditemukan!',
     },
   }
 
   stringId.onev = {
-    hint: '👁️‍🗨️ get pesan view once',
+    hint: '👁️‍🗨️ _Get pesan view once_',
     error: {
       noOneView: '‼️ Pesan view once tidak ditemukan!',
     },
   }
 
-  stringId.crjogja = {
-    hint: '🌐 Citra radar cuaca di Jogja',
-    error: {
-      timeOut: '‼️ Gagal mendapatkan citra radar!',
-    },
-  }
-
   stringId.note = {
-    hint: '📝 Database catatan',
+    hint: '📝 _Database catatan_',
     error: {
       noNote: '‼️ Catatan tidak ditemukan!',
     },
@@ -59,7 +50,7 @@ export default function () {
   }
 
   stringId.tomp3 = {
-    hint: '🎵 Convert video to mp3',
+    hint: '🎵 _Convert video to mp3_',
     error: {
       noVideo: '‼️ Video tidak ditemukan!',
     },
@@ -76,12 +67,6 @@ export default function () {
       command: 'onev',
       hint: stringId.onev.hint,
       alias: '1v',
-      type: 'tools',
-    },
-    {
-      command: 'crjogja',
-      hint: stringId.crjogja.hint,
-      alias: 'crj',
       type: 'tools',
     },
     {
@@ -165,38 +150,6 @@ const oneViewHandler = async (
     )
   }
   data.reactSuccess()
-}
-
-const crjogjaHandler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
-) => {
-  data.reactWait()
-  browser
-    .takeScreenshot(
-      'http://sipora.staklimyogyakarta.com/radar/',
-      'tmp/radar.png',
-      { width: 600, height: 600 }
-    )
-    .then((r) => {
-      if (!r) {
-        data.reactError()
-        return data.reply(stringId.crjogja.error.timeOut)
-      }
-
-      waSocket.sendMessage(
-        data.from,
-        { image: { url: 'tmp/radar.png' } },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
-      return data.reactSuccess()
-    })
-    .catch((e) => {
-      console.log(e)
-      data.reactError()
-      return data.reply(stringId.crjogja.error.timeOut)
-    })
 }
 
 const noteHandler = async (

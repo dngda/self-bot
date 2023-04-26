@@ -10,7 +10,7 @@ export default function () {
   })
 
   stringId.public = {
-    hint: '⚙️ Toggle public mode pada chat ini',
+    hint: '⚙️ _Toggle public mode pada chat ini_',
     info: (isPublic: boolean, prefix: string) =>
       `ℹ️ Bot sekarang dalam mode ${
         isPublic

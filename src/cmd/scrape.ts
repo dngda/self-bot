@@ -13,13 +13,13 @@ export default function () {
   })
 
   stringId.pinterest = {
-    hint: '🔍 Search gambar di pinterest',
+    hint: '🔍 _Search gambar di pinterest_',
     usage: (data: MessageData) =>
       `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.cmd} <query>`,
   }
 
   stringId.videodl = {
-    hint: '📩 Download video tiktok/reel/twitter/yt',
+    hint: '📩 _Download video tiktok/reel/twitter/yt_',
     error: {
       invalidUrl: '‼️ URL tidak valid!',
     },

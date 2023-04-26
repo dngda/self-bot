@@ -15,7 +15,7 @@ export default function () {
   })
 
   stringId.sticker = {
-    hint: '🖼️ Convert media ke sticker',
+    hint: '🖼️ _Convert media ke sticker_',
     error: {
       videoLimit: (s: number) =>
         `‼️ Video terlalu panjang, maksimal ${s} detik`,
@@ -30,7 +30,7 @@ export default function () {
   }
 
   stringId.ttp = {
-    hint: '🖼️ Convert teks ke sticker',
+    hint: '🖼️ _Convert teks ke sticker_',
     error: {
       textLimit: (s: number) =>
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
