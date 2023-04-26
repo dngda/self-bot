@@ -4,7 +4,7 @@
 <p align="center">
 <a href="https://github.com/dngda/self-bot"><img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge"></a>
   <br>
-🤖 Lightweight WhatsApp bot using <a href="https://github.com/Adiwajshing/baileys">Baileys</a> Library<hr>
+🤖 Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
 </p>
 <h3 align="center">Made with ❤️</h3>
 <p align="center">
@@ -39,8 +39,8 @@ Clone this project or download zip
 Install the dependencies:
 
 ```bash
-> npm install
 > npm install ts-node typescript -g
+> npm install
 ```
 
 Setup your `.env` files
@@ -48,6 +48,7 @@ Setup your `.env` files
 ```bash
 > cp .env.sample .env
 ```
+
 or copy paste `.env.sample` and rename to `.env`
 and fill it with your related data!
 
@@ -72,10 +73,14 @@ After running it you need to scan the QR
 
 - Sticker Creator
 - Search Pinterest Image
+- Note database with sqlite
+- Downloader pake api nya XZN
+- Browser Screenshot web
 
-Wes mung kui tok, mas 🙏
+Wes intine mung kui tok, masbro 🙏
 
 ## Thanks to
 
-- [`Baileys`](https://github.com/adiwajshing/Baileys)
+- [`Baileys`](https://github.com/WhiskeySockets/Baileys)
 - [`WA-Sticker-Formatter`](https://github.com/AlenVelocity/wa-sticker-formatter)
+- [`XZN Senpai`](https://sh.xznsenpai.xyz/)
