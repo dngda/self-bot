@@ -5,6 +5,7 @@ import moment from 'moment-timezone'
 import { actions } from '../handler'
 import { menu } from '../menu'
 import axios, { AxiosResponse } from 'axios'
+import fs from 'fs'
 
 export default function () {
   Object.assign(actions, {
@@ -117,7 +118,7 @@ const jadwalSholatHandler = async (
   data.reactSuccess()
 }
 
-const SurahDatas = require('../raw/surah.json')
+const SurahDatas = JSON.parse(fs.readFileSync('./src/raw/surah.json', 'utf-8'))
 
 const surahHandler = async (
   waSocket: WASocket,
@@ -182,7 +183,7 @@ const surahHandler = async (
     let surahMsg = `${q3}${sdata.text.arab}${q3}\n\n`
     surahMsg += `_${sdata.translation.id}_`
     surahMsg += `\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
-    data.reactSuccess()
+
     return await data.send(surahMsg)
   }
 
@@ -214,8 +215,9 @@ const surahHandler = async (
 
   const isMultipleAyat = args[1].includes('-')
   if (isMultipleAyat) {
-    processMultipleAyat()
+    await processMultipleAyat()
   } else {
-    processSingleAyat()
+    await processSingleAyat()
   }
+  data.reactSuccess()
 }
