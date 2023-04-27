@@ -74,7 +74,7 @@ After running it you need to scan the QR
 - Sticker Creator
 - Search Pinterest Image
 - Note database with sqlite
-- Downloader pake api nya XZN
+- Downloader pake api nya ssyoutube.com
 - Browser Screenshot web
 
 Wes intine mung kui tok, masbro 🙏
@@ -83,4 +83,3 @@ Wes intine mung kui tok, masbro 🙏
 
 - [`Baileys`](https://github.com/WhiskeySockets/Baileys)
 - [`WA-Sticker-Formatter`](https://github.com/AlenVelocity/wa-sticker-formatter)
-- [`XZN Senpai`](https://sh.xznsenpai.xyz/)

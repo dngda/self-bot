@@ -83,7 +83,7 @@ const tiktokPattern =
   /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)(\.)?(\w+)\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
-const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reel\/(\w+)/
+const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/(\w+)/
 const instagramPattern = /(?:https?):\/\/www\.instagram\.com\/p\/(\w+)\/(\d+)/
 const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
@@ -127,18 +127,29 @@ export const videoHandler = async (
       url.match(instagramPattern) ||
       []
     const result = await videoDownloader(urls[0])
-    await data.replyContent({ video: { url: result.url[0].url } })
+    await data.replyContent({
+      video: { url: result.url[0].url },
+      caption:
+        '🎶 Get audio only by replying this video with ${data.prefix}mp3',
+    })
   }
 
   async function twitter() {
     let urls: string[] = url.match(twitterPattern) || []
     const result = await videoDownloader(urls[0])
-    let selectedUrl = result.url[0].url
+    let resultUrls = result.url.sort((a: any, b: any) => {
+      return Number(a.quality) - Number(b.quality)
+    })
+    let selectedUrl = resultUrls[0].url
     let captions = ''
-    for (const video of result.url) {
-      if (video?.url == selectedUrl) continue
+    for (const video of resultUrls) {
+      if (video?.url == selectedUrl) {
+        captions += `☑ Sent ${video?.quality}p\nOther format:\n`
+        continue
+      }
       captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
     }
+    captions += `\n🎶 Get audio only by replying this video with ${data.prefix}mp3`
 
     await data.replyContent({
       video: { url: selectedUrl },
@@ -160,11 +171,11 @@ export const videoHandler = async (
     if (result.url[0].quality == '720') {
       selectedUrl = result.url[1].url
       selectedQuality = result.url[1].quality
-      captions += `Sent ${result.url[1].quality}p\nOther format:\n`
+      captions += `☑ Sent ${result.url[1].quality}p\nOther format:\n`
     } else {
       selectedUrl = result.url[0].url
       selectedQuality = result.url[0].quality
-      captions += `Sent ${result.url[0].quality}p\nOther format:\n`
+      captions += `☑ Sent ${result.url[0].quality}p\nOther format:\n`
     }
 
     for (const video of result.url) {
@@ -175,9 +186,9 @@ export const videoHandler = async (
         captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
         continue
       }
-      captions += `📩 ${video.attr.title}:\n- ${await tinyUrl(video.url)}\n`
+      captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
     }
-    captions += `\n🔉 Get mp3 by replying this message with ${data.prefix}mp3`
+    captions += `\n🎶 Get audio only by replying this video with ${data.prefix}mp3`
 
     await data.replyContent({
       video: { url: selectedUrl },
