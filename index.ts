@@ -88,6 +88,9 @@ const startSock = async () => {
         console.log(
           chalk.yellow('!---------------BOT IS READY---------------!')
         )
+        waSocket.sendMessage(process.env.OWNER_NUMBER!, {
+          text: '✅ Bot is ready!',
+        })
       }
     }
 
