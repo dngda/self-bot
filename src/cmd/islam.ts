@@ -4,7 +4,7 @@ import { MessageData } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
 import { menu } from '../menu'
-import axios, { AxiosResponse } from 'axios'
+import axios from 'axios'
 import fs from 'fs'
 
 export default function () {
@@ -126,98 +126,98 @@ const surahHandler = async (
   data: MessageData
 ) => {
   const { args, cmd, from } = data
-  if (!data.arg || data.arg == '') return data.reply(stringId.surah.usage(data))
-  data.reactWait()
-  if (args[0] == 'daftar') {
-    let list = '╔══✪〘 Daftar Surah 〙✪\n'
-    SurahDatas.data.forEach((surah: any) => {
-      list += `${
-        surah.number
-      }. ${surah.name.transliteration.id.toLowerCase()}\n`
-    })
-    list += '╚═〘 *SeroBot* 〙'
-    data.reactSuccess()
-    return await data.reply(list)
+  const arg = args[0]
+
+  if (!arg) {
+    return data.reply(stringId.surah.usage(data))
   }
 
-  let surahNumber = 0
-  if (isNaN(Number(args[0]))) {
-    let sdatas = SurahDatas.data
-    let index = sdatas.findIndex((surah: any) => {
-      return (
-        surah.name.transliteration.id
-          .toLowerCase()
-          .includes(args[0].toLowerCase()) ||
-        surah.name.transliteration.en
-          .toLowerCase()
-          .includes(args[0].toLowerCase())
+  data.reactWait()
+
+  if (arg === 'daftar') {
+    const list = SurahDatas.data
+      .map(
+        (surah: any) =>
+          `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}`
       )
-    })
-    if (index == -1) return data.reply(stringId.surah.error.notFound(data))
-    surahNumber = sdatas[index].number
-  } else {
-    surahNumber = Number(args[0])
+      .join('\n')
+    const message = `╔══✪〘 Daftar Surah 〙✪\n${list}\n╚═〘 *SeroBot* 〙`
+    data.reactSuccess()
+    return await data.reply(message)
   }
+
+  const surah = isNaN(Number(arg))
+    ? SurahDatas.data.find(
+        (s: any) =>
+          s.name.transliteration.id.toLowerCase().includes(arg.toLowerCase()) ||
+          s.name.transliteration.en.toLowerCase().includes(arg.toLowerCase())
+      )
+    : SurahDatas.data.find((s: any) => s.number === Number(arg))
+
+  if (!surah) {
+    return data.reply(stringId.surah.error.notFound(data))
+  }
+
+  const { number: surahNumber } = surah
 
   const getAyatSurahDataAndSend = async (ayatNumber: number) => {
-    let result = (await get(
-      `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
-    ).catch((err) => {
+    try {
+      const result = await get(
+        `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
+      )
+      const sdata = result.data.data
+
+      if (cmd === 'recite') {
+        await waSocket.sendMessage(
+          from,
+          {
+            audio: { url: sdata.audio.primary },
+            mimetype: 'audio/mp4',
+            ptt: true,
+          },
+          { quoted: msg, ephemeralExpiration: data.expiration! }
+        )
+      }
+
+      const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
+      await data.send(message)
+
+      return true
+    } catch (err: any) {
       data.reactError()
       return data.reply(err.response.data.message)
-    })) as AxiosResponse
-
-    if (!result) return null
-    let { data: sdata } = result.data
-    if (cmd == 'recite') {
-      await waSocket.sendMessage(
-        from,
-        {
-          audio: { url: sdata.audio.primary },
-          mimetype: 'audio/mp4',
-          ptt: true,
-        },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
     }
-    let surahMsg = `${q3}${sdata.text.arab}${q3}\n\n`
-    surahMsg += `_${sdata.translation.id}_`
-    surahMsg += `\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
-
-    return await data.send(surahMsg)
   }
 
   const processMultipleAyat = async () => {
-    let ayatNumbers = args[1].split('-')
-    if (ayatNumbers.length > 2)
-      return data.reply(stringId.surah.error.invalidAyat(data))
-    let ayatFrom = Number(ayatNumbers[0])
-    let ayatTo = Number(ayatNumbers[1])
-    if (isNaN(ayatFrom) || isNaN(ayatTo))
-      return data.reply(stringId.surah.error.invalidAyat(data))
-    if (ayatFrom > ayatTo)
-      return data.reply(stringId.surah.error.invalidAyat(data))
-    if (ayatTo - ayatFrom > 10)
-      return data.reply(stringId.surah.error.tooManyAyat(data))
+    const [fromAyat, toAyat] = args[1].split('-').map(Number)
 
-    for (let i = ayatFrom; i <= ayatTo; i++) {
+    if (
+      isNaN(fromAyat) ||
+      isNaN(toAyat) ||
+      fromAyat > toAyat ||
+      toAyat - fromAyat > 10
+    ) {
+      return data.reply(stringId.surah.error.invalidAyat(data))
+    }
+
+    for (let i = fromAyat; i <= toAyat; i++) {
       await getAyatSurahDataAndSend(i)
     }
   }
 
   const processSingleAyat = async () => {
-    let ayatNumber = 0
-    if (isNaN(Number(args[1]))) {
-      ayatNumber = 1
-    } else ayatNumber = Number(args[1])
-    return await getAyatSurahDataAndSend(ayatNumber)
+    const ayatNumber = isNaN(Number(args[1])) ? 1 : Number(args[1])
+    await getAyatSurahDataAndSend(ayatNumber)
   }
 
-  const isMultipleAyat = args[1].includes('-')
+  const isMultipleAyat = args[1] && args[1].includes('-')
+
   if (isMultipleAyat) {
     await processMultipleAyat()
   } else {
     await processSingleAyat()
   }
+
   data.reactSuccess()
 }
