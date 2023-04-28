@@ -16,6 +16,7 @@ import chalk from 'chalk'
 
 import { PlaywrightBrowser } from './src/lib'
 export const browser = new PlaywrightBrowser()
+browser.initBrowser()
 
 const logger = MAIN_LOGGER.child({})
 dotenv.config()
@@ -110,7 +111,8 @@ const startSock = async () => {
   })
 
   setInterval(() => {
-    // send offline presence update every 5 minutes
+    // update presence update every 5 minutes
+    waSocket.sendPresenceUpdate('available')
     waSocket.sendPresenceUpdate('unavailable')
   }, 1000 * 60 * 5)
 }

@@ -9,6 +9,7 @@ export default function () {
   Object.assign(actions, {
     crjogja: crjogjaHandler,
     ddg: ddgSearchHandler,
+    gs: googleSearchHandler,
   })
 
   stringId.crjogja = {
@@ -27,6 +28,15 @@ export default function () {
       `🔍 Cari dengan DuckDuckGo ➡️ ${data.prefix}${data.cmd} <query>`,
   }
 
+  stringId.gs = {
+    hint: '🔍 _Google search_',
+    error: {
+      timeOut: '‼️ Gagal mendapatkan hasil pencarian!',
+    },
+    usage: (data: MessageData) =>
+      `🔍 Cari dengan Google ➡️ ${data.prefix}${data.cmd} <query>`,
+  }
+
   menu.push(
     {
       command: 'crjogja',
@@ -37,7 +47,13 @@ export default function () {
     {
       command: 'ddg',
       hint: stringId.ddg.hint,
-      alias: 'q, search',
+      alias: 'q',
+      type: 'browser',
+    },
+    {
+      command: 'gs',
+      hint: stringId.gs.hint,
+      alias: 'g',
       type: 'browser',
     }
   )
@@ -80,7 +96,7 @@ const ddgSearchHandler = async (
   msg: WAMessage,
   data: MessageData
 ) => {
-  if (data.args.length === 0) return data.reply(stringId.ddg.usage(data))
+  if (data.args.length === 0) return data.reply(stringId.gs.usage(data))
   data.reactWait()
   const query = data.args.join(' ')
   const url = `https://duckduckgo.com/?q=${encodeURIComponent(
@@ -91,12 +107,45 @@ const ddgSearchHandler = async (
     .then((r) => {
       if (!r) {
         data.reactError()
-        return data.reply(stringId.ddg.error.timeOut)
+        return data.reply(stringId.gs.error.timeOut)
       }
 
       waSocket.sendMessage(
         data.from,
         { image: { url: 'tmp/ddg.png' } },
+        { quoted: msg, ephemeralExpiration: data.expiration! }
+      )
+      return data.reactSuccess()
+    })
+    .catch((e) => {
+      console.log(e)
+      data.reactError()
+      return data.reply(stringId.gs.error.timeOut)
+    })
+}
+
+const googleSearchHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  if (data.args.length === 0) return data.reply(stringId.ddg.usage(data))
+  data.reactWait()
+  const query = data.args.join(' ')
+  const url = `https://www.google.com/search?client=firefox-b-d&q=${encodeURIComponent(
+    query
+  )}`
+  browser
+    .takeScreenshot(url, 'tmp/google.png', { width: 1300, height: 1700 })
+    .then((r) => {
+      if (!r) {
+        data.reactError()
+        return data.reply(stringId.ddg.error.timeOut)
+      }
+
+      waSocket.sendMessage(
+        data.from,
+        { image: { url: 'tmp/google.png' } },
         { quoted: msg, ephemeralExpiration: data.expiration! }
       )
       return data.reactSuccess()
