@@ -126,98 +126,152 @@ const surahHandler = async (
   data: MessageData
 ) => {
   const { args, cmd, from } = data
-  const arg = args[0]
 
-  if (!arg) {
+  if (!data.arg || data.arg == '') {
     return data.reply(stringId.surah.usage(data))
   }
 
   data.reactWait()
 
-  if (arg === 'daftar') {
-    const list = SurahDatas.data
-      .map(
-        (surah: any) =>
-          `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}`
-      )
-      .join('\n')
-    const message = `╔══✪〘 Daftar Surah 〙✪\n${list}\n╚═〘 *SeroBot* 〙`
-    data.reactSuccess()
-    return await data.reply(message)
+  if (args[0] == 'daftar') {
+    return await handleDaftar(data)
   }
 
-  const surah = isNaN(Number(arg))
-    ? SurahDatas.data.find(
-        (s: any) =>
-          s.name.transliteration.id.toLowerCase().includes(arg.toLowerCase()) ||
-          s.name.transliteration.en.toLowerCase().includes(arg.toLowerCase())
-      )
-    : SurahDatas.data.find((s: any) => s.number === Number(arg))
+  let surahNumber = isNaN(Number(args[0]))
+    ? getSurahNumberByName(args[0])
+    : Number(args[0])
 
-  if (!surah) {
+  if (!surahNumber) {
     return data.reply(stringId.surah.error.notFound(data))
   }
 
-  const { number: surahNumber } = surah
+  const processAyat = args[1].includes('-')
+    ? processMultipleAyat
+    : processSingleAyat
 
-  const getAyatSurahDataAndSend = async (ayatNumber: number) => {
-    try {
-      const result = await get(
-        `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
-      )
-      const sdata = result.data.data
-
-      if (cmd === 'recite') {
-        await waSocket.sendMessage(
-          from,
-          {
-            audio: { url: sdata.audio.primary },
-            mimetype: 'audio/mp4',
-            ptt: true,
-          },
-          { quoted: msg, ephemeralExpiration: data.expiration! }
-        )
-      }
-
-      const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
-      await data.send(message)
-
-      return true
-    } catch (err: any) {
-      data.reactError()
-      return data.reply(err.response.data.message)
-    }
-  }
-
-  const processMultipleAyat = async () => {
-    const [fromAyat, toAyat] = args[1].split('-').map(Number)
-
-    if (
-      isNaN(fromAyat) ||
-      isNaN(toAyat) ||
-      fromAyat > toAyat ||
-      toAyat - fromAyat > 10
-    ) {
-      return data.reply(stringId.surah.error.invalidAyat(data))
-    }
-
-    for (let i = fromAyat; i <= toAyat; i++) {
-      await getAyatSurahDataAndSend(i)
-    }
-  }
-
-  const processSingleAyat = async () => {
-    const ayatNumber = isNaN(Number(args[1])) ? 1 : Number(args[1])
-    await getAyatSurahDataAndSend(ayatNumber)
-  }
-
-  const isMultipleAyat = args[1] && args[1].includes('-')
-
-  if (isMultipleAyat) {
-    await processMultipleAyat()
-  } else {
-    await processSingleAyat()
-  }
+  await processAyat(data, surahNumber, cmd, from, msg, waSocket)
 
   data.reactSuccess()
+}
+
+const handleDaftar = async (data: MessageData) => {
+  let list = '╔══✪〘 Daftar Surah 〙✪\n'
+  SurahDatas.data.forEach((surah: any) => {
+    list += `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}\n`
+  })
+  list += '╚═〘 *SeroBot* 〙'
+  data.reactSuccess()
+  return await data.reply(list)
+}
+
+const getSurahNumberByName = (name: string) => {
+  let sdatas = SurahDatas.data
+  let index = sdatas.findIndex((surah: any) => {
+    return (
+      surah.name.transliteration.id
+        .toLowerCase()
+        .includes(name.toLowerCase()) ||
+      surah.name.transliteration.en.toLowerCase().includes(name.toLowerCase())
+    )
+  })
+  return index != -1 ? sdatas[index].number : null
+}
+
+const processMultipleAyat = async (
+  data: MessageData,
+  surahNumber: number,
+  cmd: string,
+  from: string,
+  msg: WAMessage,
+  waSocket: WASocket
+) => {
+  let ayatNumbers = data.args[1].split('-')
+
+  if (ayatNumbers.length > 2) {
+    return data.reply(stringId.surah.error.invalidAyat(data))
+  }
+
+  let ayatFrom = Number(ayatNumbers[0])
+  let ayatTo = Number(ayatNumbers[1])
+
+  if (isNaN(ayatFrom) || isNaN(ayatTo)) {
+    return data.reply(stringId.surah.error.invalidAyat(data))
+  }
+
+  if (ayatFrom > ayatTo) {
+    return data.reply(stringId.surah.error.invalidAyat(data))
+  }
+
+  if (ayatTo - ayatFrom > 10) {
+    return data.reply(stringId.surah.error.tooManyAyat(data))
+  }
+
+  for (let i = ayatFrom; i <= ayatTo; i++) {
+    await getAyatSurahDataAndSend(
+      data,
+      surahNumber,
+      i,
+      cmd,
+      from,
+      msg,
+      waSocket
+    )
+  }
+}
+
+const processSingleAyat = async (
+  data: MessageData,
+  surahNumber: number,
+  cmd: string,
+  from: string,
+  msg: WAMessage,
+  waSocket: WASocket
+) => {
+  let ayatNumber = isNaN(Number(data.args[1])) ? 1 : Number(data.args[1])
+  await getAyatSurahDataAndSend(
+    data,
+    surahNumber,
+    ayatNumber,
+    cmd,
+    from,
+    msg,
+    waSocket
+  )
+}
+
+const getAyatSurahDataAndSend = async (
+  data: MessageData,
+  surahNumber: number,
+  ayatNumber: number,
+  cmd: string,
+  from: string,
+  msg: WAMessage,
+  waSocket: WASocket
+) => {
+  try {
+    const result = await get(
+      `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
+    )
+    const sdata = result.data.data
+
+    if (cmd === 'recite') {
+      await waSocket.sendMessage(
+        from,
+        {
+          audio: { url: sdata.audio.primary },
+          mimetype: 'audio/mp4',
+          ptt: true,
+        },
+        { quoted: msg, ephemeralExpiration: data.expiration! }
+      )
+    }
+
+    const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
+    await data.send(message)
+
+    return true
+  } catch (err: any) {
+    data.reactError()
+    return data.reply(err.response.data.message)
+  }
 }
