@@ -1,4 +1,9 @@
-import { WASocket, WAMessage, MessageUpsertType } from '@adiwajshing/baileys'
+import {
+  WASocket,
+  WAMessage,
+  MessageUpsertType,
+  proto,
+} from '@adiwajshing/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
 import initGeneralCmd, { mathHandler } from './cmd/general'
 import initBrowserCmd from './cmd/browser'
@@ -89,7 +94,7 @@ const isHistorySync = (msg: WAMessage) =>
 
 const sanesCmdHandler = async (
   _wa: WASocket,
-  _: WAMessage,
+  _msg: WAMessage,
   data: MessageData
 ) => {
   const { from, fromMe, participant, body, send, reply } = data
@@ -104,6 +109,26 @@ const sanesCmdHandler = async (
       const id = fromMe ? 'me' : participant || from
       const note = await getNoteContent(id, body as string)
       if (note) reply(note)
+      break
+    case /^-r$/.test(body as string):
+      const quoted = data.quotedMsg
+      if (quoted) {
+        const msg: proto.IWebMessageInfo = {
+          key: _msg.key,
+          messageTimestamp: _msg.messageTimestamp,
+          pushName: _msg.pushName,
+          message: quoted,
+        }
+        const quotedData = await serializeMessage(_wa, msg)
+        if (quotedData.isCmd) {
+          const cmd = getCommand(quotedData.cmd) as string
+          if (cmd in actions) {
+            console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
+            logCmd(msg, quotedData)
+            await actions[cmd](_wa, quoted, quotedData)
+          }
+        }
+      }
       break
     default:
       break

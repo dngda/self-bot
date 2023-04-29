@@ -111,10 +111,8 @@ const startSock = async () => {
   })
 
   setInterval(() => {
-    // update presence update every 5 minutes
-    waSocket.sendPresenceUpdate('available')
     waSocket.sendPresenceUpdate('unavailable')
-  }, 1000 * 60 * 5)
+  }, 1000 * 60 * 30)
 }
 
 startSock()
