@@ -1,10 +1,11 @@
 import {
-  downloadMediaMessage,
-  WAMessageContent,
-  WAMessage,
+  proto,
   WASocket,
+  WAMessage,
   WAMediaUpload,
+  WAMessageContent,
   AnyMessageContent,
+  downloadMediaMessage,
 } from '@adiwajshing/baileys'
 import dotenv from 'dotenv'
 import { config } from '../handler'
@@ -21,7 +22,11 @@ export interface MessageData {
   fromMe: boolean | null | undefined
   participant: string | null | undefined
   name: string | null | undefined
+  groupName: string | null
   quotedMsg: WAMessageContent | null | undefined
+  contextInfo: proto.IContextInfo | null | undefined
+  expiration: number | null | undefined
+
   isGroup: boolean
   isQuotedImage: boolean | null
   isQuotedVideo: boolean | null
@@ -30,9 +35,8 @@ export interface MessageData {
   isVideo: boolean | null
   isMedia: boolean | null
   isEphemeral: boolean | null
-  expiration: number | null | undefined
+  
   config: Record<string, any>
-  groupName: string | null
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
   reply: (text: string) => Promise<void>
@@ -73,6 +77,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
       ?.quotedMessage?.ephemeralMessage?.message
 
+  data.contextInfo =
+    msg.message?.extendedTextMessage?.contextInfo ||
+    msg.message?.imageMessage?.contextInfo ||
+    msg.message?.videoMessage?.contextInfo ||
+    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo ||
+    msg.message?.ephemeralMessage?.message?.imageMessage?.contextInfo ||
+    msg.message?.ephemeralMessage?.message?.videoMessage?.contextInfo
+
   data.isGroup = data.from.endsWith('@g.us')
   data.groupName = data.isGroup
     ? (await waSocket.groupMetadata(data.from)).subject
@@ -89,9 +101,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   data.isMedia =
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
   data.isEphemeral = msg.message?.ephemeralMessage != null
-  data.expiration =
-    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
-      ?.expiration || msg.message?.extendedTextMessage?.contextInfo?.expiration
+  data.expiration = data.contextInfo.expiration
   data.config = config
 
   data.download = async () => {
