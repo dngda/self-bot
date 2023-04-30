@@ -35,7 +35,7 @@ export interface MessageData {
   isVideo: boolean | null
   isMedia: boolean | null
   isEphemeral: boolean | null
-  
+
   config: Record<string, any>
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
@@ -101,7 +101,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   data.isMedia =
     data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
   data.isEphemeral = msg.message?.ephemeralMessage != null
-  data.expiration = data.contextInfo.expiration
+  data.expiration = data.contextInfo?.expiration
   data.config = config
 
   data.download = async () => {
