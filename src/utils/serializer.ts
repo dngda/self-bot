@@ -66,7 +66,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
   data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
   data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
-  data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() || ''
+  data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() ?? ''
   data.args = data.arg.split(' ')
   data.from = msg.key.remoteJid!
   data.fromMe = msg.key.fromMe

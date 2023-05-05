@@ -106,7 +106,7 @@ const sanesCmdHandler = async (
       send('/ingfo-cuaca')
       break
     case /^#\w+$/.test(body as string):
-      const id = fromMe ? 'me' : participant || from
+      const id = fromMe ? 'me' : participant ?? from
       const note = await getNoteContent(id, body as string)
       if (note) reply(note)
       break
