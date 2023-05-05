@@ -95,7 +95,9 @@ export const videoHandler = async (
   data: MessageData
 ) => {
   const { arg, isQuoted, quotedMsg } = data
-  const url = isQuoted ? (quotedMsg?.extendedTextMessage?.text as string) : arg
+  const quotedMsgText =
+    quotedMsg?.extendedTextMessage?.text || quotedMsg?.conversation || ''
+  const url = isQuoted ? quotedMsgText : arg
   if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(data))
 
   data.reactWait()
