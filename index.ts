@@ -109,10 +109,6 @@ const startSock = async () => {
       messageHandler(waSocket, upsert)
     }
   })
-
-  setInterval(() => {
-    waSocket.sendPresenceUpdate('unavailable')
-  }, 1000 * 60 * 30)
 }
 
 startSock()

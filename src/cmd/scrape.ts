@@ -130,7 +130,7 @@ export const videoHandler = async (
     await data.replyContent({
       video: { url: result.url[0].url },
       caption:
-        '🎶 Get audio only by replying this video with ${data.prefix}mp3',
+        `🎶 Get audio only by replying this video with ${data.prefix}mp3`,
     })
   }
 
