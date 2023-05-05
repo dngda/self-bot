@@ -8,6 +8,7 @@ export default function () {
   Object.assign(actions, {
     eval: evalJS,
     return: evalJSON,
+    offline: offlineHandler,
   })
 
   stringId.eval = {
@@ -15,6 +16,9 @@ export default function () {
   }
   stringId.return = {
     hint: '_Evaluate JS/TS variable dan return hasilnya_',
+  }
+  stringId.offline = {
+    hint: '_Mark bot as offline_',
   }
 
   menu.push(
@@ -29,26 +33,34 @@ export default function () {
       hint: stringId.return.hint,
       alias: '=',
       type: 'owner',
+    },
+    {
+      command: 'offline',
+      hint: stringId.offline.hint,
+      alias: 'off',
+      type: 'owner',
     }
   )
 }
 
-const evalJSON = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  data: MessageData
-) => {
+const evalJSON = async (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
   if (!data.fromMe) return null
   data.reactSuccess()
   return await data.reply(JSON.stringify(eval(data.arg), null, 2))
 }
 
-const evalJS = async (
+const evalJS = async (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
+  if (!data.fromMe) return null
+  data.reactSuccess()
+  return eval(`(async () => { ${data.arg} })()`)
+}
+
+const offlineHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData
 ) => {
   if (!data.fromMe) return null
-  data.reactSuccess()
-  return eval(`(async () => { ${data.arg} })()`)
+  await _wa.sendPresenceUpdate('unavailable')
+  return data.reactSuccess()
 }

@@ -121,21 +121,20 @@ export const videoHandler = async (
 
   async function tiktokReels() {
     let urls: string[] =
-      url.match(tiktokPattern) ||
-      url.match(tiktokShortPattern) ||
-      url.match(reelsPattern) ||
-      url.match(instagramPattern) ||
+      tiktokPattern.exec(url) ??
+      tiktokShortPattern.exec(url) ??
+      reelsPattern.exec(url) ??
+      instagramPattern.exec(url) ??
       []
     const result = await videoDownloader(urls[0])
     await data.replyContent({
       video: { url: result.url[0].url },
-      caption:
-        `🎶 Get audio only by replying this video with ${data.prefix}mp3`,
+      caption: `🎶 Get audio only by replying this video with ${data.prefix}mp3`,
     })
   }
 
   async function twitter() {
-    let urls: string[] = url.match(twitterPattern) || []
+    let urls: string[] = twitterPattern.exec(url) ?? []
     const result = await videoDownloader(urls[0])
     let resultUrls = result.url.sort((a: any, b: any) => {
       return Number(a.quality) - Number(b.quality)
@@ -159,9 +158,9 @@ export const videoHandler = async (
 
   async function youtube() {
     let urls: string[] =
-      url.match(youtubePattern) ||
-      url.match(youtubeShortPattern) ||
-      url.match(youtubeShortsPattern) ||
+      youtubePattern.exec(url) ??
+      youtubeShortPattern.exec(url) ??
+      youtubeShortsPattern.exec(url) ??
       []
     const result = await videoDownloader(urls[0])
     let selectedUrl: string | URL
