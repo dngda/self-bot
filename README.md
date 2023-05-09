@@ -4,7 +4,7 @@
 <p align="center">
 <a href="https://github.com/dngda/self-bot"><img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge"></a>
   <br>
-🤖 Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
+🤖 Typescript - Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
 </p>
 <h3 align="center">Made with ❤️</h3>
 <p align="center">
