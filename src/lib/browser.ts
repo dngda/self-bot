@@ -68,6 +68,12 @@ export class PlaywrightBrowser {
     })
   }
 
+  async refreshContext() {
+    await this.ctx.close()
+    this.ctx = await this.browser.newContext()
+    console.log(chalk.green('Browser context refreshed!'))
+  }
+
   async exit() {
     await this.ctx.close()
     await this.browser.close()

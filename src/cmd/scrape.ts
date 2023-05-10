@@ -23,6 +23,7 @@ export default function () {
     hint: '📩 _Download video tiktok/reel/twitter/yt_',
     error: {
       invalidUrl: '‼️ URL tidak valid!',
+      internalError: '‼️ Terjadi kesalahan! Coba refresh browser.',
     },
     usage: (data: MessageData) =>
       `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
@@ -170,14 +171,19 @@ export const videoHandler = async (
     let selectedQuality: string
     let captions = ''
 
-    if (result.url[0].quality == '720') {
-      selectedUrl = result.url[1].url
-      selectedQuality = result.url[1].quality
-      captions += `☑ Sent ${result.url[1].quality}p\nOther format:\n`
-    } else {
-      selectedUrl = result.url[0].url
-      selectedQuality = result.url[0].quality
-      captions += `☑ Sent ${result.url[0].quality}p\nOther format:\n`
+    try {
+      if (result.url[0].quality == '720') {
+        selectedUrl = result.url[1].url
+        selectedQuality = result.url[1].quality
+        captions += `☑ Sent ${result.url[1].quality}p\nOther format:\n`
+      } else {
+        selectedUrl = result.url[0].url
+        selectedQuality = result.url[0].quality
+        captions += `☑ Sent ${result.url[0].quality}p\nOther format:\n`
+      }
+    } catch (error: any) {
+      await data.reactError()
+      return data.reply(stringId.videodl.error.internalError)
     }
 
     for (const video of result.url) {

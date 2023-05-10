@@ -3,12 +3,14 @@ import { MessageData } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
+import { browser } from '../..'
 
 export default function () {
   Object.assign(actions, {
     eval: evalJS,
     return: evalJSON,
     offline: offlineHandler,
+    rbrowser: refreshBrowserHandler,
   })
 
   stringId.eval = {
@@ -19,6 +21,10 @@ export default function () {
   }
   stringId.offline = {
     hint: '_Mark bot as offline_',
+  }
+
+  stringId.refreshBrowser = {
+    hint: '_Refresh playwright browser context._',
   }
 
   menu.push(
@@ -38,6 +44,12 @@ export default function () {
       command: 'offline',
       hint: stringId.offline.hint,
       alias: 'off',
+      type: 'owner',
+    },
+    {
+      command: 'rbrowser',
+      hint: stringId.refreshBrowser.hint,
+      alias: 'rb',
       type: 'owner',
     }
   )
@@ -62,5 +74,15 @@ const offlineHandler = async (
 ) => {
   if (!data.fromMe) return null
   await _wa.sendPresenceUpdate('unavailable')
+  return data.reactSuccess()
+}
+
+const refreshBrowserHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  if (!data.fromMe) return null
+  await browser.refreshContext()
   return data.reactSuccess()
 }
