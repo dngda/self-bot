@@ -39,6 +39,35 @@ export class PlaywrightBrowser {
     }
   }
 
+  async openPage(url: string) {
+    const page = await this.ctx.newPage()
+    await page.goto(url)
+    await page.waitForLoadState('networkidle')
+    return page
+  }
+
+  async scrapeSSyoutube(url: string) {
+    return new Promise<any>(async (resolve, reject) => {
+      const page = await this.openPage('https://ssyoutube.com/en598/')
+      try {
+        await page.type('#id_url', url)
+        await page.on('response', async (response) => {
+          if (
+            response.request().resourceType() === 'xhr' &&
+            response.request().url().includes('convert')
+          ) {
+            resolve(await response.json())
+            await page.close()
+          }
+        })
+        await page.click('#search')
+      } catch (error: any) {
+        page.close()
+        reject(error)
+      }
+    })
+  }
+
   async exit() {
     await this.ctx.close()
     await this.browser.close()

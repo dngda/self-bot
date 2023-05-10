@@ -1,14 +1,5 @@
-import axios from 'axios'
 import ffmpeg from 'fluent-ffmpeg'
 import fs from 'fs'
-
-// support url youtube, facebook, instagram, tiktok, twitter
-const API_URL = 'https://ssyoutube.com/api/convert'
-
-export const videoDownloader = async (url: string) => {
-  const { data } = await axios.post(API_URL, { url })
-  return data
-}
 
 export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
   return new Promise((resolve, reject) => {

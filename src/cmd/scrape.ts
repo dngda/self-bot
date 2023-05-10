@@ -1,10 +1,11 @@
-import { pinterest, tinyUrl, videoDownloader } from '../lib'
+import { pinterest, tinyUrl } from '../lib'
 import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
 import { WASocket, WAMessage } from '@adiwajshing/baileys'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
+import { browser } from '../..'
 
 export default function () {
   Object.assign(actions, {
@@ -128,7 +129,7 @@ export const videoHandler = async (
       reelsPattern.exec(url) ??
       instagramPattern.exec(url) ??
       []
-    const result = await videoDownloader(urls[0])
+    const result = await browser.scrapeSSyoutube(urls[0])
     await data.replyContent({
       video: { url: result.url[0].url },
       caption: `🎶 Get audio only by replying this video with ${data.prefix}mp3`,
@@ -137,7 +138,7 @@ export const videoHandler = async (
 
   async function twitter() {
     let urls: string[] = twitterPattern.exec(url) ?? []
-    const result = await videoDownloader(urls[0])
+    const result = await browser.scrapeSSyoutube(urls[0])
     let resultUrls = result.url.sort((a: any, b: any) => {
       return Number(a.quality) - Number(b.quality)
     })
@@ -164,7 +165,7 @@ export const videoHandler = async (
       youtubeShortPattern.exec(url) ??
       youtubeShortsPattern.exec(url) ??
       []
-    const result = await videoDownloader(urls[0])
+    const result = await browser.scrapeSSyoutube(urls[0])
     let selectedUrl: string | URL
     let selectedQuality: string
     let captions = ''
