@@ -21,6 +21,7 @@ export default function () {
         `‼️ Video terlalu panjang, maksimal ${s} detik`,
       quality: (q: number) =>
         `⚠️ Result exceeded 1 MB with Q: ${q}%\n⏳ Hold on, decreasing quality...`,
+      q: (q: number) => `⏳ Q: ${q}% still not yet...`,
     },
     usage: (data: MessageData) =>
       `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
@@ -129,8 +130,14 @@ const processVideo = async (
     }).toBuffer()
   }
   let resultBuffer = await doConvert()
+  let isSendNotif = false
   while (resultBuffer.length > 1024 * 1024) {
-    data.send(stringId.sticker.error.quality(defaultQuality))
+    if (!isSendNotif) {
+      data.send(stringId.sticker.error.quality(defaultQuality))
+      isSendNotif = true
+    } else {
+      data.send(stringId.sticker.error.q(defaultQuality))
+    }
     defaultQuality -= 10
     resultBuffer = await doConvert(defaultQuality)
   }
