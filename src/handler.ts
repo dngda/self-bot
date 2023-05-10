@@ -27,7 +27,8 @@ export let config: BotConfig = {
 }
 
 if (fs.existsSync('./data/config.json')) {
-  config = JSON.parse(fs.readFileSync('./data/config.json', 'utf-8'))
+  let conf = fs.readFileSync('./data/config.json', 'utf-8')
+  if (conf != '') config = JSON.parse(conf)
 }
 
 setInterval(() => {
@@ -85,7 +86,7 @@ export const messageHandler = async (
 }
 
 const isAllowedChat = (data: MessageData) =>
-  config.publicModeChats.includes(data.from)
+  config?.publicModeChats.includes(data.from)
 const isStatusMessage = (msg: WAMessage) =>
   msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
   msg.key.remoteJid == 'status@broadcast'
