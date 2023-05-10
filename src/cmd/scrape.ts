@@ -27,6 +27,9 @@ export default function () {
     },
     usage: (data: MessageData) =>
       `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
+    getAudio: (data: MessageData) =>
+      `🎶 Convert to Audio by reply this with *${data.prefix}mp3*`,
+    sent: (q: string) => `✅ Sent ${q}p\n\nother format:\n`,
   }
 
   menu.push(
@@ -133,7 +136,7 @@ export const videoHandler = async (
     const result = await browser.scrapeSSyoutube(urls[0])
     await data.replyContent({
       video: { url: result.url[0].url },
-      caption: `🎶 Get audio only by replying this video with ${data.prefix}mp3`,
+      caption: stringId.videodl.getAudio(data),
     })
   }
 
@@ -147,12 +150,12 @@ export const videoHandler = async (
     let captions = ''
     for (const video of resultUrls) {
       if (video?.url == selectedUrl) {
-        captions += `☑ Sent ${video?.quality}p\nOther format:\n`
+        captions += stringId.videodl.sent(video?.quality)
         continue
       }
       captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
     }
-    captions += `\n🎶 Get audio only by replying this video with ${data.prefix}mp3`
+    captions += stringId.videodl.getAudio(data)
 
     await data.replyContent({
       video: { url: selectedUrl },
@@ -169,22 +172,21 @@ export const videoHandler = async (
     const result = await browser.scrapeSSyoutube(urls[0])
     let selectedUrl: string | URL
     let selectedQuality: string
-    let captions = ''
+    let captions: string = ''
 
     try {
       if (result.url[0].quality == '720') {
         selectedUrl = result.url[1].url
         selectedQuality = result.url[1].quality
-        captions += `☑ Sent ${result.url[1].quality}p\nOther format:\n`
       } else {
         selectedUrl = result.url[0].url
         selectedQuality = result.url[0].quality
-        captions += `☑ Sent ${result.url[0].quality}p\nOther format:\n`
       }
     } catch (error: any) {
       await data.reactError()
       return data.reply(stringId.videodl.error.internalError)
     }
+    captions += stringId.videodl.sent(selectedQuality)
 
     for (const video of result.url) {
       if (video?.no_audio) continue
@@ -196,7 +198,7 @@ export const videoHandler = async (
       }
       captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
     }
-    captions += `\n🎶 Get audio only by replying this video with ${data.prefix}mp3`
+    captions += stringId.videodl.getAudio(data)
 
     await data.replyContent({
       video: { url: selectedUrl },
