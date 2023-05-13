@@ -24,6 +24,7 @@ export default function () {
     error: {
       invalidUrl: '‼️ URL tidak valid!',
       internalError: '‼️ Terjadi kesalahan! Coba refresh browser.',
+      maxDuration: '‼️ Durasi video melebihi 10 menit!',
     },
     usage: (data: MessageData) =>
       `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
@@ -185,6 +186,9 @@ export const videoHandler = async (
       []
     const result = await browser.scrapeSSyoutube(urls[0])
     const duration = getDuration(result)
+
+    if (duration / 60 > 10) throw new Error(stringId.videodl.error.maxDuration)
+
     let selectedUrl: string | URL
     let selectedQuality: string
     let captions: string = ''
