@@ -17,3 +17,24 @@ export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
       })
   })
 }
+
+export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
+  return new Promise((resolve, reject) => {
+    fs.writeFileSync('tmp/video.mp4', buffer)
+    ffmpeg('tmp/video.mp4')
+      .outputOptions([
+        '-c copy',
+        '-map 0',
+        '-segment_time 27',
+        '-f segment',
+        '-reset_timestamps 1',
+      ])
+      .save('tmp/vs/output%02d.mp4')
+      .on('end', () => {
+        resolve(fs.readdirSync('tmp/vs'))
+      })
+      .on('error', (err) => {
+        reject(err)
+      })
+  })
+}

@@ -4,9 +4,12 @@ import {
   downloadMediaMessage,
   proto,
 } from '@adiwajshing/baileys'
+import { getVideoDurationInSeconds } from 'get-video-duration'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
+import { Readable } from 'stream'
+import { unlinkSync } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import {
@@ -14,6 +17,7 @@ import {
   deleteNote,
   getNotesNames,
   initNoteDatabase,
+  splitVideo,
   updateNoteContent,
   videoToMp3,
 } from '../lib'
@@ -24,6 +28,7 @@ export default function () {
     onev: oneViewHandler,
     note: noteHandler,
     tomp3: toMp3Handler,
+    vsplit: videoSplitHandler,
   })
 
   stringId.flip = {
@@ -56,6 +61,15 @@ export default function () {
     },
   }
 
+  stringId.vsplit = {
+    hint: '🎞️ _Split video by 30 seconds_',
+    error: {
+      duration: '‼️ Durasi video terlalu pendek!',
+    },
+    usage: (data: MessageData) =>
+      `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${data.prefix}vsplit`,
+  }
+
   menu.push(
     {
       command: 'flip',
@@ -79,6 +93,12 @@ export default function () {
       command: 'tomp3',
       hint: stringId.tomp3.hint,
       alias: 'mp3',
+      type: 'tools',
+    },
+    {
+      command: 'vsplit',
+      hint: stringId.vsplit.hint,
+      alias: 'vs',
       type: 'tools',
     }
   )
@@ -215,5 +235,47 @@ const toMp3Handler = async (
     { audio: { url: audio }, mimetype: 'audio/mp4' },
     { quoted: msg, ephemeralExpiration: data.expiration! }
   )
+  data.reactSuccess()
+}
+
+const videoSplitHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  const { isQuotedVideo, isVideo, download, downloadQuoted } = data
+  if (!isVideo && !isQuotedVideo) throw new Error(stringId.vsplit.usage(data))
+  let seconds =
+    msg.message?.videoMessage?.seconds! ||
+    data.quotedMsg?.videoMessage?.seconds!
+
+  if (seconds < 30 && seconds != 0)
+    throw new Error(stringId.vsplit.error.duration)
+
+  data.reactWait()
+  const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
+
+  if (seconds == 0) {
+    seconds = await getVideoDurationInSeconds(Readable.from(mediaData))
+  }
+
+  if (seconds < 30) throw new Error(stringId.vsplit.error.duration)
+
+  const video = await splitVideo(mediaData)
+  for (let i = 0; i < video.length; i++) {
+    if (!video[i].endsWith('.mp4')) continue
+    await waSocket.sendMessage(
+      data.from,
+      {
+        video: { url: `tmp/vs/${video[i]}` },
+        caption: `0${i}`,
+        seconds: await getVideoDurationInSeconds(`tmp/vs/${video[i]}`),
+        mimetype: 'video/mp4',
+      },
+      { quoted: msg, ephemeralExpiration: data.expiration! }
+    )
+
+    unlinkSync(`tmp/vs/${video[i]}`)
+  }
   data.reactSuccess()
 }

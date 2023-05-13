@@ -42,7 +42,7 @@ export default function () {
     {
       command: 'video',
       hint: stringId.videodl.hint,
-      alias: 'ttdl, vdl, rdl',
+      alias: 'vdl',
       type: 'scraper',
     }
   )
@@ -94,6 +94,16 @@ const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
+const getDuration = (result: any) => {
+  let duration: number
+  if (result.meta.hasOwnProperty('duration')) {
+    const minutes = +result.meta.duration.split(':')[0]
+    const seconds = +result.meta.duration.split(':')[1]
+    duration = minutes * 60 + seconds
+  } else duration = 0
+  return duration
+}
+
 export const videoHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
@@ -133,9 +143,13 @@ export const videoHandler = async (
       reelsPattern.exec(url) ??
       instagramPattern.exec(url) ??
       []
+
     const result = await browser.scrapeSSyoutube(urls[0])
+    const duration = getDuration(result)
+
     await data.replyContent({
       video: { url: result.url[0].url },
+      seconds: duration,
       caption: stringId.videodl.getAudio(data),
     })
   }
@@ -170,6 +184,7 @@ export const videoHandler = async (
       youtubeShortsPattern.exec(url) ??
       []
     const result = await browser.scrapeSSyoutube(urls[0])
+    const duration = getDuration(result)
     let selectedUrl: string | URL
     let selectedQuality: string
     let captions: string = ''
@@ -202,6 +217,7 @@ export const videoHandler = async (
 
     await data.replyContent({
       video: { url: selectedUrl },
+      seconds: duration,
       caption: captions.trim(),
     })
   }

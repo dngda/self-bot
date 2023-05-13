@@ -11,7 +11,7 @@ import { textToPicture } from '../lib'
 export default function () {
   Object.assign(actions, {
     sticker: stickerHandler,
-    ttp: ttpHandler,
+    ttpc: ttpHandler,
   })
 
   stringId.sticker = {
@@ -44,13 +44,13 @@ export default function () {
     {
       command: 'sticker',
       hint: stringId.sticker.hint,
-      alias: 'stiker, s',
+      alias: 's, stiker',
       type: 'sticker',
     },
     {
-      command: 'ttp',
+      command: 'ttpc',
       hint: stringId.ttp.hint,
-      alias: 'ttpc',
+      alias: 'ttp',
       type: 'sticker',
     }
   )
