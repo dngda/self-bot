@@ -3,7 +3,7 @@ import {
   WAMessage,
   MessageUpsertType,
   proto,
-} from '@adiwajshing/baileys'
+} from '@whiskeysockets/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
 import initGeneralCmd, { mathHandler } from './cmd/general'
 import initBrowserCmd from './cmd/browser'

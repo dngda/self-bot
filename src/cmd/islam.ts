@@ -1,5 +1,5 @@
 import stringId from '../language'
-import { WAMessage, WASocket } from '@adiwajshing/baileys'
+import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageData } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'

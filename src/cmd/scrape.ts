@@ -1,7 +1,7 @@
 import { pinterest, tinyUrl } from '../lib'
 import { sample, sampleSize } from 'lodash'
 import { MessageData } from '../utils'
-import { WASocket, WAMessage } from '@adiwajshing/baileys'
+import { WASocket, WAMessage } from '@whiskeysockets/baileys'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'

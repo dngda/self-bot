@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@adiwajshing/baileys'
+import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageData } from '../utils'
 import stringId from '../language'
 import { actions, config } from '../handler'

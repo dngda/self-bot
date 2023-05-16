@@ -6,7 +6,7 @@ import makeWASocket, {
   makeInMemoryStore,
   DisconnectReason,
   proto,
-} from '@adiwajshing/baileys'
+} from '@whiskeysockets/baileys'
 import { pino as MAIN_LOGGER } from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import NodeCache from 'node-cache'

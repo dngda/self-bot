@@ -3,7 +3,7 @@ import {
   delay,
   WAMessage,
   WASocket,
-} from '@adiwajshing/baileys'
+} from '@whiskeysockets/baileys'
 
 export const sendTyping = async (waSocket: WASocket, jid: string) => {
   await waSocket.presenceSubscribe(jid)

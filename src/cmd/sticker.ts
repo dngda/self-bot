@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@adiwajshing/baileys'
+import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { MessageData } from '../utils'

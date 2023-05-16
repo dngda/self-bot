@@ -6,7 +6,7 @@ import {
   WAMessageContent,
   AnyMessageContent,
   downloadMediaMessage,
-} from '@adiwajshing/baileys'
+} from '@whiskeysockets/baileys'
 import dotenv from 'dotenv'
 import { config } from '../handler'
 dotenv.config()

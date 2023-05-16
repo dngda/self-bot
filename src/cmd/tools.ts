@@ -3,7 +3,7 @@ import {
   WASocket,
   downloadMediaMessage,
   proto,
-} from '@adiwajshing/baileys'
+} from '@whiskeysockets/baileys'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import { MessageData } from '../utils'
 import { actions } from '../handler'

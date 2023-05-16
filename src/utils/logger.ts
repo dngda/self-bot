@@ -1,4 +1,4 @@
-import { WAMessage } from '@adiwajshing/baileys'
+import { WAMessage } from '@whiskeysockets/baileys'
 import moment from 'moment-timezone'
 import chalk from 'chalk'
 import P from 'pino'
