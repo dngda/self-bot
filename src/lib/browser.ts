@@ -1,5 +1,6 @@
-import chalk from 'chalk'
 import { BrowserContext, chromium, Browser } from 'playwright'
+import { getRandom } from 'random-useragent'
+import chalk from 'chalk'
 
 export class PlaywrightBrowser {
   private ctx: BrowserContext
@@ -11,7 +12,9 @@ export class PlaywrightBrowser {
 
   async initBrowser() {
     const browser = await chromium.launch()
-    const context = await browser.newContext()
+    const context = await browser.newContext({
+      userAgent: getRandom(),
+    })
     console.log(chalk.green('Browser initialized!'))
     this.browser = browser
     this.ctx = context
@@ -48,7 +51,7 @@ export class PlaywrightBrowser {
 
   async scrapeSSyoutube(url: string) {
     return new Promise<any>(async (resolve, reject) => {
-      const page = await this.openPage('https://ssyoutube.com/en598/')
+      const page = await this.openPage('https://ssyoutube.com/')
       try {
         await page.type('#id_url', url)
         await page.on('response', async (response) => {
@@ -70,7 +73,7 @@ export class PlaywrightBrowser {
 
   async refreshContext() {
     await this.ctx.close()
-    this.ctx = await this.browser.newContext()
+    this.ctx = await this.browser.newContext({ userAgent: getRandom() })
     console.log(chalk.green('Browser context refreshed!'))
   }
 
