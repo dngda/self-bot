@@ -1,4 +1,6 @@
-import { BrowserContext, chromium, Browser } from 'playwright'
+import stealthPlugin from 'puppeteer-extra-plugin-stealth'
+import { BrowserContext, Browser } from 'playwright'
+import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
 
@@ -11,6 +13,7 @@ export class PlaywrightBrowser {
   }
 
   async initBrowser() {
+    chromium.use(stealthPlugin())
     const browser = await chromium.launch()
     const context = await browser.newContext({
       userAgent: getRandom(),
