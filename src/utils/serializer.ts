@@ -30,6 +30,7 @@ export interface MessageData {
   isGroup: boolean
   isQuotedImage: boolean | null
   isQuotedVideo: boolean | null
+  isQuotedSticker: boolean | null
   isQuoted: boolean | null
   isImage: boolean | null
   isVideo: boolean | null
@@ -91,6 +92,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     : null
   data.isQuotedImage = data.quotedMsg?.imageMessage != null
   data.isQuotedVideo = data.quotedMsg?.videoMessage != null
+  data.isQuotedSticker = data.quotedMsg?.stickerMessage != null
   data.isQuoted = data.quotedMsg != null
   data.isImage =
     msg.message?.imageMessage != null ||

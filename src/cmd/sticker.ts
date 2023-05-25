@@ -1,17 +1,19 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
+import { textToPicture, uploadImage, memegen } from '../lib'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
-import lodash from 'lodash'
 import { menu } from '../menu'
-import { textToPicture } from '../lib'
+import lodash from 'lodash'
+import sharp from 'sharp'
 
 export default function () {
   Object.assign(actions, {
     sticker: stickerHandler,
     ttpc: ttpHandler,
+    memefy: memefyHandler,
   })
 
   stringId.sticker = {
@@ -40,6 +42,16 @@ export default function () {
       `Tambahkan teks atau balas teks dengan ${data.prefix}${data.cmd} <teks>`,
   }
 
+  stringId.memefy = {
+    hint: '🖼️ _Tambah tulisan di gambar/sticker',
+    error: {
+      textLimit: (s: number) =>
+        `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
+    },
+    usage: (data: MessageData) =>
+      `Tambahkan teks atau balas gambar/sticker dengan ${data.prefix}${data.cmd} <atas|bawah>`,
+  }
+
   menu.push(
     {
       command: 'sticker',
@@ -51,6 +63,12 @@ export default function () {
       command: 'ttpc',
       hint: stringId.ttp.hint,
       alias: 'ttp',
+      type: 'sticker',
+    },
+    {
+      command: 'memefy',
+      hint: stringId.memefy.hint,
+      alias: 'sm',
       type: 'sticker',
     }
   )
@@ -177,4 +195,42 @@ const ttpHandler = async (
   }).toFile('tmp/sticker-ttp.webp')
   data.reactSuccess()
   await replySticker({ url: sticker })
+}
+
+const memefyHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { arg, cmd, isQuoted, isQuotedSticker, isMedia, replySticker } = data
+  if (!arg && !isQuoted && !isQuotedSticker && !isMedia)
+    throw new Error(stringId.memefy.usage(data))
+  data.reactWait()
+  const textLimit = 30
+  if (arg.length > textLimit)
+    throw new Error(stringId.memefy.error.textLimit(textLimit))
+
+  let image = isQuoted ? await data.downloadQuoted() : await data.download()
+  image = await sharp(image).png().toBuffer()
+  let top = arg.split('|')[0]
+  let bottom = arg.split('|')[1] || ''
+
+  let uploadedImageUrl = await uploadImage(image)
+  let memeBuffer = await memegen(top, bottom, uploadedImageUrl)
+
+  if (cmd === 'memefy') {
+    data.reactSuccess()
+    await data.replyContent({ image: memeBuffer })
+  }
+
+  if (cmd === 'sm') {
+    const sticker = await new Sticker(memeBuffer, {
+      pack: process.env.PACKNAME!,
+      author: process.env.AUTHOR!,
+      type: StickerTypes.FULL,
+      quality: 100,
+    }).toBuffer()
+    data.reactSuccess()
+    await replySticker(sticker)
+  }
 }
