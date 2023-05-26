@@ -216,8 +216,8 @@ const memefyHandler = async (
   else image = isQuoted ? await data.downloadQuoted() : await data.download()
 
   image = await sharp(image).png().toBuffer()
-  let top = arg.split('|')[0] || ''
-  let bottom = arg.split('|')[1] || ''
+  let top = arg.split('|')[0] || '_'
+  let bottom = arg.split('|')[1] || '_'
 
   let uploadedImageUrl = await uploadImage(image)
   let memeBuffer = await memegen(top, bottom, uploadedImageUrl)
