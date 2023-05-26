@@ -206,13 +206,17 @@ const memefyHandler = async (
   if (!arg && !isQuoted && !isQuotedSticker && !isMedia)
     throw new Error(stringId.memefy.usage(data))
   data.reactWait()
+
   const textLimit = 30
   if (arg.length > textLimit)
     throw new Error(stringId.memefy.error.textLimit(textLimit))
 
-  let image = isQuoted ? await data.downloadQuoted() : await data.download()
+  let image: Buffer
+  if (isQuotedSticker) image = await data.downloadSticker()
+  else image = isQuoted ? await data.downloadQuoted() : await data.download()
+
   image = await sharp(image).png().toBuffer()
-  let top = arg.split('|')[0]
+  let top = arg.split('|')[0] || ''
   let bottom = arg.split('|')[1] || ''
 
   let uploadedImageUrl = await uploadImage(image)

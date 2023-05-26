@@ -6,6 +6,7 @@ import {
   WAMessageContent,
   AnyMessageContent,
   downloadMediaMessage,
+  downloadContentFromMessage,
 } from '@whiskeysockets/baileys'
 import dotenv from 'dotenv'
 import { config } from '../handler'
@@ -40,6 +41,7 @@ export interface MessageData {
   config: Record<string, any>
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
+  downloadSticker: () => Promise<Buffer>
   reply: (text: string) => Promise<void>
   send: (text: string) => Promise<void>
   replySticker: (inputMedia: WAMediaUpload) => Promise<void>
@@ -118,12 +120,23 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
     return (await downloadMediaMessage(msgData, 'buffer', {})) as Buffer
   }
+
   data.downloadQuoted = async () => {
     return (await downloadMediaMessage(
       { key: msg.key, message: data.quotedMsg },
       'buffer',
       {}
     )) as Buffer
+  }
+
+  data.downloadSticker = async () => {
+    const stickerMessage = data.contextInfo?.quotedMessage?.stickerMessage
+    const stream = await downloadContentFromMessage(stickerMessage!, 'sticker')
+    let buffer = Buffer.from([])
+    for await (const chunk of stream) {
+      buffer = Buffer.concat([buffer, chunk])
+    }
+    return buffer
   }
 
   data.reply = async (text: string) => {
