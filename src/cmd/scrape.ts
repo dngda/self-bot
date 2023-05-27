@@ -58,6 +58,10 @@ const pinterestHandler = async (
   if (arg == '') throw new Error(stringId.pinterest.usage(data))
   data.reactWait()
   const result = await pinterest(arg)
+  if (result.length == 0) {
+    data.reactError()
+    return data.reply(`Tidak ada hasil.`)
+  }
 
   const qty = Number(args[0])
   if (qty <= 10) {
@@ -79,6 +83,7 @@ const pinterestHandler = async (
 
   const image = sample(result) as string
   data.reactSuccess()
+  
   return await data.replyContent({
     image: { url: image },
     caption: `Origin: ${image}`,
