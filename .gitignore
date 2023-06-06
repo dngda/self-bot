@@ -6,3 +6,5 @@ package-lock.json
 data
 build
 test
+yarn.lock
+pnpm-lock.yaml
