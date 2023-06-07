@@ -13,17 +13,19 @@ import initConfigCmd from './cmd/config'
 import initIslamCmd from './cmd/islam'
 import initToolsCmd from './cmd/tools'
 import initOwnerCmd from './cmd/owner'
+import { getNoteContent } from './lib'
 import { getCommand } from './menu'
 import chalk from 'chalk'
 import fs from 'fs'
-import { getNoteContent } from './lib'
 
 interface BotConfig {
   publicModeChats: string[]
+  stickerCommands: { [index: string]: { cmd: string; arg: string } }
 }
 
 export let config: BotConfig = {
   publicModeChats: [],
+  stickerCommands: {},
 }
 
 if (fs.existsSync('./data/config.json')) {
@@ -67,7 +69,7 @@ export const messageHandler = async (
     const data = await serializeMessage(waSocket, msg)
     try {
       if (msg.key.fromMe || isAllowedChat(data)) {
-        sanesCmdHandler(waSocket, msg, data)
+        noPrefixHandler(waSocket, msg, data)
         mathHandler(data)
 
         const cmd = getCommand(data.cmd) as string
@@ -93,19 +95,19 @@ const isStatusMessage = (msg: WAMessage) =>
 const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type == 5
 
-const sanesCmdHandler = async (
+const noPrefixHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, fromMe, participant, body, send, reply } = data
+  const { from, fromMe, participant, body, reply } = data
+  let stickerSha = ''
+  if (_msg.message?.stickerMessage?.fileSha256)
+    stickerSha = Buffer.from(
+      _msg.message?.stickerMessage?.fileSha256!
+    ).toString('base64')
+
   switch (true) {
-    case /^(-i)/.test(body as string):
-      send('/ingfo-atas')
-      break
-    case /^(-c)/.test(body as string):
-      send('/ingfo-cuaca')
-      break
     case /^#\w+$/.test(body as string):
       const id = fromMe ? 'me' : participant ?? from
       const note = await getNoteContent(id, body as string)
@@ -132,6 +134,17 @@ const sanesCmdHandler = async (
       }
       break
     default:
+      try {
+        if (stickerSha in config.stickerCommands) {
+          data.cmd = config.stickerCommands[stickerSha].cmd
+          data.arg = config.stickerCommands[stickerSha].arg
+          data.args = data.arg.split(' ')
+          const cmd = getCommand(data.cmd)
+          await actions[cmd]?.(_wa, _msg, data)
+        }
+      } catch (error) {
+        console.error(error)
+      }
       break
   }
 }

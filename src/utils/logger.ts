@@ -14,7 +14,7 @@ const logCmd = (msg: WAMessage, data: MessageData) => {
     'cmd:',
     chalk.green(`${data.cmd}`),
     'arg:',
-    chalk.green(`[${data.arg}]`),
+    chalk.green(`"${data.arg}"`),
     'from:',
     chalk.green(`${data.name}`),
     'Jid:',

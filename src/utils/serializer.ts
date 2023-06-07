@@ -75,18 +75,20 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   data.fromMe = msg.key.fromMe
   data.participant = msg.key.participant
   data.name = msg.pushName
-  data.quotedMsg =
-    msg.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
-    msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo
-      ?.quotedMessage?.ephemeralMessage?.message
 
   data.contextInfo =
     msg.message?.extendedTextMessage?.contextInfo ||
     msg.message?.imageMessage?.contextInfo ||
     msg.message?.videoMessage?.contextInfo ||
+    msg.message?.stickerMessage?.contextInfo ||
     msg.message?.ephemeralMessage?.message?.extendedTextMessage?.contextInfo ||
     msg.message?.ephemeralMessage?.message?.imageMessage?.contextInfo ||
-    msg.message?.ephemeralMessage?.message?.videoMessage?.contextInfo
+    msg.message?.ephemeralMessage?.message?.videoMessage?.contextInfo ||
+    msg.message?.ephemeralMessage?.message?.stickerMessage?.contextInfo
+
+  data.quotedMsg =
+    data.contextInfo?.quotedMessage ||
+    data.contextInfo?.quotedMessage?.ephemeralMessage?.message
 
   data.isGroup = data.from.endsWith('@g.us')
   data.groupName = data.isGroup
@@ -103,10 +105,13 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     msg.message?.videoMessage != null ||
     msg.message?.ephemeralMessage?.message?.videoMessage != null
   data.isMedia =
-    data.isImage || data.isVideo || data.isQuotedImage || data.isQuotedVideo
+    data.isImage ||
+    data.isVideo ||
+    data.isQuotedImage ||
+    data.isQuotedVideo ||
+    data.isQuotedSticker
   data.isEphemeral = msg.message?.ephemeralMessage != null
   data.expiration = data.contextInfo?.expiration
-  data.config = config
 
   data.download = async () => {
     let msgData: WAMessage
@@ -187,6 +192,8 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
       react: { text: '❌', key: msg.key },
     })
   }
+
+  data.config = config
 
   return data
 }

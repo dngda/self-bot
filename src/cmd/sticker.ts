@@ -43,7 +43,7 @@ export default function () {
   }
 
   stringId.memefy = {
-    hint: '🖼️ _Tambah tulisan di gambar/sticker',
+    hint: '🖼️ _Tambah tulisan di gambar/sticker_',
     error: {
       textLimit: (s: number) =>
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
