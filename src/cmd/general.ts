@@ -3,9 +3,7 @@ import { MessageData } from '../utils'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
-import * as math from 'mathjs'
 import lodash from 'lodash'
-import chalk from 'chalk'
 
 export default function () {
   Object.assign(actions, {
@@ -96,23 +94,4 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
     menuMsg += `\nThanks for using this bot! 🙏`
   }
   data.send(menuMsg)
-}
-
-export const mathHandler = async (data: MessageData) => {
-  const { body } = data
-  if (!body?.startsWith('=')) return null
-  const args = body.slice(1)
-  if (!args || args == '') return null
-  if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\(.+\)/g.test(args))
-    return null
-  console.log(chalk.blue('[MATH]'), 'Doing =', args)
-  const result = math.evaluate(
-    args
-      .replace(/x/gi, '*')
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/%/g, '/100')
-      .replace('**', '^')
-  )
-  return await data.reply(`${result}`)
 }

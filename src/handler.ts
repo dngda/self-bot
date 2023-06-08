@@ -5,7 +5,7 @@ import {
   proto,
 } from '@whiskeysockets/baileys'
 import { serializeMessage, MessageData, logCmd } from './utils'
-import initGeneralCmd, { mathHandler } from './cmd/general'
+import initGeneralCmd from './cmd/general'
 import initBrowserCmd from './cmd/browser'
 import initStickerCmd from './cmd/sticker'
 import initScrapeCmd from './cmd/scrape'
@@ -15,6 +15,7 @@ import initToolsCmd from './cmd/tools'
 import initOwnerCmd from './cmd/owner'
 import { getNoteContent } from './lib'
 import { getCommand } from './menu'
+import * as math from 'mathjs'
 import chalk from 'chalk'
 import fs from 'fs'
 
@@ -70,7 +71,6 @@ export const messageHandler = async (
     try {
       if (msg.key.fromMe || isAllowedChat(data)) {
         noPrefixHandler(waSocket, msg, data)
-        mathHandler(data)
 
         const cmd = getCommand(data.cmd) as string
         if (data.isCmd && cmd in actions) {
@@ -95,56 +95,94 @@ const isStatusMessage = (msg: WAMessage) =>
 const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type == 5
 
+// --------------------------------------------------------- //
+const handleNoteCommand = async (data: MessageData) => {
+  const { fromMe, participant, from, body, reply } = data
+  const id = fromMe ? 'me' : participant ?? from
+  const note = await getNoteContent(id, body as string)
+  if (note) reply(note)
+}
+
+const handleRepeatCommand = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const quoted = data.quotedMsg
+  if (quoted) {
+    const msg: proto.IWebMessageInfo = {
+      key: _msg.key,
+      messageTimestamp: _msg.messageTimestamp,
+      pushName: _msg.pushName,
+      message: quoted,
+    }
+    const quotedData = await serializeMessage(_wa, msg)
+    if (quotedData.isCmd) {
+      const cmd = getCommand(quotedData.cmd) as string
+      if (cmd in actions) {
+        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
+        logCmd(msg, quotedData)
+        await actions[cmd](_wa, quoted, quotedData)
+      }
+    }
+  }
+}
+
+const handleStickerCommand = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { stickerMessage } = _msg.message ?? {}
+  const stickerSha = stickerMessage?.fileSha256
+    ? Buffer.from(stickerMessage.fileSha256!).toString('base64')
+    : ''
+
+  try {
+    if (stickerSha in config.stickerCommands) {
+      data.cmd = config.stickerCommands[stickerSha].cmd
+      data.arg = config.stickerCommands[stickerSha].arg
+      data.args = data.arg.split(' ')
+      const cmd = getCommand(data.cmd)
+      await actions[cmd]?.(_wa, _msg, data)
+    }
+  } catch (error) {
+    console.error(error)
+  }
+}
+
+const mathHandler = async (data: MessageData) => {
+  const { body } = data
+  if (!body?.startsWith('=')) return null
+  const args = body.slice(1)
+  if (!args || args == '') return null
+  if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\(.+\)/g.test(args))
+    return null
+  console.log(chalk.blue('[MATH]'), 'Doing =', args)
+  const result = math.evaluate(
+    args
+      .replace(/x/gi, '*')
+      .replace(/×/g, '*')
+      .replace(/÷/g, '/')
+      .replace(/%/g, '/100')
+      .replace('**', '^')
+  )
+  return await data.reply(`${result}`)
+}
+
 const noPrefixHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   data: MessageData
 ) => {
-  const { from, fromMe, participant, body, reply } = data
-  let stickerSha = ''
-  if (_msg.message?.stickerMessage?.fileSha256)
-    stickerSha = Buffer.from(
-      _msg.message?.stickerMessage?.fileSha256!
-    ).toString('base64')
+  const { body } = data
 
-  switch (true) {
-    case /^#\w+$/.test(body as string):
-      const id = fromMe ? 'me' : participant ?? from
-      const note = await getNoteContent(id, body as string)
-      if (note) reply(note)
-      break
-    case /^-r$/.test(body as string):
-      const quoted = data.quotedMsg
-      if (quoted) {
-        const msg: proto.IWebMessageInfo = {
-          key: _msg.key,
-          messageTimestamp: _msg.messageTimestamp,
-          pushName: _msg.pushName,
-          message: quoted,
-        }
-        const quotedData = await serializeMessage(_wa, msg)
-        if (quotedData.isCmd) {
-          const cmd = getCommand(quotedData.cmd) as string
-          if (cmd in actions) {
-            console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
-            logCmd(msg, quotedData)
-            await actions[cmd](_wa, quoted, quotedData)
-          }
-        }
-      }
-      break
-    default:
-      try {
-        if (stickerSha in config.stickerCommands) {
-          data.cmd = config.stickerCommands[stickerSha].cmd
-          data.arg = config.stickerCommands[stickerSha].arg
-          data.args = data.arg.split(' ')
-          const cmd = getCommand(data.cmd)
-          await actions[cmd]?.(_wa, _msg, data)
-        }
-      } catch (error) {
-        console.error(error)
-      }
-      break
+  if (/^#\w+$/.test(body as string)) {
+    await handleNoteCommand(data)
+  } else if (/^-r$/.test(body as string)) {
+    await handleRepeatCommand(_wa, _msg, data)
+  } else {
+    await mathHandler(data)
+    await handleStickerCommand(_wa, _msg, data)
   }
 }

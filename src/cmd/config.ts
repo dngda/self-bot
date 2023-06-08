@@ -81,7 +81,7 @@ const stickerCmdHandler = async (
   if (!data.fromMe) return
 
   const quoted = data.quotedMsg
-  if (!quoted || !quoted.stickerMessage?.fileSha256) {
+  if (!quoted?.stickerMessage?.fileSha256) {
     data.reply(stringId.stickerCmd.usage(data))
     return
   }
@@ -91,8 +91,8 @@ const stickerCmdHandler = async (
 
   if (data.cmd === 'dscmd') {
     if (stickerSha in config.stickerCommands) {
-      const cmd = config.stickerCommands[stickerSha].cmd
-      const arg = config.stickerCommands[stickerSha].arg
+      const {cmd, arg} = config.stickerCommands[stickerSha]
+      
       delete config.stickerCommands[stickerSha]
       data.reply(stringId.stickerCmd.deleted(`${cmd} ${arg}`))
     } else {
