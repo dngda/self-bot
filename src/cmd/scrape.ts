@@ -83,7 +83,7 @@ const pinterestHandler = async (
 
   const image = sample(result) as string
   data.reactSuccess()
-  
+
   return await data.replyContent({
     image: { url: image },
     caption: `Origin: ${image}`,
@@ -91,7 +91,7 @@ const pinterestHandler = async (
 }
 
 const tiktokPattern =
-  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@(\w+)(\.)?(\w+)\/video\/(\d+)/
+  /(?:https?):\/\/(?:www\.)?tiktok\.com\/@([^\W_]+)(\.)?([^\W_]+)\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/[\w-]+/
