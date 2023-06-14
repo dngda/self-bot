@@ -100,7 +100,7 @@ const stickerCmdHandler = async (
     }
   } else {
     const cmd = data.args[0]
-    const arg = data.arg
+    const arg = data.arg.replace(cmd, '').trim()
     if (!cmd) {
       data.reply(stringId.stickerCmd.usage(data))
       return
