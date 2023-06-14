@@ -85,7 +85,7 @@ After running it you need to scan the QR
 - Sticker commands
 - Video to mp3
 
-💡 Left any feature ideas in this [discussions](https://github.com/dngda/self-bot/discussions) 🙏
+💡 Leave any feature ideas out in this [discussion](https://github.com/dngda/self-bot/discussions) 🙏
 
 ## Thanks to
 
