@@ -71,13 +71,21 @@ After running it you need to scan the QR
 
 ## Features
 
-- Sticker Creator
-- Search Pinterest Image
-- Note database with sqlite
-- Downloader pake api nya ssyoutube.com
-- Browser Screenshot web
+- Text to sticker
+- Search Pinterest image
+- Sticker Creator using [WA-Sticker-Formatter](https://github.com/AlenVelocity/wa-sticker-formatter)
+- Note database with sqlite [Sequelize](https://sequelize.org/)
+- Add caption to image with [memegen](https://api.memegen.link) and make sticker of it
+- Browser related such as screenshot web or search ddg/ggl
+- Social media video downloader using ssyoutube.com
+- Split long video to 30s for WA Status
+- Jadwal sholat kabupaten based
+- Quran + audio per-ayah
+- Get one-view media
+- Sticker commands
+- Video to mp3
 
-Wes intine mung kui tok, masbro 🙏
+💡 Left any feature ideas in this [discussions](https://github.com/dngda/self-bot/discussions) 🙏
 
 ## Thanks to
 
