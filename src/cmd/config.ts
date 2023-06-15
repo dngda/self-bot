@@ -13,11 +13,9 @@ export default function () {
   stringId.public = {
     hint: '⚙️ _Toggle public mode pada chat ini_',
     info: (isPublic: boolean, prefix: string) =>
-      `ℹ️ Bot sekarang dalam mode ${
-        isPublic
-          ? `*Public* di chat ini.\n➡️ Coba kirimkan "${prefix}help"`
-          : '*Private*'
-      }`,
+      isPublic
+        ? `❕Public-mode aktif, semua member akan direspon bot!\n-> Coba kirimkan: _${prefix}help_`
+        : `❕Self-mode aktif`,
   }
 
   stringId.stickerCmd = {
@@ -91,8 +89,8 @@ const stickerCmdHandler = async (
 
   if (data.cmd === 'dscmd') {
     if (stickerSha in config.stickerCommands) {
-      const {cmd, arg} = config.stickerCommands[stickerSha]
-      
+      const { cmd, arg } = config.stickerCommands[stickerSha]
+
       delete config.stickerCommands[stickerSha]
       data.reply(stringId.stickerCmd.deleted(`${cmd} ${arg}`))
     } else {
