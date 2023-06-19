@@ -179,7 +179,7 @@ const noteHandler = async (
 ) => {
   const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = data
   if (args.length === 0) return data.reply(stringId.note.usage(data))
-  const noteName = args[0].toLowerCase()
+  const noteName = args[0].toLowerCase().startsWith('#') ? args[0].toLowerCase() : `#${args[0].toLowerCase()}`
   const id = fromMe ? 'me' : participant ?? from
   if (cmd === 'note') {
     const note = await getNotesNames(id)
