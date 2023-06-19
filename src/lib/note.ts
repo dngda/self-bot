@@ -40,7 +40,7 @@ export async function createNote(from: string, title: string, content: string) {
 }
 
 export async function getNotesNames(from: string) {
-  const notes = await Note.findAll({ where: { from } })
+  const notes = await Note.findAll({ where: { from }, order: [['title', 'ASC']] })
   return notes.map((note) => note.toJSON().title)
 }
 
