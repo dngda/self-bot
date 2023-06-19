@@ -39,7 +39,10 @@ export default function () {
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
     },
     usage: (data: MessageData) =>
-      `Tambahkan teks atau balas teks dengan ${data.prefix}${data.cmd} <teks>`,
+      `Tambahkan teks atau balas teks dengan ${data.prefix}${data.cmd} <teks>\n` +
+      `➡️ Contoh: ${data.prefix}ttp Serobot\n` +
+      `Custom color dengan args 'color1|color2|strokecolor'\n` +
+      `➡️ Contoh: ${data.prefix}ttpc red|blue|white Serobot`,
   }
 
   stringId.memefy = {
@@ -183,7 +186,8 @@ const ttpHandler = async (
   if (cmd === 'ttpc') {
     const col = args[0].split('|')[0]
     const col2 = args[0].split('|')[1] || col
-    image = await textToPicture(text.replace(args[0], ''), col, col2)
+    const col3 = args[0].split('|')[2] || 'black'
+    image = await textToPicture(text.replace(args[0], ''), col, col2, col3)
   } else {
     image = await textToPicture(text)
   }

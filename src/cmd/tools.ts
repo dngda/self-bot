@@ -179,45 +179,96 @@ const noteHandler = async (
 ) => {
   const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = data
   if (args.length === 0) return data.reply(stringId.note.usage(data))
-  const noteName = args[0].toLowerCase().startsWith('#') ? args[0].toLowerCase() : `#${args[0].toLowerCase()}`
+  const noteName = args[0].toLowerCase().startsWith('#')
+    ? args[0].toLowerCase()
+    : `#${args[0].toLowerCase()}`
   const id = fromMe ? 'me' : participant ?? from
-  if (cmd === 'note') {
-    const note = await getNotesNames(id)
-    if (note.length == 0) return data.reply(stringId.note.error.noNote)
-    let noteList = '📝 Daftar catatanmu:\n'
-    note.forEach((n) => {
-      noteList += `- ${n}\n`
-    })
-    return data.reply(noteList.replace(/\n$/, ''))
+
+  switch (cmd) {
+    case 'note':
+      return handleNoteCommand(id, data)
+    case 'addnote':
+      return handleAddNoteCommand(
+        id,
+        noteName,
+        args,
+        isQuoted ?? false,
+        quotedMsg,
+        data
+      )
+    case 'delnote':
+      return handleDeleteNoteCommand(id, noteName, data)
+    case 'editnote':
+      return handleEditNoteCommand(
+        id,
+        noteName,
+        args,
+        isQuoted ?? false,
+        quotedMsg,
+        data
+      )
+    default:
+      return
   }
-  if (cmd === 'addnote') {
-    let note: string
-    if (isQuoted) {
-      note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
-    } else {
-      if (args.length < 2) return data.reply(stringId.note.usage(data))
-      note = args.slice(1).join(' ')
-    }
-    await createNote(id, noteName, note)
-    return data.reply('📝 Catatan berhasil disimpan!')
+}
+
+async function handleNoteCommand(id: string, data: MessageData) {
+  const note = await getNotesNames(id)
+  if (note.length == 0) return data.reply(stringId.note.error.noNote)
+  let noteList = '📝 Daftar catatanmu:\n'
+  note.forEach((n) => {
+    noteList += `- ${n}\n`
+  })
+  data.reply(noteList.replace(/\n$/, ''))
+}
+
+async function handleAddNoteCommand(
+  id: string,
+  noteName: string,
+  args: string[],
+  isQuoted: boolean,
+  quotedMsg: proto.IMessage | null | undefined,
+  data: MessageData
+) {
+  let note: string
+  if (isQuoted) {
+    note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
+  } else {
+    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    note = args.slice(1).join(' ')
   }
-  if (cmd === 'delnote') {
-    const res = await deleteNote(id, noteName)
-    if (!res) return data.reply(stringId.note.error.noNote)
-    return data.reply('🗑️ Catatan berhasil dihapus!')
+  await createNote(id, noteName, note)
+  data.reply('📝 Catatan berhasil disimpan!')
+}
+
+async function handleDeleteNoteCommand(
+  id: string,
+  noteName: string,
+  data: MessageData
+) {
+  const res = await deleteNote(id, noteName)
+  if (!res) return data.reply(stringId.note.error.noNote)
+  data.reply('🗑️ Catatan berhasil dihapus!')
+}
+
+async function handleEditNoteCommand(
+  id: string,
+  noteName: string,
+  args: string[],
+  isQuoted: boolean,
+  quotedMsg: proto.IMessage | null | undefined,
+  data: MessageData
+) {
+  let note: string
+  if (isQuoted) {
+    note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
+  } else {
+    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    note = args.slice(1).join(' ')
   }
-  if (cmd === 'editnote') {
-    let note: string
-    if (isQuoted) {
-      note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
-    } else {
-      if (args.length < 2) return data.reply(stringId.note.usage(data))
-      note = args.slice(1).join(' ')
-    }
-    const res = await updateNoteContent(id, noteName, note)
-    if (!res) return data.reply(stringId.note.error.noNote)
-    return data.reply('✏️ Catatan berhasil diedit!')
-  }
+  const res = await updateNoteContent(id, noteName, note)
+  if (!res) return data.reply(stringId.note.error.noNote)
+  data.reply('✏️ Catatan berhasil diedit!')
 }
 
 const toMp3Handler = async (

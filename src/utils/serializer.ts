@@ -12,8 +12,9 @@ import dotenv from 'dotenv'
 import { config } from '../handler'
 dotenv.config()
 
+type snu = string | null | undefined
 export interface MessageData {
-  body: string | null | undefined
+  body: snu
   isCmd: boolean
   cmd: string
   prefix: string
@@ -21,8 +22,8 @@ export interface MessageData {
   args: string[]
   from: string
   fromMe: boolean | null | undefined
-  participant: string | null | undefined
-  name: string | null | undefined
+  participant: snu
+  name: snu
   groupName: string | null
   quotedMsg: WAMessageContent | null | undefined
   contextInfo: proto.IContextInfo | null | undefined

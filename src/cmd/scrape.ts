@@ -102,7 +102,7 @@ const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
 const getDuration = (result: any) => {
   let duration: number
-  if (result.meta.hasOwnProperty('duration')) {
+  if (result.meta?.hasOwnProperty('duration')) {
     const minutes = +result.meta.duration.split(':')[0]
     const seconds = +result.meta.duration.split(':')[1]
     duration = minutes * 60 + seconds
@@ -122,112 +122,119 @@ export const videoHandler = async (
   if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(data))
 
   data.reactWait()
-  switch (true) {
-    case tiktokPattern.test(url):
-    case tiktokShortPattern.test(url):
-    case reelsPattern.test(url):
-    case instagramPattern.test(url):
-      await tiktokReels()
-      return data.reactSuccess()
-    case twitterPattern.test(url):
-      await twitter()
-      return data.reactSuccess()
-    case youtubePattern.test(url):
-    case youtubeShortPattern.test(url):
-    case youtubeShortsPattern.test(url):
-      await youtube()
-      return data.reactSuccess()
-    default:
-      data.reply(stringId.videodl.error.invalidUrl)
-      return data.reactError()
+
+  if (
+    tiktokPattern.test(url) ||
+    tiktokShortPattern.test(url) ||
+    reelsPattern.test(url) ||
+    instagramPattern.test(url)
+  ) {
+    await tiktokReels(url, data)
+  } else if (twitterPattern.test(url)) {
+    await twitter(url, data)
+  } else if (
+    youtubePattern.test(url) ||
+    youtubeShortPattern.test(url) ||
+    youtubeShortsPattern.test(url)
+  ) {
+    await youtube(url, data)
+  } else {
+    data.reply(stringId.videodl.error.invalidUrl)
+    return data.reactError()
   }
+}
 
-  async function tiktokReels() {
-    let urls: string[] =
-      tiktokPattern.exec(url) ??
-      tiktokShortPattern.exec(url) ??
-      reelsPattern.exec(url) ??
-      instagramPattern.exec(url) ??
-      []
+async function tiktokReels(url: string, data: MessageData) {
+  let urls: string[] =
+    tiktokPattern.exec(url) ??
+    tiktokShortPattern.exec(url) ??
+    reelsPattern.exec(url) ??
+    instagramPattern.exec(url) ??
+    []
 
-    const result = await browser.scrapeSSyoutube(urls[0])
-    const duration = getDuration(result)
+  const result = await browser.scrapeSSyoutube(urls[0])
+  const duration = getDuration(result)
 
-    await data.replyContent({
-      video: { url: result.url[0].url },
-      seconds: duration,
-      caption: stringId.videodl.getAudio(data),
-    })
-  }
+  await data.replyContent({
+    video: { url: result.url[0].url },
+    seconds: duration,
+    caption: stringId.videodl.getAudio(data),
+  })
 
-  async function twitter() {
-    let urls: string[] = twitterPattern.exec(url) ?? []
-    const result = await browser.scrapeSSyoutube(urls[0])
-    let resultUrls = result.url.sort((a: any, b: any) => {
-      return Number(a.quality) - Number(b.quality)
-    })
-    let selectedUrl = resultUrls[0].url
-    let captions = ''
-    for (const video of resultUrls) {
-      if (video?.url == selectedUrl) {
-        captions += stringId.videodl.sent(video?.quality)
-        continue
-      }
-      captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
+  data.reactSuccess()
+}
+
+async function twitter(url: string, data: MessageData) {
+  let urls: string[] = twitterPattern.exec(url) ?? []
+  const result = await browser.scrapeSSyoutube(urls[0])
+  let resultUrls = result.url.sort((a: any, b: any) => {
+    return Number(a.quality) - Number(b.quality)
+  })
+  let selectedUrl = resultUrls[0].url
+  let captions = ''
+  for (const video of resultUrls) {
+    if (video?.url == selectedUrl) {
+      captions += stringId.videodl.sent(video?.quality)
+      continue
     }
-    captions += stringId.videodl.getAudio(data)
-
-    await data.replyContent({
-      video: { url: selectedUrl },
-      caption: captions,
-    })
+    captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
   }
+  captions += stringId.videodl.getAudio(data)
 
-  async function youtube() {
-    let urls: string[] =
-      youtubePattern.exec(url) ??
-      youtubeShortPattern.exec(url) ??
-      youtubeShortsPattern.exec(url) ??
-      []
-    const result = await browser.scrapeSSyoutube(urls[0])
-    const duration = getDuration(result)
+  await data.replyContent({
+    video: { url: selectedUrl },
+    caption: captions,
+  })
 
-    if (duration / 60 > 10) throw new Error(stringId.videodl.error.maxDuration)
+  data.reactSuccess()
+}
 
-    let selectedUrl: string | URL
-    let selectedQuality: string
-    let captions: string = ''
+async function youtube(url: string, data: MessageData) {
+  let urls: string[] =
+    youtubePattern.exec(url) ??
+    youtubeShortPattern.exec(url) ??
+    youtubeShortsPattern.exec(url) ??
+    []
+  const result = await browser.scrapeSSyoutube(urls[0])
+  const duration = getDuration(result)
 
-    try {
-      if (result.url[0].quality == '720') {
-        selectedUrl = result.url[1].url
-        selectedQuality = result.url[1].quality
-      } else {
-        selectedUrl = result.url[0].url
-        selectedQuality = result.url[0].quality
-      }
-    } catch (error: any) {
-      await data.reactError()
-      return data.reply(stringId.videodl.error.internalError)
+  if (duration / 60 > 10) throw new Error(stringId.videodl.error.maxDuration)
+
+  let selectedUrl: string | URL
+  let selectedQuality: string
+  let captions: string = ''
+
+  try {
+    if (result.url[0].quality == '720') {
+      selectedUrl = result.url[1].url
+      selectedQuality = result.url[1].quality
+    } else {
+      selectedUrl = result.url[0].url
+      selectedQuality = result.url[0].quality
     }
-    captions += stringId.videodl.sent(selectedQuality)
+  } catch (error: any) {
+    await data.reactError()
+    return data.reply(stringId.videodl.error.internalError)
+  }
+  captions += stringId.videodl.sent(selectedQuality)
 
-    for (const video of result.url) {
-      if (video?.no_audio) continue
-      if (video?.audio) continue
-      if (video?.quality == selectedQuality) continue
-      if (!video?.attr?.title) {
-        captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
-        continue
-      }
+  for (const video of result.url) {
+    if (video?.no_audio) continue
+    if (video?.audio) continue
+    if (video?.quality == selectedQuality) continue
+    if (!video?.attr?.title) {
       captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
+      continue
     }
-    captions += stringId.videodl.getAudio(data)
-
-    await data.replyContent({
-      video: { url: selectedUrl },
-      seconds: duration,
-      caption: captions.trim(),
-    })
+    captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
   }
+  captions += stringId.videodl.getAudio(data)
+
+  await data.replyContent({
+    video: { url: selectedUrl },
+    seconds: duration,
+    caption: captions.trim(),
+  })
+
+  data.reactSuccess()
 }
