@@ -37,7 +37,7 @@
     "form-data": "^4.0.0",
     "get-video-duration": "^4.1.0",
     "lodash": "^4.17.21",
-    "mathjs": "^11.8.1",
+    "mathjs": "^11.8.2",
     "moment-timezone": "^0.5.43",
     "node-cache": "^5.1.2",
     "playwright": "^1.35.1",

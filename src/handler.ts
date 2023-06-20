@@ -34,9 +34,9 @@ if (fs.existsSync('./data/config.json')) {
   if (conf != '') config = JSON.parse(conf)
 }
 
-setInterval(() => {
+export let updateConfig = () => {
   fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
-}, 5000)
+}
 
 // every handler must have 3 parameters:
 export const actions: { [index: string]: any } = {}

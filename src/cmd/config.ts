@@ -1,7 +1,7 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageData } from '../utils'
 import stringId from '../language'
-import { actions, config } from '../handler'
+import { actions, config, updateConfig } from '../handler'
 import { menu } from '../menu'
 
 export default function () {
@@ -14,7 +14,7 @@ export default function () {
     hint: '⚙️ _Toggle public mode pada chat ini_',
     info: (isPublic: boolean, prefix: string) =>
       isPublic
-        ? `❕Public-mode aktif, semua member akan direspon bot!\n-> Coba kirimkan: _${prefix}help_`
+        ? `❕Public-mode aktif, semua member akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
         : `❕Self-mode aktif`,
   }
 
@@ -68,7 +68,8 @@ const togglePublicHandler = async (
     config.publicModeChats.push(data.from)
     isPublic = true
   }
-  data.reply(stringId.public.info(isPublic, data.prefix))
+  updateConfig()
+  return data.reply(stringId.public.info(isPublic, data.prefix))
 }
 
 const stickerCmdHandler = async (
@@ -92,9 +93,12 @@ const stickerCmdHandler = async (
       const { cmd, arg } = config.stickerCommands[stickerSha]
 
       delete config.stickerCommands[stickerSha]
-      data.reply(stringId.stickerCmd.deleted(`${cmd} ${arg}`))
+      updateConfig()
+      await data.reactSuccess()
+      return data.reply(stringId.stickerCmd.deleted(`${cmd} ${arg}`))
     } else {
-      data.reply(stringId.stickerCmd.error.notExist)
+      await data.reactError()
+      return data.reply(stringId.stickerCmd.error.notExist)
     }
   } else {
     const cmd = data.args[0]
@@ -110,6 +114,8 @@ const stickerCmdHandler = async (
       return
     }
     config.stickerCommands[stickerSha] = { cmd, arg }
-    data.reply(stringId.stickerCmd.success(`${cmd} ${arg}`))
+    updateConfig()
+    await data.reactSuccess()
+    return data.reply(stringId.stickerCmd.success(`${cmd} ${arg}`))
   }
 }
