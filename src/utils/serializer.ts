@@ -93,8 +93,8 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
   const getQuotedMsg = (contextInfo: any) => {
     return (
-      contextInfo?.quotedMessage ||
-      contextInfo?.quotedMessage?.ephemeralMessage?.message
+      contextInfo?.quotedMessage?.ephemeralMessage?.message ||
+      contextInfo?.quotedMessage
     )
   }
 
