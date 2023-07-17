@@ -24,6 +24,7 @@ export default function () {
       quality: (q: number) =>
         `⚠️ Result exceeded 1 MB with Q: ${q}%\n⏳ Hold on, decreasing quality...`,
       q: (q: number) => `⏳ Q: ${q}% still not yet...`,
+      fail: `‼️ Gagal mengubah video ke sticker, coba kurangi durasi.`,
     },
     usage: (data: MessageData) =>
       `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
@@ -52,7 +53,7 @@ export default function () {
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
     },
     usage: (data: MessageData) =>
-      `Tambahkan teks atau balas gambar/sticker dengan ${data.prefix}${data.cmd} <atas|bawah>`,
+      `Tambahkan teks atau balas gambar/sticker dengan ${data.prefix}${data.cmd} <atas|bawah>\n⚙️ Gunakan: '-c' square cropped`,
   }
 
   menu.push(
@@ -159,7 +160,9 @@ const processVideo = async (
     } else {
       data.send(stringId.sticker.error.q(defaultQuality))
     }
-    defaultQuality -= 10
+    if (defaultQuality <= 10) defaultQuality = 1
+    else defaultQuality -= 10
+    if (defaultQuality <= 0) throw new Error(stringId.sticker.error.fail)
     resultBuffer = await doConvert(defaultQuality)
   }
   data.reactSuccess()
@@ -207,21 +210,26 @@ const memefyHandler = async (
   data: MessageData
 ) => {
   const { arg, cmd, isQuoted, isQuotedSticker, isMedia, replySticker } = data
-  if (!arg && !isQuoted && !isQuotedSticker && !isMedia)
+  let _arg = arg
+  if (!_arg && !isQuoted && !isQuotedSticker && !isMedia)
     throw new Error(stringId.memefy.usage(data))
   data.reactWait()
 
   const textLimit = 30
-  if (arg.length > textLimit)
+  if (_arg.length > textLimit)
     throw new Error(stringId.memefy.error.textLimit(textLimit))
 
   let image: Buffer
   if (isQuotedSticker) image = await data.downloadSticker()
   else image = isQuoted ? await data.downloadQuoted() : await data.download()
 
-  image = await sharp(image).png().toBuffer()
-  let top = arg.split('|')[0] || '_'
-  let bottom = arg.split('|')[1] || '_'
+  let simage = await sharp(image).png()
+  if (_arg.includes('-c')) simage.resize(512, 512)
+  _arg = _arg.replace('-c', '')
+  image = await simage.toBuffer()
+
+  let top = _arg.split('|')[0] || '_'
+  let bottom = _arg.split('|')[1] || '_'
 
   let uploadedImageUrl = await uploadImage(image)
   let memeBuffer = await memegen(top, bottom, uploadedImageUrl)

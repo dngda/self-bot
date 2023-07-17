@@ -11,7 +11,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "eslint": "^8.44.0",
+    "eslint": "^8.45.0",
     "eslint-config-prettier": "^8.8.0",
     "nodemon": "^2.0.22",
     "prettier": "^2.8.8"
@@ -40,7 +40,7 @@
     "mathjs": "^11.8.2",
     "moment-timezone": "^0.5.43",
     "node-cache": "^5.1.2",
-    "playwright": "^1.35.1",
+    "playwright": "^1.36.1",
     "playwright-extra": "^4.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "qrcode-terminal": "^0.12.0",
