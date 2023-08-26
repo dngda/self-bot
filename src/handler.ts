@@ -4,7 +4,7 @@ import {
   MessageUpsertType,
   proto,
 } from '@whiskeysockets/baileys'
-import { serializeMessage, MessageData, logCmd } from './utils'
+import { serializeMessage, MessageData, logCmd, getPrefix } from './utils'
 import initGeneralCmd from './cmd/general'
 import initBrowserCmd from './cmd/browser'
 import initStickerCmd from './cmd/sticker'
@@ -181,7 +181,10 @@ const noPrefixHandler = async (
     await handleNoteCommand(data)
   } else if (/^-r$/.test(body as string)) {
     await handleRepeatCommand(_wa, _msg, data)
-  } else {
+  } else if (/^cekprefix$/.test(body as string)) {
+    await data.reply(`Prefix: '${getPrefix()}'`)
+  }
+  else {
     await mathHandler(data)
     await handleStickerCommand(_wa, _msg, data)
   }

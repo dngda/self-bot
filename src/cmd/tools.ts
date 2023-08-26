@@ -86,7 +86,7 @@ export default function () {
     {
       command: 'note',
       hint: stringId.note.hint,
-      alias: 'addnote, delnote, editnote',
+      alias: 'addnote, delnote, editnote, notes',
       type: 'tools',
     },
     {
@@ -186,6 +186,7 @@ const noteHandler = async (
 
   switch (cmd) {
     case 'note':
+    case 'notes':
       return handleNoteCommand(id, data)
     case 'addnote':
       return handleAddNoteCommand(

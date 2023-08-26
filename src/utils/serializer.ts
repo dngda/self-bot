@@ -13,6 +13,20 @@ import { config } from '../handler'
 dotenv.config()
 
 type snu = string | null | undefined
+let prefix = process.env.PREFIX!
+
+export const setPrefix = (newPrefix: string) => {
+  prefix = newPrefix
+}
+
+export const resetPrefix = () => {
+  prefix = process.env.PREFIX!
+}
+
+export const getPrefix = () => {
+  return prefix
+}
+
 export interface MessageData {
   body: snu
   isCmd: boolean
@@ -68,11 +82,17 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   const getCmdProperties = (data: MessageData) => {
-    data.isCmd = data.body?.substring(0, 1).match(process.env.PREFIX!)
-      ? true
-      : false
-    data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
-    data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
+    if (prefix.startsWith('[') && prefix.endsWith(']')) {
+      data.isCmd = data.body?.substring(0, 1).match(process.env.PREFIX!)
+        ? true
+        : false
+      data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
+      data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
+    } else {
+      data.isCmd = data.body?.startsWith(prefix) ? true : false
+      data.cmd = data.isCmd ? data.body!.replace(prefix, '').split(' ')[0] : ''
+      data.prefix = data.isCmd ? prefix : ''
+    }
     data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() ?? ''
     data.args = data.arg.split(' ')
   }

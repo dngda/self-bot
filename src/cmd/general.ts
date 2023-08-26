@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData } from '../utils'
+import { MessageData, getPrefix } from '../utils'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
@@ -62,7 +62,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
 
   menuMsg += `
 !-------------- Help - Usage --------------!\n`
-  menuMsg += `_Accepted prefix:_ ${process.env.PREFIX!}\n`
+  menuMsg += `_Accepted prefix:_ '${getPrefix()}'\n`
   const menus = getMenu()
   const menuTypes = menus.map((menu) => {
     return menu.type

@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData } from '../utils'
+import { MessageData, resetPrefix, setPrefix } from '../utils'
 import stringId from '../language'
 import { actions, config, updateConfig } from '../handler'
 import { menu } from '../menu'
@@ -8,6 +8,7 @@ export default function () {
   Object.assign(actions, {
     toggle: togglePublicHandler,
     scmd: stickerCmdHandler,
+    setp: setPrefixHandler,
   })
 
   stringId.public = {
@@ -36,6 +37,16 @@ export default function () {
     deleted: (cmd: string) => `✅ Sticker dengan cmd "${cmd}" berhasil dihapus`,
   }
 
+  stringId.setPrefix = {
+    hint: '⚙️ _Set prefix_',
+    usage: (data: MessageData) =>
+      `Set prefix dengan: ${data.prefix}setp <prefix>
+➡️ Contoh: ${data.prefix}setp !`,
+    success: (prefix: string) =>
+      `✅ Prefix berhasil diubah menjadi "${prefix}"`,
+    reseted: '✅ Prefix berhasil direset',
+  }
+
   menu.push(
     {
       command: 'toggle',
@@ -47,6 +58,12 @@ export default function () {
       command: 'scmd',
       hint: stringId.stickerCmd.hint,
       alias: 'dscmd',
+      type: 'config',
+    },
+    {
+      command: 'setp',
+      hint: stringId.setPrefix.hint,
+      alias: 'setprefix, resetprefix',
       type: 'config',
     }
   )
@@ -118,4 +135,31 @@ const stickerCmdHandler = async (
     await data.reactSuccess()
     return data.reply(stringId.stickerCmd.success(`${cmd} ${arg}`))
   }
+}
+
+const setPrefixHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  if (!data.fromMe) return
+  if (data.cmd === 'resetprefix') {
+    resetPrefix()
+    return data.reply(stringId.setPrefix.reseted)
+  } else {
+    const prefix = data.arg
+    if (!prefix) {
+      data.reply(stringId.setPrefix.usage(data))
+      return
+    }
+    if (prefix.length > 1) {
+      setPrefix(`${prefix} `)
+      data.reply(stringId.setPrefix.success(`${prefix} `))
+    } else {
+      setPrefix(prefix)
+      data.reply(stringId.setPrefix.success(prefix))
+    }
+  }
+
+  return data.reactSuccess()
 }

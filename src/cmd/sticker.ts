@@ -14,6 +14,7 @@ export default function () {
     sticker: stickerHandler,
     ttpc: ttpHandler,
     memefy: memefyHandler,
+    dls: downloadStickerHandler,
   })
 
   stringId.sticker = {
@@ -56,6 +57,15 @@ export default function () {
       `Tambahkan teks atau balas gambar/sticker dengan ${data.prefix}${data.cmd} <atas|bawah>\n⚙️ Gunakan: '-c' square cropped`,
   }
 
+  stringId.dls = {
+    hint: '💾 _Download sticker_',
+    error: {
+      notSticker: `‼️ Ini bukan sticker`,
+    },
+    usage: (data: MessageData) =>
+      `Balas sticker dengan ${data.prefix}${data.cmd}`,
+  }
+
   menu.push(
     {
       command: 'sticker',
@@ -73,6 +83,12 @@ export default function () {
       command: 'memefy',
       hint: stringId.memefy.hint,
       alias: 'sm',
+      type: 'sticker',
+    },
+    {
+      command: 'dls',
+      hint: stringId.dls.hint,
+      alias: 'toimg, tomedia',
       type: 'sticker',
     }
   )
@@ -249,4 +265,27 @@ const memefyHandler = async (
     data.reactSuccess()
     await replySticker(sticker)
   }
+}
+
+const downloadStickerHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { isQuotedSticker, replyContent } = data
+  if (!isQuotedSticker) throw new Error(stringId.dls.usage(data))
+  data.reactWait()
+  let sticker = await data.downloadQuoted()
+
+  if (data.quotedMsg?.stickerMessage?.firstFrameSidecar) {
+    await replyContent({
+      document: sticker,
+      mimetype: 'image/webp',
+      fileName: 'sticker.webp',
+    })
+  } else {
+    sticker = await sharp(sticker).png().toBuffer()
+    await replyContent({ image: sticker })
+  }
+  data.reactSuccess()
 }
