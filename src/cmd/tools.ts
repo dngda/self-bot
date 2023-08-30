@@ -5,6 +5,7 @@ import {
   proto,
 } from '@whiskeysockets/baileys'
 import { getVideoDurationInSeconds } from 'get-video-duration'
+import ocrApi from 'ocr-space-api-wrapper'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
@@ -20,6 +21,7 @@ import {
   splitVideo,
   updateNoteContent,
   videoToMp3,
+  ocr,
 } from '../lib'
 
 export default function () {
@@ -29,6 +31,7 @@ export default function () {
     note: noteHandler,
     tomp3: toMp3Handler,
     vsplit: videoSplitHandler,
+    ocr: ocrHandler,
   })
 
   stringId.flip = {
@@ -70,6 +73,15 @@ export default function () {
       `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${data.prefix}vsplit`,
   }
 
+  stringId.ocr = {
+    hint: '📖 _Optical character recognition_',
+    error: {
+      noImage: '‼️ Gambar tidak ditemukan!',
+    },
+    usage: (data: MessageData) =>
+      `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${data.prefix}ocr <language>`,
+  }
+
   menu.push(
     {
       command: 'flip',
@@ -99,6 +111,12 @@ export default function () {
       command: 'vsplit',
       hint: stringId.vsplit.hint,
       alias: 'vs',
+      type: 'tools',
+    },
+    {
+      command: 'ocr',
+      hint: stringId.ocr.hint,
+      alias: 'itt',
       type: 'tools',
     }
   )
@@ -329,5 +347,29 @@ const videoSplitHandler = async (
 
     unlinkSync(`tmp/vs/${video[i]}`)
   }
+  data.reactSuccess()
+}
+
+const ocrHandler = async (
+  waSocket: WASocket,
+  msg: WAMessage,
+  data: MessageData
+) => {
+  const { isQuotedImage, isImage, download, downloadQuoted, args } = data
+  if (!isImage && !isQuotedImage) throw new Error(stringId.ocr.error.noImage)
+  if (args.length === 0) return data.reply(stringId.ocr.usage(data))
+  data.reactWait()
+  const mediaData = isQuotedImage ? await downloadQuoted() : await download()
+
+  let language = args[0] as ocrApi.OcrSpaceLanguages
+  const res = await ocr(language, mediaData)
+  console.log('🚀 ~ file: tools.ts:366 ~ res:', res)
+  const text = res.ParsedResults[0].ParsedText
+
+  await waSocket.sendMessage(
+    data.from,
+    { text },
+    { quoted: msg, ephemeralExpiration: data.expiration! }
+  )
   data.reactSuccess()
 }

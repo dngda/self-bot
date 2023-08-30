@@ -1,5 +1,7 @@
 import axios from 'axios'
 import FormData from 'form-data'
+import ocrApi from 'ocr-space-api-wrapper'
+import fs from 'fs'
 
 export async function uploadImage(image: Buffer): Promise<string> {
   const form = new FormData()
@@ -36,4 +38,16 @@ export async function memegen(
   let url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${image}`
   let res = await axios.get(url, { responseType: 'arraybuffer' })
   return Buffer.from(res.data)
+}
+
+export async function ocr(language: ocrApi.OcrSpaceLanguages, image: Buffer) {
+  const path = 'tmp/ocr.jpg'
+  fs.writeFileSync(path, image)
+  const res = await ocrApi.ocrSpace(path, {
+    apiKey: process.env.OCR_API_KEY!,
+    language,
+  })
+
+  fs.unlinkSync(path)
+  return res
 }
