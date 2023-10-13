@@ -7,7 +7,7 @@ import makeWASocket, {
   DisconnectReason,
   proto,
 } from '@whiskeysockets/baileys'
-import { pino as MAIN_LOGGER } from './src/utils/logger'
+import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import NodeCache from 'node-cache'
 import { textSync } from 'figlet'
@@ -18,21 +18,13 @@ import { PlaywrightBrowser } from './src/lib'
 export const browser = new PlaywrightBrowser()
 browser.initBrowser()
 
-const logger = MAIN_LOGGER.child({})
 dotenv.config()
+const logger = MAIN_LOGGER.child({})
 logger.level = 'error'
 
 const msgRetryCounterCache = new NodeCache()
 
 const store = makeInMemoryStore({ logger })
-
-/* disable store persistence because of high cpu usage
-store?.readFromFile('./env/baileys_store_multi.json')
-
-setInterval(() => {
-  store?.writeToFile('./env/baileys_store_multi.json')
-}, 10_000)
-*/
 
 const startSock = async () => {
   const { state, saveCreds } = await useMultiFileAuthState(

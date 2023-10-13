@@ -5,7 +5,7 @@ import P from 'pino'
 import { MessageData } from '.'
 moment.tz.setDefault('Asia/Jakarta').locale('id')
 
-const pino = P({ timestamp: () => `,"time":"${new Date().toJSON()}"` })
+export default P({ timestamp: () => `,"time":"${new Date().toJSON()}"` })
 const logCmd = (msg: WAMessage, data: MessageData) => {
   const ts = msg.messageTimestamp
   console.log(
@@ -21,4 +21,4 @@ const logCmd = (msg: WAMessage, data: MessageData) => {
     chalk.green(`${data.from}`)
   )
 }
-export { logCmd, pino }
+export { logCmd }
