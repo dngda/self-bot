@@ -202,7 +202,7 @@ const storeMessageData = (msg: WAMessage) => {
   if (!key) return null
   if (msg.message?.protocolMessage?.type == 0) return null
 
-  storeMessage(key, msg.messageTimestamp!, msg.message!)
+  storeMessage(key.id!, msg.messageTimestamp!, msg.message!)
   return true
 }
 
@@ -211,7 +211,7 @@ const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
     const key = msg.message?.protocolMessage?.key
     if (!key) return null
 
-    const _msg = getMessage(key)
+    const _msg = getMessage(key.id!)
     if (!_msg) return null
 
     const from = msg.key.participant || msg.key.remoteJid!
