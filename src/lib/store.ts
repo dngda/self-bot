@@ -14,6 +14,7 @@ export const storeMessage = (
   timestamp: number,
   message: proto.IMessage
 ) => {
+  if (key.participant) delete key.participant
   const keyStr = JSON.stringify(key)
   const messages = MessageStore.get(keyStr) || []
   messages.push({ key, timestamp, message })

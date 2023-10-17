@@ -212,14 +212,20 @@ const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
     if (!key) return null
 
     const _msg = getMessage(key)
-    const data = `Deleted message from @${key.remoteJid?.replace(
-      '@s.whatsapp.net',
-      ''
-    )}:`
+    if (!_msg) return null
+
+    const from = msg.key.participant || msg.key.remoteJid!
+    let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
+    if (msg.key.participant) {
+      const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
+      sumber = `from _${subject}_ by @${msg.key.participant!.replace('@s.whatsapp.net', '')}`
+    }
+
+    const msgdata = `Deleted msg ${sumber}:`
 
     await wa.sendMessage(process.env.OWNER_NUMBER!, {
-      text: data,
-      mentions: [key.remoteJid!],
+      text: msgdata,
+      mentions: [from],
     })
 
     await wa.sendMessage(process.env.OWNER_NUMBER!, {
