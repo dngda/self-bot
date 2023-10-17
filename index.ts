@@ -16,7 +16,7 @@ import chalk from 'chalk'
 
 import { PlaywrightBrowser } from './src/lib'
 export const browser = new PlaywrightBrowser()
-browser.initBrowser()
+// browser.initBrowser()
 
 dotenv.config()
 const logger = MAIN_LOGGER.child({})

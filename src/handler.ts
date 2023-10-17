@@ -5,6 +5,7 @@ import {
   proto,
 } from '@whiskeysockets/baileys'
 import { serializeMessage, MessageData, logCmd, getPrefix } from './utils'
+import { getMessage, storeMessage } from './lib/store'
 import initGeneralCmd from './cmd/general'
 import initBrowserCmd from './cmd/browser'
 import initStickerCmd from './cmd/sticker'
@@ -17,6 +18,7 @@ import { getNoteContent } from './lib'
 import { getCommand } from './menu'
 import * as math from 'mathjs'
 import chalk from 'chalk'
+import util from 'util'
 import fs from 'fs'
 
 interface BotConfig {
@@ -60,13 +62,16 @@ export const messageHandler = async (
 ) => {
   const { type, messages } = event
   if (type === 'append') return null
-  console.log(chalk.green('[LOG]'), 'Message received', messages)
+  console.log(
+    chalk.green('[LOG]'),
+    'Message received',
+    util.inspect(messages, false, null, true)
+  )
 
   for (const msg of messages) {
     if (isStatusMessage(msg)) return null
     if (isHistorySync(msg))
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
-    console.log(chalk.red('[LOG]'), 'Data type', msg.message)
     const data = await serializeMessage(waSocket, msg)
     try {
       if (msg.key.fromMe || isAllowedChat(data)) {
@@ -84,6 +89,9 @@ export const messageHandler = async (
       data.reply(`${error}`)
       data.reactError()
     }
+
+    storeMessageData(msg)
+    listenDeletedMessage(waSocket, msg)
   }
 }
 
@@ -183,9 +191,41 @@ const noPrefixHandler = async (
     await handleRepeatCommand(_wa, _msg, data)
   } else if (/^cekprefix$/.test(body as string)) {
     await data.reply(`Prefix: '${getPrefix()}'`)
-  }
-  else {
+  } else {
     await mathHandler(data)
     await handleStickerCommand(_wa, _msg, data)
   }
+}
+
+const storeMessageData = (msg: WAMessage) => {
+  const key = msg.key
+  if (!key) return null
+  if (msg.message?.protocolMessage?.type == 0) return null
+
+  storeMessage(key, msg.messageTimestamp!, msg.message!)
+  return true
+}
+
+const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
+  if (msg.message?.protocolMessage?.type == 0) {
+    const key = msg.message?.protocolMessage?.key
+    if (!key) return null
+
+    const _msg = getMessage(key)
+    const data = `Deleted message from @${key.remoteJid?.replace(
+      '@s.whatsapp.net',
+      ''
+    )}:`
+
+    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+      text: data,
+      mentions: [key.remoteJid!],
+    })
+
+    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+      forward: { key: key, message: _msg?.message },
+      contextInfo: { forwardingScore: 1, isForwarded: true },
+    })
+  }
+  return true
 }
