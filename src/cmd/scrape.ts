@@ -94,6 +94,7 @@ const tiktokPattern =
   /(?:https?):\/\/(?:www\.)?tiktok\.com\/@([^\W]+)(\.)?([^\W]+)\/video\/(\d+)/
 const tiktokShortPattern = /(?:https?):\/\/vt\.tiktok\.com\/(\w+)(\/?)/
 const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
+const xPattern = /(?:https?):\/\/x\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/[\w-]+/
 const instagramPattern = /(?:https?):\/\/www\.instagram\.com\/p\/[\w-]+/
 const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
@@ -130,7 +131,10 @@ export const videoHandler = async (
     instagramPattern.test(url)
   ) {
     await tiktokReels(url, data)
-  } else if (twitterPattern.test(url)) {
+  } else if (
+    twitterPattern.test(url) || 
+    xPattern.test(url)
+    ) {
     await twitter(url, data)
   } else if (
     youtubePattern.test(url) ||
