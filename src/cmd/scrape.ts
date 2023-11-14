@@ -169,8 +169,9 @@ async function tiktokReels(url: string, data: MessageData) {
 }
 
 async function twitter(url: string, data: MessageData) {
-  let urls: string[] = twitterPattern.exec(url) ?? []
+  let urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
   const result = await browser.scrapeSSyoutube(urls[0])
+  if (result.message) throw new Error(JSON.stringify(result))
   let resultUrls = result.url.sort((a: any, b: any) => {
     return Number(a.quality) - Number(b.quality)
   })
