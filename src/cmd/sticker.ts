@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { textToPicture, uploadImage, memegen } from '../lib'
@@ -95,7 +95,7 @@ export default function () {
 }
 
 const stickerHandler = async (
-  _wa: WASocket,
+  wa: WASocket,
   msg: WAMessage,
   data: MessageData
 ) => {
@@ -139,11 +139,12 @@ const stickerHandler = async (
   }
 
   if (isVideo || isQuotedVideo) {
-    await processVideo(msg, mediaData, data, packname, author, Stype)
+    await processVideo(wa, msg, mediaData, data, packname, author, Stype)
   }
 }
 
 const processVideo = async (
+  wa: WASocket,
   msg: WAMessage,
   mediaData: Buffer,
   data: MessageData,
@@ -167,20 +168,41 @@ const processVideo = async (
       quality: quality,
     }).toBuffer()
   }
+
   let resultBuffer = await doConvert()
   let isSendNotif = false
+  var msgKey: proto.IMessageKey | undefined
   while (resultBuffer.length > 1024 * 1024) {
     if (!isSendNotif) {
-      data.send(stringId.sticker.error.quality(defaultQuality))
+      const msgInfo = await wa.sendMessage(
+        data.from,
+        {
+          text: stringId.sticker.error.quality(defaultQuality),
+        },
+        {
+          ephemeralExpiration: data.expiration!,
+        }
+      )
+      msgKey = msgInfo?.key
       isSendNotif = true
     } else {
-      data.send(stringId.sticker.error.q(defaultQuality))
+      wa.relayMessage(data.from, {
+        protocolMessage: {
+          key: msgKey,
+          type: 14,
+          editedMessage: {
+            conversation: stringId.sticker.error.q(defaultQuality),
+          },
+        },
+      }, {})
     }
+
     if (defaultQuality <= 10) defaultQuality = 1
     else defaultQuality -= 10
     if (defaultQuality <= 0) throw new Error(stringId.sticker.error.fail)
     resultBuffer = await doConvert(defaultQuality)
   }
+
   data.reactSuccess()
   await data.replySticker(resultBuffer)
 }
