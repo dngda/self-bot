@@ -16,6 +16,11 @@
 <a href="https://github.com/dngda/self-bot/network/members"><img title="Forks" src="https://img.shields.io/github/forks/dngda/self-bot?color=red&style=flat-square"></a>
 <a href="https://github.com/dngda/self-bot/watchers"><img title="Watching" src="https://img.shields.io/github/watchers/dngda/self-bot?label=watchers&color=blue&style=flat-square"></a>
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
+
+
 ## Getting Started
 
 <a href="https://saweria.co/dngda" target="_blank"><img id="wse-buttons-preview" src=".github\saweria.png" height="25" style="border:0px;height:25px;" alt="Trakteer Saya"></a>
