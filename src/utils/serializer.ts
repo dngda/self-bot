@@ -82,17 +82,21 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   const getCmdProperties = (data: MessageData) => {
-    if (prefix.startsWith('[') && prefix.endsWith(']')) {
-      data.isCmd = data.body?.substring(0, 1).match(process.env.PREFIX!)
-        ? true
-        : false
-      data.cmd = data.isCmd ? data.body!.substring(1).split(' ')[0] : ''
-      data.prefix = data.isCmd ? data.body!.substring(0, 1) : ''
-    } else {
-      data.isCmd = data.body?.startsWith(prefix) ? true : false
-      data.cmd = data.isCmd ? data.body!.replace(prefix, '').split(' ')[0] : ''
-      data.prefix = data.isCmd ? prefix : ''
-    }
+    const isBracketed = prefix.startsWith('[') && prefix.endsWith(']')
+
+    data.isCmd = isBracketed
+      ? !!data.body?.substring(0, 1).match(process.env.PREFIX!)
+      : data.body?.startsWith(prefix) ?? false
+
+    data.cmd = data.isCmd
+      ? data.body!.substring(isBracketed ? 1 : prefix.length).split(' ')[0]
+      : ''
+    data.prefix = data.isCmd
+      ? isBracketed
+        ? data.body!.substring(0, 1)
+        : prefix
+      : ''
+
     data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() ?? ''
     data.args = data.arg.split(' ')
   }

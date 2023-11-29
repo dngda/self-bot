@@ -171,7 +171,7 @@ const processVideo = async (
 
   let resultBuffer = await doConvert()
   let isSendNotif = false
-  var msgKey: proto.IMessageKey | undefined
+  let msgKey: proto.IMessageKey | undefined
   while (resultBuffer.length > 1024 * 1024) {
     if (!isSendNotif) {
       const msgInfo = await wa.sendMessage(
