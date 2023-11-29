@@ -1,24 +1,32 @@
 <p align="center">
-<img src="https://user-images.githubusercontent.com/35982346/123402400-e57d3000-d5d1-11eb-84c0-6881b56ad370.png" height="128"/>
+  <img src="https://user-images.githubusercontent.com/35982346/123402400-e57d3000-d5d1-11eb-84c0-6881b56ad370.png" height="128"/>
 </p>
 <p align="center">
-<a href="https://github.com/dngda/self-bot"><img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge"></a>
-  <br>
-🤖 Typescript - Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
+  <a href="https://github.com/dngda/self-bot"><img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge"></a>
+    <br>
+  🤖 Typescript - Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
 </p>
 <h3 align="center">Made with ❤️</h3>
 <p align="center">
-<a href="https://github.com/dngda/"><img title="Author" src="https://img.shields.io/badge/author-dngda-blue?style=for-the-badge&logo=github"></a>
+  <a href="https://github.com/dngda/"><img title="Author" src="https://img.shields.io/badge/author-dngda-blue?style=for-the-badge&logo=github"></a>
 </p>
-<p align="center">
-<a href="https://github.com/dngda/followers"><img title="Followers" src="https://img.shields.io/github/followers/dngda?color=blue&style=flat-square"></a>
-<a href="https://github.com/dngda/self-bot/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/dngda/self-bot?color=red&style=flat-square"></a>
-<a href="https://github.com/dngda/self-bot/network/members"><img title="Forks" src="https://img.shields.io/github/forks/dngda/self-bot?color=red&style=flat-square"></a>
-<a href="https://github.com/dngda/self-bot/watchers"><img title="Watching" src="https://img.shields.io/github/watchers/dngda/self-bot?label=watchers&color=blue&style=flat-square"></a>
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
-[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=dngda_self-bot)
+<p align="center">
+  <a href="https://github.com/dngda/followers"><img title="Followers" src="https://img.shields.io/github/followers/dngda?color=blue&style=flat-square"></a>
+  <a href="https://github.com/dngda/self-bot/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/dngda/self-bot?color=red&style=flat-square"></a>
+  <a href="https://github.com/dngda/self-bot/network/members"><img title="Forks" src="https://img.shields.io/github/forks/dngda/self-bot?color=red&style=flat-square"></a>
+  <a href="https://github.com/dngda/self-bot/watchers"><img title="Watching" src="https://img.shields.io/github/watchers/dngda/self-bot?label=watchers&color=blue&style=flat-square"></a>
+    <br>
+  <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=alert_status" alt="Quality Gate Status">
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=code_smells" alt="Code Smells">
+  </a>
+  <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=security_rating" alt="Security Rating">
+  </a>
+</p>
 
 
 ## Getting Started
