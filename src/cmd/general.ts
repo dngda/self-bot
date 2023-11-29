@@ -9,6 +9,7 @@ export default function () {
   Object.assign(actions, {
     ping: pingHandler,
     menu: menuHandler,
+    tag: hideTagHandler,
   })
 
   stringId.ping = {
@@ -23,6 +24,13 @@ export default function () {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
     },
   }
+  stringId.tag = {
+    hint: '🏷️ _Mention semua member group_',
+    error: {
+      noArgs: '‼️ Tidak ada isi pesan yang diberikan!',
+      nonGroup: '‼️ Perintah ini hanya bisa digunakan di dalam grup!',
+    },
+  }
 
   menu.push(
     {
@@ -35,6 +43,12 @@ export default function () {
       command: 'menu',
       hint: stringId.menu.hint,
       alias: 'm, start, help, ?',
+      type: 'general',
+    },
+    {
+      command: 'tag',
+      hint: stringId.tag.hint,
+      alias: 'all',
       type: 'general',
     }
   )
@@ -94,4 +108,38 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
     menuMsg += `\nThanks for using this bot! 🙏`
   }
   data.send(menuMsg)
+}
+
+const hideTagHandler = async (
+  wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { arg, from, isGroup, expiration } = data
+  if (!isGroup) throw new Error(stringId.tag.error.nonGroup)
+  if (!arg) throw new Error(stringId.tag.error.noArgs)
+
+  await data.reactWait()
+  const groupMetadata = await wa.groupMetadata(from)
+  const participants = groupMetadata.participants
+  const mentions: string[] = []
+  for (const participant of participants) {
+    const contact = participant.id
+    if (contact) mentions.push(contact)
+  }
+
+  await wa.sendMessage(
+    from,
+    {
+      text: arg,
+      contextInfo: {
+        mentionedJid: mentions,
+      },
+    },
+    {
+      ephemeralExpiration: expiration!,
+    }
+  )
+
+  await data.reactSuccess()
 }
