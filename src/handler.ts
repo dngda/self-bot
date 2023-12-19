@@ -81,7 +81,11 @@ export const messageHandler = async (
 
         const cmd = getCommand(data.cmd) as string
         if (data.isCmd && cmd in actions) {
-          console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
+          console.log(
+            chalk.green('[LOG]'),
+            'Serialized cmd msg:',
+            util.inspect(data, false, null, true)
+          )
           logCmd(msg, data)
           await actions[cmd](waSocket, msg, data)
         }
@@ -220,7 +224,10 @@ const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
     let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
     if (msg.key.participant) {
       const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-      sumber = `from _${subject}_ by @${msg.key.participant!.replace('@s.whatsapp.net', '')}`
+      sumber = `from _${subject}_ by @${msg.key.participant!.replace(
+        '@s.whatsapp.net',
+        ''
+      )}`
     }
 
     const msgdata = `Deleted msg ${sumber}:`
