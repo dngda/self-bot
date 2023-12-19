@@ -38,3 +38,17 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
       })
   })
 }
+
+export const mp3toOpus = async (path: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(path)
+      .audioCodec('libopus')
+      .save('tmp/audio.opus')
+      .on('end', () => {
+        resolve('tmp/audio.opus')
+      })
+      .on('error', (err) => {
+        reject(err)
+      })
+  })
+}

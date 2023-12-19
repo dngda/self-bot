@@ -61,6 +61,7 @@ export interface MessageData {
   send: (text: string) => Promise<void>
   replySticker: (inputMedia: WAMediaUpload) => Promise<void>
   replyContent: (content: AnyMessageContent) => Promise<void>
+  replyVoiceNote: (path: string) => Promise<void>
 
   reactWait: () => Promise<void>
   reactSuccess: () => Promise<void>
@@ -225,6 +226,21 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
       quoted: msg,
       ephemeralExpiration: data.expiration!,
     })
+  }
+
+  data.replyVoiceNote = async (path: string) => {
+    waSocket.sendMessage(
+      data.from,
+      {
+        audio: { url: path },
+        mimetype: 'audio/ogg; codecs=opus',
+        ptt: true,
+      },
+      {
+        quoted: msg,
+        ephemeralExpiration: data.expiration!,
+      }
+    )
   }
 
   data.reactWait = async () => {

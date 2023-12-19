@@ -13,15 +13,19 @@ import { Readable } from 'stream'
 import { unlinkSync } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
+import fs from 'fs'
 import {
   createNote,
   deleteNote,
   getNotesNames,
   initNoteDatabase,
-  splitVideo,
+  saveTextToSpeech,
   updateNoteContent,
+  splitVideo,
   videoToMp3,
+  LANGUAGES,
   ocr,
+  mp3toOpus,
 } from '../lib'
 
 export default function () {
@@ -32,6 +36,7 @@ export default function () {
     tomp3: toMp3Handler,
     vsplit: videoSplitHandler,
     ocr: ocrHandler,
+    say: gttsHandler,
   })
 
   stringId.flip = {
@@ -82,6 +87,15 @@ export default function () {
       `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${data.prefix}ocr <language>`,
   }
 
+  stringId.say = {
+    hint: '🗣️ _Google text to speech_',
+    error: {
+      lang: '‼️ Bahasa tidak disupport.',
+    },
+    usage: (data: MessageData) =>
+      `🗣️ Kirim cmd dengan text ➡️ ${data.prefix}say <text>`,
+  }
+
   menu.push(
     {
       command: 'flip',
@@ -117,6 +131,12 @@ export default function () {
       command: 'ocr',
       hint: stringId.ocr.hint,
       alias: 'itt',
+      type: 'tools',
+    },
+    {
+      command: 'say',
+      hint: stringId.say.hint,
+      alias: 'tts',
       type: 'tools',
     }
   )
@@ -372,4 +392,27 @@ const ocrHandler = async (
     { quoted: msg, ephemeralExpiration: data.expiration! }
   )
   data.reactSuccess()
+}
+
+const gttsHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  data: MessageData
+) => {
+  const { args, arg, replyVoiceNote, reactWait, reactSuccess } = data
+  if (args.length == 0) return data.reply(stringId.say.usage(data))
+  const lang = 'id'
+
+  if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
+
+  await reactWait()
+  const path = `tmp/gtts.opus`
+  await saveTextToSpeech({ filepath: path, text: arg, lang })
+  const opus = await mp3toOpus(path)
+
+  await replyVoiceNote(opus)
+  await reactSuccess()
+
+  fs.unlinkSync(path)
+  fs.unlinkSync(opus)
 }
