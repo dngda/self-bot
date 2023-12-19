@@ -11,6 +11,7 @@ import initBrowserCmd from './cmd/browser'
 import initStickerCmd from './cmd/sticker'
 import initScrapeCmd from './cmd/scrape'
 import initConfigCmd from './cmd/config'
+import initRandomCmd from './cmd/random'
 import initIslamCmd from './cmd/islam'
 import initToolsCmd from './cmd/tools'
 import initOwnerCmd from './cmd/owner'
@@ -49,6 +50,7 @@ initScrapeCmd()
 initBrowserCmd()
 initToolsCmd()
 initIslamCmd()
+initRandomCmd()
 
 initConfigCmd()
 initOwnerCmd()

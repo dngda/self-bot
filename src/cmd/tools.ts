@@ -159,7 +159,7 @@ const oneViewHandler = async (
     data.quotedMsg?.viewOnceMessage ||
     data.quotedMsg?.viewOnceMessageV2Extension
   const isQuotedOneView = viewOnce != null
-  if (!isQuotedOneView) return stringId.onev.error.noOneView
+  if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView)
   data.reactWait()
   const { message } = viewOnce
   const { imageMessage, videoMessage } = message as proto.IMessage
