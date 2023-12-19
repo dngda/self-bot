@@ -7,7 +7,7 @@ import { menu } from '../menu'
 
 export default function () {
   Object.assign(actions, {
-    gimme: gimmeHandler,
+    meme: gimmeHandler,
   })
 
   stringId.gimme = {
@@ -15,12 +15,14 @@ export default function () {
     error: {
       internal: 'Terjadi error, coba lagi.',
     },
+    usage: (p: string) =>
+      `Custom subreddit setelah cmd, contoh: _${p}meme dankmemes_`,
   }
 
   menu.push({
-    command: 'gimme',
+    command: 'meme',
     hint: stringId.gimme.hint,
-    alias: 'meme',
+    alias: 'reddit, ri',
     type: 'random',
   })
 }
@@ -30,8 +32,20 @@ const gimmeHandler = async (
   _msg: WAMessage,
   data: MessageData
 ) => {
+  let param = ''
+  if (data.args[0]) {
+    param = data.args[0].toLowerCase()
+  }
+  if (data.cmd == 'ri' && data.arg == '') {
+    throw new Error(stringId.gimme.usage(data.prefix))
+  }
+
   await data.reactWait()
-  const result = await apiCall('https://meme-api.com/gimme')
+  const result = await apiCall(`https://meme-api.com/gimme/${param}`).catch(
+    (err) => {
+      throw new Error(err.response.data.message)
+    }
+  )
 
   if (result?.url) {
     await data.replyContent({
