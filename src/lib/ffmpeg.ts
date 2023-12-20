@@ -52,3 +52,17 @@ export const mp3toOpus = async (path: string): Promise<string> => {
       })
   })
 }
+
+export const mp3toMp3 = async (path: string): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    ffmpeg(path)
+      .audioBitrate(192)
+      .save('tmp/audio.mp3')
+      .on('end', () => {
+        resolve('tmp/audio.mp3')
+      })
+      .on('error', (err) => {
+        reject(err)
+      })
+  })
+}

@@ -10,7 +10,7 @@ import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { Readable } from 'stream'
-import { unlinkSync } from 'fs'
+import { unlink } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import {
@@ -23,8 +23,8 @@ import {
   splitVideo,
   videoToMp3,
   LANGUAGES,
-  ocr,
   mp3toOpus,
+  ocr,
 } from '../lib'
 
 export default function () {
@@ -364,7 +364,7 @@ const videoSplitHandler = async (
       { quoted: msg, ephemeralExpiration: data.expiration! }
     )
 
-    unlinkSync(`tmp/vs/${video[i]}`)
+    unlink(`tmp/vs/${video[i]}`, _ => _)
   }
   data.reactSuccess()
 }
@@ -400,18 +400,24 @@ const gttsHandler = async (
 ) => {
   const { args, arg, replyVoiceNote, reactWait, reactSuccess } = data
   if (args.length == 0) return data.reply(stringId.say.usage(data))
-  const lang = 'id'
+  
+  let lang = 'id'
+  let text = arg
+  if (data.cmd == "tts") {
+    lang = args[0]
+    text = args.slice(1).join(" ")
+  }
 
   if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
 
   await reactWait()
-  const path = `tmp/gtts.opus`
-  await saveTextToSpeech({ filepath: path, text: arg, lang })
+  const filepath = `tmp/gtts.mp3`
+  await saveTextToSpeech({ filepath, text, lang })
   const opus = await mp3toOpus(path)
 
   await replyVoiceNote(opus)
   await reactSuccess()
 
-  unlinkSync(path)
-  unlinkSync(opus)
+  unlink(filepath, _ => _)
+  unlink(opus, _ => _)
 }

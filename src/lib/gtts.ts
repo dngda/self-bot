@@ -13,7 +13,7 @@ const escapeStringRegexp = (str: string) => {
 
 const GOOGLE_TTS_URL = 'https://translate.google.com/translate_tts'
 const MAX_CHARS = 100
-export const LANGUAGES = {
+export const LANGUAGES: { [index: string]: string } = {
   af: 'Afrikaans',
   sq: 'Albanian',
   ar: 'Arabic',

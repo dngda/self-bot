@@ -233,7 +233,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
       data.from,
       {
         audio: { url: path },
-        mimetype: 'audio/ogg; codecs=opus',
+        mimetype: 'audio/mp3',
         ptt: true,
       },
       {
