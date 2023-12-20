@@ -411,7 +411,7 @@ const gttsHandler = async (
   if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
 
   await reactWait()
-  const filepath = `tmp/gtts.mp3`
+  const filepath = `tmp/gtts_${_msg.key.id!}.mp3`
   await saveTextToSpeech({ filepath, text, lang })
   const opus = await mp3toOpus(filepath)
 

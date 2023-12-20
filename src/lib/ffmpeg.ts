@@ -2,15 +2,19 @@ import ffmpeg from 'fluent-ffmpeg'
 import fs from 'fs'
 
 export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
+  let i = 1
+  while (fs.existsSync(`tmp/video${i}.mp4`)) {
+    i++
+  }
   return new Promise((resolve, reject) => {
-    fs.writeFileSync('tmp/video.mp4', buffer)
+    fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
     // ffmpeg -b:a 192k -vn
-    ffmpeg('tmp/video.mp4')
+    ffmpeg(`tmp/video${i}.mp4`)
       .audioBitrate(192)
       .noVideo()
-      .save('tmp/audio.mp3')
+      .save(`tmp/audio${i}.mp3`)
       .on('end', () => {
-        resolve('tmp/audio.mp3')
+        resolve(`tmp/audio${i}.mp3`)
       })
       .on('error', (err) => {
         reject(err)
@@ -19,9 +23,14 @@ export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
 }
 
 export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
+  let i = 1
+  while (fs.existsSync(`tmp/video${i}.mp4`)) {
+    i++
+  }
+  
   return new Promise((resolve, reject) => {
-    fs.writeFileSync('tmp/video.mp4', buffer)
-    ffmpeg('tmp/video.mp4')
+    fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
+    ffmpeg(`tmp/video${i}.mp4`)
       .outputOptions([
         '-c copy',
         '-map 0',
@@ -40,26 +49,17 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
 }
 
 export const mp3toOpus = async (path: string): Promise<string> => {
+  let i = 1
+  while (fs.existsSync(`tmp/audio${i}.opus`)) {
+    i++
+  }
+
   return new Promise((resolve, reject) => {
     ffmpeg(path)
       .audioCodec('libopus')
-      .save('tmp/audio.opus')
+      .save(`tmp/audio${i}.opus`)
       .on('end', () => {
-        resolve('tmp/audio.opus')
-      })
-      .on('error', (err) => {
-        reject(err)
-      })
-  })
-}
-
-export const mp3toMp3 = async (path: string): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    ffmpeg(path)
-      .audioBitrate(192)
-      .save('tmp/audio.mp3')
-      .on('end', () => {
-        resolve('tmp/audio.mp3')
+        resolve(`tmp/audio${i}.opus`)
       })
       .on('error', (err) => {
         reject(err)
