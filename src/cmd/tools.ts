@@ -13,7 +13,6 @@ import { Readable } from 'stream'
 import { unlinkSync } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
-import fs from 'fs'
 import {
   createNote,
   deleteNote,
@@ -413,6 +412,6 @@ const gttsHandler = async (
   await replyVoiceNote(opus)
   await reactSuccess()
 
-  fs.unlinkSync(path)
-  fs.unlinkSync(opus)
+  unlinkSync(path)
+  unlinkSync(opus)
 }

@@ -11,7 +11,7 @@ const escapeStringRegexp = (str: string) => {
   return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d')
 }
 
-const GOOGLE_TTS_URL = 'http://translate.google.com/translate_tts'
+const GOOGLE_TTS_URL = 'https://translate.google.com/translate_tts'
 const MAX_CHARS = 100
 export const LANGUAGES = {
   af: 'Afrikaans',
