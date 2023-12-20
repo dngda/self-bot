@@ -1,6 +1,5 @@
 import axios from 'axios'
 import fakeUA from 'fake-useragent'
-import async from 'async'
 import fs from 'fs'
 
 const escapeStringRegexp = (str: string) => {
@@ -129,36 +128,35 @@ type TTSOptions = {
 /**
  * Saves the text to speech output to a file using promises.
  * @param options Options for the saving process.
- * @returns Promise resolving to void on success or rejecting with error.
+ * @returns Promise resolving to true on success or rejecting with error.
  */
-export async function saveTextToSpeech(options: TTSOptions): Promise<void> {
+export async function saveTextToSpeech(options: TTSOptions): Promise<boolean> {
   const { filepath, text, lang } = options
   const textParts = tokenize(text)
   const totalParts = textParts.length
 
-  async.eachSeries(textParts, (part: any, callback: any) => {
-    const index = textParts.indexOf(part)
-    const args = getArgs(part, index, totalParts, lang)
-    const url = `${GOOGLE_TTS_URL}${args}`
+  for (let i = 0; i < totalParts; i++) {
+    const index = i;
+    const part = textParts[i];
+  
+    const args = getArgs(part, index, totalParts, lang);
+    const url = `${GOOGLE_TTS_URL}${args}`;
 
     const writeStream = fs.createWriteStream(filepath, {
       flags: index > 0 ? 'a' : 'w'
     });
 
-    axios
-      .get(url, {
-        headers: getHeader(),
-        responseType: 'stream',
-      })
-      .then((response) => {
-        response.data.pipe(writeStream)
-        response.data.on('end', () => {
-          writeStream.end()
-          callback(Promise.resolve())
-        })
-      })
-      .catch((err) => {
-        callback(Promise.reject(err))
-      })
-  })
+    const response = await axios.get(url, {
+      headers: getHeader(),
+      responseType: 'stream',
+    });
+
+    response.data.pipe(writeStream);
+    await new Promise((resolve, reject) => {
+      response.data.on('end', resolve);
+      response.data.on('error', reject);
+    });
+  }
+
+  return true;
 }
