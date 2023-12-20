@@ -11,7 +11,6 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { Readable } from 'stream'
 import { unlink } from 'fs'
-import { unlink } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import {
@@ -401,13 +400,6 @@ const gttsHandler = async (
 ) => {
   const { args, arg, replyVoiceNote, reactWait, reactSuccess } = data
   if (args.length == 0) return data.reply(stringId.say.usage(data))
-  
-  let lang = 'id'
-  let text = arg
-  if (data.cmd == "tts") {
-    lang = args[0]
-    text = args.slice(1).join(" ")
-  }
   
   let lang = 'id'
   let text = arg
