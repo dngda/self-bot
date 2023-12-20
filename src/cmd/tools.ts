@@ -11,6 +11,7 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { Readable } from 'stream'
 import { unlink } from 'fs'
+import { unlink } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import {
@@ -407,13 +408,20 @@ const gttsHandler = async (
     lang = args[0]
     text = args.slice(1).join(" ")
   }
+  
+  let lang = 'id'
+  let text = arg
+  if (data.cmd == "tts") {
+    lang = args[0]
+    text = args.slice(1).join(" ")
+  }
 
   if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
 
   await reactWait()
   const filepath = `tmp/gtts.mp3`
   await saveTextToSpeech({ filepath, text, lang })
-  const opus = await mp3toOpus(path)
+  const opus = await mp3toOpus(filepath)
 
   await replyVoiceNote(opus)
   await reactSuccess()
