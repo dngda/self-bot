@@ -1,5 +1,5 @@
 import axios from 'axios'
-import fakeUA from 'fake-useragent'
+import { getRandom } from 'random-useragent'
 import fs from 'fs'
 
 const escapeStringRegexp = (str: string) => {
@@ -112,7 +112,7 @@ const getArgs = (
 
 const getHeader = () => {
   return {
-    'User-Agent': fakeUA(),
+    'User-Agent': getRandom(),
   }
 }
 
