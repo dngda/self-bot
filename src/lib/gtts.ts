@@ -153,6 +153,7 @@ export async function saveTextToSpeech(options: TTSOptions): Promise<void> {
       .then((response) => {
         response.data.pipe(writeStream)
         response.data.on('end', () => {
+          writeStream.end()
           callback(Promise.resolve())
         })
       })
