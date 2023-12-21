@@ -23,7 +23,7 @@ import {
   splitVideo,
   videoToMp3,
   LANGUAGES,
-  mp3toOpus,
+  mp3ToOpus,
   ocr,
 } from '../lib'
 
@@ -413,7 +413,7 @@ const gttsHandler = async (
   await reactWait()
   const filepath = `tmp/gtts_${_msg.key.id!}.mp3`
   await saveTextToSpeech({ filepath, text, lang })
-  const opus = await mp3toOpus(filepath)
+  const opus = await mp3ToOpus(filepath)
 
   await replyVoiceNote(opus)
   await reactSuccess()

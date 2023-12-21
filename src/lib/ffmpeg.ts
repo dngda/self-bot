@@ -27,7 +27,7 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
   while (fs.existsSync(`tmp/video${i}.mp4`)) {
     i++
   }
-  
+
   return new Promise((resolve, reject) => {
     fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
     ffmpeg(`tmp/video${i}.mp4`)
@@ -48,7 +48,7 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
   })
 }
 
-export const mp3toOpus = async (path: string): Promise<string> => {
+export const mp3ToOpus = async (path: string): Promise<string> => {
   let i = 1
   while (fs.existsSync(`tmp/audio${i}.opus`)) {
     i++
@@ -60,6 +60,27 @@ export const mp3toOpus = async (path: string): Promise<string> => {
       .save(`tmp/audio${i}.opus`)
       .on('end', () => {
         resolve(`tmp/audio${i}.opus`)
+      })
+      .on('error', (err) => {
+        reject(err)
+      })
+  })
+}
+
+export const gifToMp4 = async (buffer: Buffer): Promise<string> => {
+  let i = 1
+  while (fs.existsSync(`tmp/sticker${i}.gif`)) {
+    i++
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.writeFileSync(`tmp/sticker${i}.gif`, buffer)
+    ffmpeg(`tmp/sticker${i}.gif`)
+      .outputOptions(['-movflags faststart', '-pix_fmt yuv420p'])
+      .save(`tmp/sticker${i}.mp4`)
+      .on('end', () => {
+        fs.unlink(`tmp/sticker${i}.gif`, _ => _)
+        resolve(`tmp/sticker${i}.mp4`)
       })
       .on('error', (err) => {
         reject(err)

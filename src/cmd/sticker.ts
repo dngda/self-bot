@@ -1,13 +1,14 @@
 import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
-import { textToPicture, uploadImage, memegen } from '../lib'
+import { textToPicture, uploadImage, memegen, gifToMp4 } from '../lib'
 import { MessageData } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
 import lodash from 'lodash'
 import sharp from 'sharp'
+import fs from 'fs'
 
 export default function () {
   Object.assign(actions, {
@@ -299,12 +300,12 @@ const downloadStickerHandler = async (
   data.reactWait()
   let sticker = await data.downloadQuoted()
 
-  if (data.quotedMsg?.stickerMessage?.firstFrameSidecar) {
-    await replyContent({
-      document: sticker,
-      mimetype: 'image/webp',
-      fileName: 'sticker.webp',
-    })
+  const isAnimated = sticker.toString('utf-8').includes('ANMF')
+  if (isAnimated) {
+    const gif = await sharp(sticker, {animated: true}).gif().toBuffer()
+    const mp4 = await gifToMp4(gif)
+    await replyContent({ video: { url: mp4 } })
+    fs.unlink(mp4, _ => _)
   } else {
     sticker = await sharp(sticker).png().toBuffer()
     await replyContent({ image: sticker })
