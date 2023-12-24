@@ -403,6 +403,7 @@ const gttsHandler = async (
   
   let lang = 'id'
   let text = arg
+  if (data.quotedMsg && data.quotedMsg.conversation) text = data.quotedMsg.conversation
   if (data.cmd == "tts") {
     lang = args[0]
     text = args.slice(1).join(" ")
