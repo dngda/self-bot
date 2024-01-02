@@ -64,16 +64,16 @@ export const messageHandler = async (
 ) => {
   const { type, messages } = event
   if (type === 'append') return null
-  console.log(
-    chalk.green('[LOG]'),
-    'Message received',
-    util.inspect(messages, false, null, true)
-  )
 
   for (const msg of messages) {
     if (isStatusMessage(msg)) return null
     if (isHistorySync(msg))
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+    console.log(
+      chalk.green('[LOG]'),
+      'Message received',
+      util.inspect(msg, false, null, true)
+    )
     const data = await serializeMessage(waSocket, msg)
     try {
       if (msg.key.fromMe || isAllowedChat(data)) {
@@ -107,7 +107,8 @@ const isStatusMessage = (msg: WAMessage) =>
   msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
   msg.key.remoteJid == 'status@broadcast'
 const isHistorySync = (msg: WAMessage) =>
-  msg.message?.protocolMessage?.type == 5
+  msg.message?.protocolMessage?.type ==
+  proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
 
 // --------------------------------------------------------- //
 const handleNoteCommand = async (data: MessageData) => {
@@ -206,14 +207,17 @@ const noPrefixHandler = async (
 const storeMessageData = (msg: WAMessage) => {
   const key = msg.key
   if (!key) return null
-  if (msg.message?.protocolMessage?.type == 0) return null
+  if (msg.message?.protocolMessage) return null
 
   storeMessage(key.id!, msg.messageTimestamp!, msg.message!)
   return true
 }
 
 const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
-  if (msg.message?.protocolMessage?.type == 0) {
+  if (
+    msg.message?.protocolMessage?.type ==
+    proto.Message.ProtocolMessage.Type.REVOKE
+  ) {
     const key = msg.message?.protocolMessage?.key
     if (!key) return null
 
