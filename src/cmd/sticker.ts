@@ -162,16 +162,16 @@ const processVideo = async (
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
 
   let quality = 80
-  const doConvert = (quality: number = quality) => {
+  const doConvert = (q: number) => {
     return new Sticker(mediaData, {
       pack: packname,
       author: author,
       type: Stype,
-      quality: quality,
+      quality: q,
     }).toBuffer()
   }
 
-  let resultBuffer = await doConvert()
+  let resultBuffer = await doConvert(quality)
   let isSendNotif = false
   let msgKey: proto.IMessageKey | undefined
   while (resultBuffer.length > 1024 * 1024) {
@@ -188,7 +188,7 @@ const processVideo = async (
       msgKey = msgInfo?.key
       isSendNotif = true
     } else {
-      const garbage = (quality == 30) ' at this point, sticker may look like a garbage' : ''
+      const garbage = (quality == 30) ? '. At this point, the sticker may look like garbage.' : ''
       wa.sendMessage(data.from, {
         edit: msgKey,
         text: stringId.sticker.error.q(quality) + garbage,
