@@ -33,6 +33,7 @@ export default function () {
 ⚙️ Gunakan: '-r' rounded corner, '-c' square cropped, '-nobg' hapus bg,
 ⚙️ Custom packname/author dengan args 'packname|author',
 ➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
+    success: (q: number) => `✅ Success with Quality: ${q}%`,
   }
 
   stringId.ttp = {
@@ -160,8 +161,8 @@ const processVideo = async (
   if (seconds >= videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
 
-  let defaultQuality = 80
-  const doConvert = (quality: number = defaultQuality) => {
+  let quality = 80
+  const doConvert = (quality: number = quality) => {
     return new Sticker(mediaData, {
       pack: packname,
       author: author,
@@ -178,7 +179,7 @@ const processVideo = async (
       const msgInfo = await wa.sendMessage(
         data.from,
         {
-          text: stringId.sticker.error.quality(defaultQuality),
+          text: stringId.sticker.error.quality(quality),
         },
         {
           ephemeralExpiration: data.expiration!,
@@ -187,23 +188,25 @@ const processVideo = async (
       msgKey = msgInfo?.key
       isSendNotif = true
     } else {
-      wa.relayMessage(data.from, {
-        protocolMessage: {
-          key: msgKey,
-          type: 14,
-          editedMessage: {
-            conversation: stringId.sticker.error.q(defaultQuality),
-          },
-        },
-      }, {})
+      const garbage = (quality == 30) ' at this point, sticker may look like a garbage' : ''
+      wa.sendMessage(data.from, {
+        edit: msgKey,
+        text: stringId.sticker.error.q(quality) + garbage,
+      })
     }
 
-    if (defaultQuality <= 10) defaultQuality = 1
-    else defaultQuality -= 10
-    if (defaultQuality <= 0) throw new Error(stringId.sticker.error.fail)
-    resultBuffer = await doConvert(defaultQuality)
+    if (quality == 5) throw new Error(stringId.sticker.error.fail)
+    if (quality == 10) quality = 5
+    else quality -= 10
+    resultBuffer = await doConvert(quality)
   }
 
+  if (isSendNotif) {
+    wa.sendMessage(data.from, {
+      edit: msgKey,
+      text: stringId.sticker.success(quality),
+    })
+  }
   data.reactSuccess()
   await data.replySticker(resultBuffer)
 }
