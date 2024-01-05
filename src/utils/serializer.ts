@@ -47,6 +47,7 @@ export interface MessageData {
   isQuotedImage: boolean | null
   isQuotedVideo: boolean | null
   isQuotedSticker: boolean | null
+  isQuotedDocument: boolean | null
   isQuoted: boolean | null
   isImage: boolean | null
   isVideo: boolean | null
@@ -150,6 +151,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   data.isQuotedImage = data.quotedMsg?.imageMessage != null
   data.isQuotedVideo = data.quotedMsg?.videoMessage != null
   data.isQuotedSticker = data.quotedMsg?.stickerMessage != null
+  data.isQuotedDocument = data.quotedMsg?.documentMessage != null
   data.isQuoted = data.quotedMsg != null
   data.isImage =
     msg.message?.imageMessage != null ||
@@ -162,7 +164,8 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     data.isVideo ||
     data.isQuotedImage ||
     data.isQuotedVideo ||
-    data.isQuotedSticker
+    data.isQuotedSticker ||
+    data.isQuotedDocument
   data.isEphemeral = msg.message?.ephemeralMessage != null
   data.expiration = data.contextInfo?.expiration
 
