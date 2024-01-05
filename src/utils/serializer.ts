@@ -148,7 +148,9 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   getCmdProperties(data)
   data.quotedMsg = getQuotedMsg(data.contextInfo)
   data.groupName = await getGroupName(data.isGroup, data.from)
-  data.isQuotedImage = data.quotedMsg?.imageMessage != null
+  data.isQuotedImage =
+    data.quotedMsg?.imageMessage != null ||
+    data.quotedMsg?.documentMessage?.mimetype?.includes('image')
   data.isQuotedVideo = data.quotedMsg?.videoMessage != null
   data.isQuotedSticker = data.quotedMsg?.stickerMessage != null
   data.isQuotedDocument = data.quotedMsg?.documentMessage != null
