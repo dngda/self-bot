@@ -6,6 +6,7 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
 import { browser } from '../..'
+import chalk from 'chalk'
 
 export default function () {
   Object.assign(actions, {
@@ -218,6 +219,7 @@ async function youtube(url: string, data: MessageData) {
       selectedQuality = result.url[0].quality
     }
   } catch (error: any) {
+    console.log(chalk.red("[ERR]"), error)
     await data.reactError()
     return data.reply(stringId.videodl.error.internalError)
   }
