@@ -6,7 +6,7 @@ import {
 } from '@whiskeysockets/baileys'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import ocrApi from 'ocr-space-api-wrapper'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { Readable } from 'stream'
@@ -57,8 +57,8 @@ export default function () {
     error: {
       noNote: '‼️ Catatan tidak ditemukan!',
     },
-    usage: (data: MessageData) =>
-      `📝 Simpan catatan dengan cara ➡️ ${data.prefix}addnote #nama <catatan>`,
+    usage: (ctx: MessageContext) =>
+      `📝 Simpan catatan dengan cara ➡️ ${ctx.prefix}addnote #nama <catatan>`,
   }
 
   stringId.tomp3 = {
@@ -73,8 +73,8 @@ export default function () {
     error: {
       duration: '‼️ Durasi video terlalu pendek!',
     },
-    usage: (data: MessageData) =>
-      `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${data.prefix}vsplit`,
+    usage: (ctx: MessageContext) =>
+      `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}vsplit`,
   }
 
   stringId.ocr = {
@@ -82,8 +82,8 @@ export default function () {
     error: {
       noImage: '‼️ Gambar tidak ditemukan!',
     },
-    usage: (data: MessageData) =>
-      `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${data.prefix}ocr <language>`,
+    usage: (ctx: MessageContext) =>
+      `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${ctx.prefix}ocr <language>`,
   }
 
   stringId.say = {
@@ -91,8 +91,8 @@ export default function () {
     error: {
       lang: '‼️ Bahasa tidak disupport.',
     },
-    usage: (data: MessageData) =>
-      `🗣️ Kirim cmd dengan text ➡️ ${data.prefix}say <text>`,
+    usage: (ctx: MessageContext) =>
+      `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}say <text>`,
   }
 
   menu.push(
@@ -146,40 +146,40 @@ export default function () {
 const flipHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { isQuotedImage, isImage, cmd, download, downloadQuoted } = data
+  const { isQuotedImage, isImage, cmd, download, downloadQuoted } = ctx
   if (!isImage && !isQuotedImage) throw new Error(stringId.flip.error.noImage)
-  data.reactWait()
+  ctx.reactWait()
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
   const image = await sharp(mediaData)
   if (cmd === 'flip')
     await waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { image: await image.flip().toBuffer() },
       { quoted: msg }
     )
   if (cmd === 'flop')
     await waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { image: await image.flop().toBuffer() },
       { quoted: msg }
     )
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
 const oneViewHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
   const viewOnce =
-    data.quotedMsg?.viewOnceMessageV2 ||
-    data.quotedMsg?.viewOnceMessage ||
-    data.quotedMsg?.viewOnceMessageV2Extension
+    ctx.quotedMsg?.viewOnceMessageV2 ||
+    ctx.quotedMsg?.viewOnceMessage ||
+    ctx.quotedMsg?.viewOnceMessageV2Extension
   const isQuotedOneView = viewOnce != null
   if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView)
-  data.reactWait()
+  ctx.reactWait()
   const { message } = viewOnce
   const { imageMessage, videoMessage } = message as proto.IMessage
   if (imageMessage) {
@@ -189,7 +189,7 @@ const oneViewHandler = async (
       {}
     )
     await waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { image: mediaData as Buffer },
       { quoted: msg }
     )
@@ -201,21 +201,21 @@ const oneViewHandler = async (
       {}
     )
     await waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { video: mediaData as Buffer },
       { quoted: msg }
     )
   }
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
 const noteHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = data
-  if (args.length === 0) return data.reply(stringId.note.usage(data))
+  const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = ctx
+  if (args.length === 0) return ctx.reply(stringId.note.usage(ctx))
   const noteName = args[0].toLowerCase().startsWith('#')
     ? args[0].toLowerCase()
     : `#${args[0].toLowerCase()}`
@@ -224,7 +224,7 @@ const noteHandler = async (
   switch (cmd) {
     case 'note':
     case 'notes':
-      return handleNoteCommand(id, data)
+      return handleNoteCommand(id, ctx)
     case 'addnote':
       return handleAddNoteCommand(
         id,
@@ -232,10 +232,10 @@ const noteHandler = async (
         args,
         isQuoted ?? false,
         quotedMsg,
-        data
+        ctx
       )
     case 'delnote':
-      return handleDeleteNoteCommand(id, noteName, data)
+      return handleDeleteNoteCommand(id, noteName, ctx)
     case 'editnote':
       return handleEditNoteCommand(
         id,
@@ -243,21 +243,21 @@ const noteHandler = async (
         args,
         isQuoted ?? false,
         quotedMsg,
-        data
+        ctx
       )
     default:
       return
   }
 }
 
-async function handleNoteCommand(id: string, data: MessageData) {
+async function handleNoteCommand(id: string, ctx: MessageContext) {
   const note = await getNotesNames(id)
-  if (note.length == 0) return data.reply(stringId.note.error.noNote)
+  if (note.length == 0) return ctx.reply(stringId.note.error.noNote)
   let noteList = '📝 Daftar catatanmu:\n'
   note.forEach((n) => {
     noteList += `- ${n}\n`
   })
-  data.reply(noteList.replace(/\n$/, ''))
+  ctx.reply(noteList.replace(/\n$/, ''))
 }
 
 async function handleAddNoteCommand(
@@ -266,27 +266,27 @@ async function handleAddNoteCommand(
   args: string[],
   isQuoted: boolean,
   quotedMsg: proto.IMessage | null | undefined,
-  data: MessageData
+  ctx: MessageContext
 ) {
   let note: string
   if (isQuoted) {
     note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
   } else {
-    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
   }
   await createNote(id, noteName, note)
-  data.reply('📝 Catatan berhasil disimpan!')
+  ctx.reply('📝 Catatan berhasil disimpan!')
 }
 
 async function handleDeleteNoteCommand(
   id: string,
   noteName: string,
-  data: MessageData
+  ctx: MessageContext
 ) {
   const res = await deleteNote(id, noteName)
-  if (!res) return data.reply(stringId.note.error.noNote)
-  data.reply('🗑️ Catatan berhasil dihapus!')
+  if (!res) return ctx.reply(stringId.note.error.noNote)
+  ctx.reply('🗑️ Catatan berhasil dihapus!')
 }
 
 async function handleEditNoteCommand(
@@ -295,53 +295,53 @@ async function handleEditNoteCommand(
   args: string[],
   isQuoted: boolean,
   quotedMsg: proto.IMessage | null | undefined,
-  data: MessageData
+  ctx: MessageContext
 ) {
   let note: string
   if (isQuoted) {
     note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
   } else {
-    if (args.length < 2) return data.reply(stringId.note.usage(data))
+    if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
   }
   const res = await updateNoteContent(id, noteName, note)
-  if (!res) return data.reply(stringId.note.error.noNote)
-  data.reply('✏️ Catatan berhasil diedit!')
+  if (!res) return ctx.reply(stringId.note.error.noNote)
+  ctx.reply('✏️ Catatan berhasil diedit!')
 }
 
 const toMp3Handler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
 ) => {
-  const { isQuotedVideo, isVideo, download, downloadQuoted } = data
+  const { isQuotedVideo, isVideo, download, downloadQuoted } = ctx
   if (!isVideo && !isQuotedVideo) throw new Error(stringId.tomp3.error.noVideo)
-  data.reactWait()
+  ctx.reactWait()
   const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
   const audio = await videoToMp3(mediaData)
-  await data.replyContent({
+  await ctx.replyContent({
     audio: { url: audio },
     mimetype: 'audio/mp3',
     ptt: true,
   })
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
 const videoSplitHandler = async (
-  waSocket: WASocket,
+  _wa: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { isQuotedVideo, isVideo, download, downloadQuoted } = data
-  if (!isVideo && !isQuotedVideo) throw new Error(stringId.vsplit.usage(data))
+  const { isQuotedVideo, isVideo, download, downloadQuoted } = ctx
+  if (!isVideo && !isQuotedVideo) throw new Error(stringId.vsplit.usage(ctx))
   let seconds =
     msg.message?.videoMessage?.seconds! ||
-    data.quotedMsg?.videoMessage?.seconds!
+    ctx.quotedMsg?.videoMessage?.seconds!
 
   if (seconds < 30 && seconds != 0)
     throw new Error(stringId.vsplit.error.duration)
 
-  data.reactWait()
+  ctx.reactWait()
   const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
 
   if (seconds == 0) {
@@ -353,31 +353,27 @@ const videoSplitHandler = async (
   const video = await splitVideo(mediaData)
   for (let i = 0; i < video.length; i++) {
     if (!video[i].endsWith('.mp4')) continue
-    await waSocket.sendMessage(
-      data.from,
-      {
-        video: { url: `tmp/vs/${video[i]}` },
-        caption: `0${i}`,
-        seconds: await getVideoDurationInSeconds(`tmp/vs/${video[i]}`),
-        mimetype: 'video/mp4',
-      },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
-    )
+    await ctx.replyContent({
+      video: { url: `tmp/vs/${video[i]}` },
+      caption: `0${i}`,
+      seconds: await getVideoDurationInSeconds(`tmp/vs/${video[i]}`),
+      mimetype: 'video/mp4',
+    })
 
     unlink(`tmp/vs/${video[i]}`, (_) => _)
   }
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
 const ocrHandler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
 ) => {
-  const { isQuotedImage, isImage, download, downloadQuoted, args } = data
+  const { isQuotedImage, isImage, download, downloadQuoted, args } = ctx
   if (!isImage && !isQuotedImage) throw new Error(stringId.ocr.error.noImage)
-  if (args.length === 0) return data.reply(stringId.ocr.usage(data))
-  data.reactWait()
+  if (args.length === 0) return ctx.reply(stringId.ocr.usage(ctx))
+  ctx.reactWait()
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
 
   let language = args[0] as ocrApi.OcrSpaceLanguages
@@ -385,27 +381,23 @@ const ocrHandler = async (
   console.log('🚀 ~ file: tools.ts:366 ~ res:', res)
   const text = res.ParsedResults[0].ParsedText
 
-  await waSocket.sendMessage(
-    data.from,
-    { text },
-    { quoted: msg, ephemeralExpiration: data.expiration! }
-  )
-  data.reactSuccess()
+  await ctx.reply(text)
+  ctx.reactSuccess()
 }
 
 const gttsHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { args, arg, replyVoiceNote, reactWait, reactSuccess } = data
-  if (args.length == 0) return data.reply(stringId.say.usage(data))
+  const { args, arg, replyVoiceNote, reactWait, reactSuccess } = ctx
+  if (args.length == 0) return ctx.reply(stringId.say.usage(ctx))
 
   let lang = 'id'
   let text = arg
-  if (data.quotedMsg && data.quotedMsg.conversation)
-    text = data.quotedMsg.conversation
-  if (data.cmd == 'tts') {
+  if (ctx.quotedMsg && ctx.quotedMsg.conversation)
+    text = ctx.quotedMsg.conversation
+  if (ctx.cmd == 'tts') {
     lang = args[0]
     text = args.slice(1).join(' ')
   }

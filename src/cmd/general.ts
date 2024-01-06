@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData, getPrefix } from '../utils'
+import { MessageContext, getPrefix } from '../utils'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
@@ -57,16 +57,16 @@ export default function () {
 const pingHandler = async (
   _wa: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
   const processTime = Date.now() - (msg.messageTimestamp as number) * 1000
-  await data.reply(`Pong _${processTime} ms!_`)
+  await ctx.reply(`Pong _${processTime} ms!_`)
 }
 
 const q3 = '```'
 
-const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
-  const m = (namaMenu: string) => `*${data.prefix}${namaMenu}*`
+const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
+  const m = (namaMenu: string) => `*${ctx.prefix}${namaMenu}*`
 
   let menuMsg = `${q3} ___              ___      _   
 / __| ___ _ _ ___| _ ) ___| |_ 
@@ -82,7 +82,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
     return menu.type
   })
   let setMenuTypes = lodash.uniq(menuTypes)
-  if (!data.fromMe)
+  if (!ctx.fromMe)
     setMenuTypes = setMenuTypes.filter((type) => !type.match(/owner|config/i))
   for (const type of setMenuTypes) {
     menuMsg += `\n╔══✪〘 ${type.replace(/^\w/, (c: string) =>
@@ -102,24 +102,24 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
   }
   menuMsg += `\nPerhitungan mathjs gunakan prefiks '='`
   menuMsg += `\n(cth: =10x1+2)\n`
-  if (!data.fromMe) {
+  if (!ctx.fromMe) {
     menuMsg += `\nCode: https://github.com/dngda/self-bot `
     menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
     menuMsg += `\nThanks for using this bot! 🙏`
   }
-  data.send(menuMsg)
+  ctx.send(menuMsg)
 }
 
 const hideTagHandler = async (
   wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { arg, from, isGroup, expiration } = data
+  const { arg, from, isGroup, expiration } = ctx
   if (!isGroup) throw new Error(stringId.tag.error.nonGroup)
   if (!arg) throw new Error(stringId.tag.error.noArgs)
 
-  await data.reactWait()
+  await ctx.reactWait()
   const groupMetadata = await wa.groupMetadata(from)
   const participants = groupMetadata.participants
   const mentions: string[] = []
@@ -141,5 +141,5 @@ const hideTagHandler = async (
     }
   )
 
-  await data.reactSuccess()
+  await ctx.reactSuccess()
 }

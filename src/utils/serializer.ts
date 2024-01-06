@@ -27,7 +27,7 @@ export const getPrefix = () => {
   return prefix
 }
 
-export interface MessageData {
+export interface MessageContext {
   body: snu
   isCmd: boolean
   cmd: string
@@ -83,28 +83,28 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     )
   }
 
-  const getCmdProperties = (data: MessageData) => {
+  const getCmdProperties = (ctx: MessageContext) => {
     const isBracketed = prefix.startsWith('[') && prefix.endsWith(']')
 
     if (isBracketed) {
-      const prefixMatch = data.body?.substring(0, 1).match(process.env.PREFIX!)
-      data.isCmd = prefixMatch !== null && prefixMatch !== undefined
+      const prefixMatch = ctx.body?.substring(0, 1).match(process.env.PREFIX!)
+      ctx.isCmd = prefixMatch !== null && prefixMatch !== undefined
     } else {
-      data.isCmd = data.body?.startsWith(prefix) ?? false
+      ctx.isCmd = ctx.body?.startsWith(prefix) ?? false
     }
 
-    if (data.isCmd) {
-      data.cmd = data
+    if (ctx.isCmd) {
+      ctx.cmd = ctx
         .body!.substring(isBracketed ? 1 : prefix.length)
         .split(' ')[0]
-      data.prefix = isBracketed ? data.body!.substring(0, 1) : prefix
+      ctx.prefix = isBracketed ? ctx.body!.substring(0, 1) : prefix
     } else {
-      data.cmd = ''
-      data.prefix = ''
+      ctx.cmd = ''
+      ctx.prefix = ''
     }
 
-    data.arg = data.body?.replace(data.prefix + data.cmd, '').trim() ?? ''
-    data.args = data.arg.split(' ')
+    ctx.arg = ctx.body?.replace(ctx.prefix + ctx.cmd, '').trim() ?? ''
+    ctx.args = ctx.arg.split(' ')
   }
 
   const getContextInfo = () => {
@@ -135,7 +135,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     return null
   }
 
-  const data: MessageData = {
+  const ctx: MessageContext = {
     body: getBody(),
     from: msg.key.remoteJid!,
     fromMe: msg.key.fromMe,
@@ -145,35 +145,35 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     isGroup: msg.key.remoteJid!.endsWith('@g.us'),
   } as any
 
-  getCmdProperties(data)
-  data.quotedMsg = getQuotedMsg(data.contextInfo)
-  data.groupName = await getGroupName(data.isGroup, data.from)
-  data.isQuotedImage =
-    data.quotedMsg?.imageMessage != null ||
-    data.quotedMsg?.documentMessage?.mimetype?.includes('image') != null
-  data.isQuotedVideo = data.quotedMsg?.videoMessage != null
-  data.isQuotedSticker = data.quotedMsg?.stickerMessage != null
-  data.isQuotedDocument = data.quotedMsg?.documentMessage != null
-  data.isQuoted = data.quotedMsg != null
-  data.isImage =
+  getCmdProperties(ctx)
+  ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
+  ctx.groupName = await getGroupName(ctx.isGroup, ctx.from)
+  ctx.isQuotedImage =
+    ctx.quotedMsg?.imageMessage != null ||
+    ctx.quotedMsg?.documentMessage?.mimetype?.includes('image') != null
+  ctx.isQuotedVideo = ctx.quotedMsg?.videoMessage != null
+  ctx.isQuotedSticker = ctx.quotedMsg?.stickerMessage != null
+  ctx.isQuotedDocument = ctx.quotedMsg?.documentMessage != null
+  ctx.isQuoted = ctx.quotedMsg != null
+  ctx.isImage =
     msg.message?.imageMessage != null ||
     msg.message?.ephemeralMessage?.message?.imageMessage != null
-  data.isVideo =
+  ctx.isVideo =
     msg.message?.videoMessage != null ||
     msg.message?.ephemeralMessage?.message?.videoMessage != null
-  data.isMedia =
-    data.isImage ||
-    data.isVideo ||
-    data.isQuotedImage ||
-    data.isQuotedVideo ||
-    data.isQuotedSticker ||
-    data.isQuotedDocument
-  data.isEphemeral = msg.message?.ephemeralMessage != null
-  data.expiration = data.contextInfo?.expiration
+  ctx.isMedia =
+    ctx.isImage ||
+    ctx.isVideo ||
+    ctx.isQuotedImage ||
+    ctx.isQuotedVideo ||
+    ctx.isQuotedSticker ||
+    ctx.isQuotedDocument
+  ctx.isEphemeral = msg.message?.ephemeralMessage != null
+  ctx.expiration = ctx.contextInfo?.expiration
 
-  data.download = async () => {
+  ctx.download = async () => {
     let msgData: WAMessage
-    if (data.isEphemeral) {
+    if (ctx.isEphemeral) {
       msgData = {
         key: msg.key,
         message: msg.message?.ephemeralMessage?.message,
@@ -184,16 +184,16 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     return (await downloadMediaMessage(msgData, 'buffer', {})) as Buffer
   }
 
-  data.downloadQuoted = async () => {
+  ctx.downloadQuoted = async () => {
     return (await downloadMediaMessage(
-      { key: msg.key, message: data.quotedMsg },
+      { key: msg.key, message: ctx.quotedMsg },
       'buffer',
       {}
     )) as Buffer
   }
 
-  data.downloadSticker = async () => {
-    const stickerMessage = data.contextInfo?.quotedMessage?.stickerMessage!
+  ctx.downloadSticker = async () => {
+    const stickerMessage = ctx.contextInfo?.quotedMessage?.stickerMessage!
     const stream = await downloadContentFromMessage(stickerMessage, 'sticker')
     let buffer = Buffer.from([])
     for await (const chunk of stream) {
@@ -202,40 +202,40 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     return buffer
   }
 
-  data.reply = async (text: string) => {
+  ctx.reply = async (text: string) => {
     waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { text: text },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
+      { quoted: msg, ephemeralExpiration: ctx.expiration! }
     )
   }
 
-  data.send = async (text: string) => {
+  ctx.send = async (text: string) => {
     waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { text: text },
-      { ephemeralExpiration: data.expiration! }
+      { ephemeralExpiration: ctx.expiration! }
     )
   }
 
-  data.replySticker = async (inputMedia: WAMediaUpload) => {
+  ctx.replySticker = async (inputMedia: WAMediaUpload) => {
     waSocket.sendMessage(
-      data.from,
+      ctx.from,
       { sticker: inputMedia },
-      { quoted: msg, ephemeralExpiration: data.expiration! }
+      { quoted: msg, ephemeralExpiration: ctx.expiration! }
     )
   }
 
-  data.replyContent = async (content: AnyMessageContent) => {
-    waSocket.sendMessage(data.from, content, {
+  ctx.replyContent = async (content: AnyMessageContent) => {
+    waSocket.sendMessage(ctx.from, content, {
       quoted: msg,
-      ephemeralExpiration: data.expiration!,
+      ephemeralExpiration: ctx.expiration!,
     })
   }
 
-  data.replyVoiceNote = async (path: string) => {
+  ctx.replyVoiceNote = async (path: string) => {
     waSocket.sendMessage(
-      data.from,
+      ctx.from,
       {
         audio: { url: path },
         mimetype: 'audio/ogg; codecs=opus',
@@ -243,30 +243,30 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
       },
       {
         quoted: msg,
-        ephemeralExpiration: data.expiration!,
+        ephemeralExpiration: ctx.expiration!,
       }
     )
   }
 
-  data.reactWait = async () => {
-    await waSocket.sendMessage(data.from, {
+  ctx.reactWait = async () => {
+    await waSocket.sendMessage(ctx.from, {
       react: { text: '⏳', key: msg.key },
     })
   }
 
-  data.reactSuccess = async () => {
-    await waSocket.sendMessage(data.from, {
+  ctx.reactSuccess = async () => {
+    await waSocket.sendMessage(ctx.from, {
       react: { text: '✅', key: msg.key },
     })
   }
 
-  data.reactError = async () => {
-    await waSocket.sendMessage(data.from, {
+  ctx.reactError = async () => {
+    await waSocket.sendMessage(ctx.from, {
       react: { text: '❌', key: msg.key },
     })
   }
 
-  data.config = config
+  ctx.config = config
 
-  return data
+  return ctx
 }

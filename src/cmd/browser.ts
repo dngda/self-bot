@@ -2,7 +2,7 @@ import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import { browser } from '../..'
 
 export default function () {
@@ -24,8 +24,8 @@ export default function () {
     error: {
       timeOut: '‼️ Gagal mendapatkan hasil pencarian!',
     },
-    usage: (data: MessageData) =>
-      `🔍 Cari dengan DuckDuckGo ➡️ ${data.prefix}${data.cmd} <query>`,
+    usage: (ctx: MessageContext) =>
+      `🔍 Cari dengan DuckDuckGo ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
   }
 
   stringId.gs = {
@@ -33,8 +33,8 @@ export default function () {
     error: {
       timeOut: '‼️ Gagal mendapatkan hasil pencarian!',
     },
-    usage: (data: MessageData) =>
-      `🔍 Cari dengan Google ➡️ ${data.prefix}${data.cmd} <query>`,
+    usage: (ctx: MessageContext) =>
+      `🔍 Cari dengan Google ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
   }
 
   menu.push(
@@ -62,9 +62,9 @@ export default function () {
 const crjogjaHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  data.reactWait()
+  ctx.reactWait()
   browser
     .takeScreenshot(
       'http://sipora.staklimyogyakarta.com/radar/',
@@ -73,32 +73,32 @@ const crjogjaHandler = async (
     )
     .then((r) => {
       if (!r) {
-        data.reactError()
-        return data.reply(stringId.crjogja.error.timeOut)
+        ctx.reactError()
+        return ctx.reply(stringId.crjogja.error.timeOut)
       }
 
       waSocket.sendMessage(
-        data.from,
+        ctx.from,
         { image: { url: 'tmp/radar.png' } },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
+        { quoted: msg, ephemeralExpiration: ctx.expiration! }
       )
-      return data.reactSuccess()
+      return ctx.reactSuccess()
     })
     .catch((e) => {
       console.log(e)
-      data.reactError()
-      return data.reply(stringId.crjogja.error.timeOut)
+      ctx.reactError()
+      return ctx.reply(stringId.crjogja.error.timeOut)
     })
 }
 
 const ddgSearchHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  if (data.args.length === 0) return data.reply(stringId.gs.usage(data))
-  data.reactWait()
-  const query = data.args.join(' ')
+  if (ctx.args.length === 0) return ctx.reply(stringId.gs.usage(ctx))
+  ctx.reactWait()
+  const query = ctx.args.join(' ')
   const url = `https://duckduckgo.com/?q=${encodeURIComponent(
     query
   )}&hps=1&start=1&ia=web`
@@ -106,32 +106,32 @@ const ddgSearchHandler = async (
     .takeScreenshot(url, 'tmp/ddg.png', { width: 750, height: 1200 })
     .then((r) => {
       if (!r) {
-        data.reactError()
-        return data.reply(stringId.gs.error.timeOut)
+        ctx.reactError()
+        return ctx.reply(stringId.gs.error.timeOut)
       }
 
       waSocket.sendMessage(
-        data.from,
+        ctx.from,
         { image: { url: 'tmp/ddg.png' } },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
+        { quoted: msg, ephemeralExpiration: ctx.expiration! }
       )
-      return data.reactSuccess()
+      return ctx.reactSuccess()
     })
     .catch((e) => {
       console.log(e)
-      data.reactError()
-      return data.reply(stringId.gs.error.timeOut)
+      ctx.reactError()
+      return ctx.reply(stringId.gs.error.timeOut)
     })
 }
 
 const googleSearchHandler = async (
   waSocket: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  if (data.args.length === 0) return data.reply(stringId.ddg.usage(data))
-  data.reactWait()
-  const query = data.args.join(' ')
+  if (ctx.args.length === 0) return ctx.reply(stringId.ddg.usage(ctx))
+  ctx.reactWait()
+  const query = ctx.args.join(' ')
   const url = `https://www.google.com/search?client=firefox-b-d&q=${encodeURIComponent(
     query
   )}`
@@ -139,20 +139,20 @@ const googleSearchHandler = async (
     .takeScreenshot(url, 'tmp/google.png', { width: 1300, height: 1700 })
     .then((r) => {
       if (!r) {
-        data.reactError()
-        return data.reply(stringId.ddg.error.timeOut)
+        ctx.reactError()
+        return ctx.reply(stringId.ddg.error.timeOut)
       }
 
       waSocket.sendMessage(
-        data.from,
+        ctx.from,
         { image: { url: 'tmp/google.png' } },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
+        { quoted: msg, ephemeralExpiration: ctx.expiration! }
       )
-      return data.reactSuccess()
+      return ctx.reactSuccess()
     })
     .catch((e) => {
       console.log(e)
-      data.reactError()
-      return data.reply(stringId.ddg.error.timeOut)
+      ctx.reactError()
+      return ctx.reply(stringId.ddg.error.timeOut)
     })
 }

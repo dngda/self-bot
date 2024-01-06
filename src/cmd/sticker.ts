@@ -2,7 +2,7 @@ import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import { textToPicture, uploadImage, memegen, gifToMp4 } from '../lib'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
@@ -28,11 +28,11 @@ export default function () {
       q: (q: number) => `⏳ Q: ${q}% still not yet...`,
       fail: `‼️ Gagal mengubah video ke sticker, coba kurangi durasi.`,
     },
-    usage: (data: MessageData) =>
-      `Kirim gambar/video atau balas gambar/video dengan caption ${data.prefix}${data.cmd}
+    usage: (ctx: MessageContext) =>
+      `Kirim gambar/video atau balas gambar/video dengan caption ${ctx.prefix}${ctx.cmd}
 ⚙️ Gunakan: '-r' rounded corner, '-c' square cropped, '-nobg' hapus bg,
 ⚙️ Custom packname/author dengan args 'packname|author',
-➡️ Contoh: ${data.prefix}${data.cmd} -r -nobg created with|serobot✨`,
+➡️ Contoh: ${ctx.prefix}${ctx.cmd} -r -nobg created with|serobot✨`,
     success: (q: number) => `✅ Success with Quality: ${q}%`,
   }
 
@@ -42,11 +42,11 @@ export default function () {
       textLimit: (s: number) =>
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
     },
-    usage: (data: MessageData) =>
-      `Tambahkan teks atau balas teks dengan ${data.prefix}${data.cmd} <teks>\n` +
-      `➡️ Contoh: ${data.prefix}ttp Serobot\n` +
+    usage: (ctx: MessageContext) =>
+      `Tambahkan teks atau balas teks dengan ${ctx.prefix}${ctx.cmd} <teks>\n` +
+      `➡️ Contoh: ${ctx.prefix}ttp Serobot\n` +
       `Custom color dengan args 'color1|color2|strokecolor'\n` +
-      `➡️ Contoh: ${data.prefix}ttpc red|blue|white Serobot`,
+      `➡️ Contoh: ${ctx.prefix}ttpc red|blue|white Serobot`,
   }
 
   stringId.memefy = {
@@ -55,8 +55,8 @@ export default function () {
       textLimit: (s: number) =>
         `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
     },
-    usage: (data: MessageData) =>
-      `Tambahkan teks atau balas gambar/sticker dengan ${data.prefix}${data.cmd} <atas|bawah>\n⚙️ Gunakan: '-c' square cropped`,
+    usage: (ctx: MessageContext) =>
+      `Tambahkan teks atau balas gambar/sticker dengan ${ctx.prefix}${ctx.cmd} <atas|bawah>\n⚙️ Gunakan: '-c' square cropped`,
   }
 
   stringId.dls = {
@@ -64,8 +64,8 @@ export default function () {
     error: {
       notSticker: `‼️ Ini bukan sticker`,
     },
-    usage: (data: MessageData) =>
-      `Balas sticker dengan ${data.prefix}${data.cmd}`,
+    usage: (ctx: MessageContext) =>
+      `Balas sticker dengan ${ctx.prefix}${ctx.cmd}`,
   }
 
   menu.push(
@@ -99,7 +99,7 @@ export default function () {
 const stickerHandler = async (
   wa: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
   const {
     arg,
@@ -110,10 +110,10 @@ const stickerHandler = async (
     isQuotedImage,
     isQuotedVideo,
     replySticker,
-  } = data
-  if (!isMedia) throw new Error(stringId.sticker.usage(data))
-  data.reactWait()
-  let mediaData = isQuoted ? await data.downloadQuoted() : await data.download()
+  } = ctx
+  if (!isMedia) throw new Error(stringId.sticker.usage(ctx))
+  ctx.reactWait()
+  let mediaData = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
   let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
   Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
   if (arg.includes('-nobg')) {
@@ -136,12 +136,12 @@ const stickerHandler = async (
       type: Stype,
       quality: 100,
     })
-    data.reactSuccess()
+    ctx.reactSuccess()
     await replySticker(await sticker.toBuffer())
   }
 
   if (isVideo || isQuotedVideo) {
-    await processVideo(wa, msg, mediaData, data, packname, author, Stype)
+    await processVideo(wa, msg, mediaData, ctx, packname, author, Stype)
   }
 }
 
@@ -149,14 +149,14 @@ const processVideo = async (
   wa: WASocket,
   msg: WAMessage,
   mediaData: Buffer,
-  data: MessageData,
+  ctx: MessageContext,
   packname: string,
   author: string,
   Stype: StickerTypes
 ) => {
   const seconds =
     msg.message?.videoMessage?.seconds! ||
-    data.quotedMsg?.videoMessage?.seconds!
+    ctx.quotedMsg?.videoMessage?.seconds!
   const videoLimit = 10
   if (seconds >= videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
@@ -177,19 +177,19 @@ const processVideo = async (
   while (resultBuffer.length > 1024 * 1024) {
     if (!isSendNotif) {
       const msgInfo = await wa.sendMessage(
-        data.from,
+        ctx.from,
         {
           text: stringId.sticker.error.quality(quality),
         },
         {
-          ephemeralExpiration: data.expiration!,
+          ephemeralExpiration: ctx.expiration!,
         }
       )
       msgKey = msgInfo?.key
       isSendNotif = true
     } else {
       const garbage = (quality == 30) ? '. At this point, the sticker may look like garbage.' : ''
-      wa.sendMessage(data.from, {
+      wa.sendMessage(ctx.from, {
         edit: msgKey,
         text: stringId.sticker.error.q(quality) + garbage,
       })
@@ -202,27 +202,27 @@ const processVideo = async (
   }
 
   if (isSendNotif) {
-    wa.sendMessage(data.from, {
+    wa.sendMessage(ctx.from, {
       edit: msgKey,
       text: stringId.sticker.success(quality),
     })
   }
-  data.reactSuccess()
-  await data.replySticker(resultBuffer)
+  ctx.reactSuccess()
+  await ctx.replySticker(resultBuffer)
 }
 
 const ttpHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { arg, args, cmd, isQuoted, isMedia, replySticker } = data
-  if ((!arg && !isQuoted) || isMedia) throw new Error(stringId.ttp.usage(data))
-  data.reactWait()
+  const { arg, args, cmd, isQuoted, isMedia, replySticker } = ctx
+  if ((!arg && !isQuoted) || isMedia) throw new Error(stringId.ttp.usage(ctx))
+  ctx.reactWait()
   const text =
     arg ||
-    data.quotedMsg?.conversation! ||
-    data.quotedMsg?.extendedTextMessage?.text!
+    ctx.quotedMsg?.conversation! ||
+    ctx.quotedMsg?.extendedTextMessage?.text!
   const textLimit = 100
   if (text.length > textLimit)
     throw new Error(stringId.ttp.error.textLimit(textLimit))
@@ -242,28 +242,28 @@ const ttpHandler = async (
     type: StickerTypes.FULL,
     quality: 100,
   }).toFile('tmp/sticker-ttp.webp')
-  data.reactSuccess()
+  ctx.reactSuccess()
   await replySticker({ url: sticker })
 }
 
 const memefyHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { arg, cmd, isQuoted, isQuotedSticker, isMedia, replySticker } = data
+  const { arg, cmd, isQuoted, isQuotedSticker, isMedia, replySticker } = ctx
   let _arg = arg
   if (!_arg && !isQuoted && !isQuotedSticker && !isMedia)
-    throw new Error(stringId.memefy.usage(data))
-  data.reactWait()
+    throw new Error(stringId.memefy.usage(ctx))
+  ctx.reactWait()
 
   const textLimit = 30
   if (_arg.length > textLimit)
     throw new Error(stringId.memefy.error.textLimit(textLimit))
 
   let image: Buffer
-  if (isQuotedSticker) image = await data.downloadSticker()
-  else image = isQuoted ? await data.downloadQuoted() : await data.download()
+  if (isQuotedSticker) image = await ctx.downloadSticker()
+  else image = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
 
   let simage = await sharp(image).png()
   if (_arg.includes('-c')) simage.resize(512, 512)
@@ -277,8 +277,8 @@ const memefyHandler = async (
   let memeBuffer = await memegen(top, bottom, uploadedImageUrl)
 
   if (cmd === 'memefy') {
-    data.reactSuccess()
-    await data.replyContent({ image: memeBuffer })
+    ctx.reactSuccess()
+    await ctx.replyContent({ image: memeBuffer })
   }
 
   if (cmd === 'sm') {
@@ -288,7 +288,7 @@ const memefyHandler = async (
       type: StickerTypes.FULL,
       quality: 100,
     }).toBuffer()
-    data.reactSuccess()
+    ctx.reactSuccess()
     await replySticker(sticker)
   }
 }
@@ -296,12 +296,12 @@ const memefyHandler = async (
 const downloadStickerHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { isQuotedSticker, replyContent } = data
-  if (!isQuotedSticker) throw new Error(stringId.dls.usage(data))
-  data.reactWait()
-  let sticker = await data.downloadQuoted()
+  const { isQuotedSticker, replyContent } = ctx
+  if (!isQuotedSticker) throw new Error(stringId.dls.usage(ctx))
+  ctx.reactWait()
+  let sticker = await ctx.downloadQuoted()
 
   const isAnimated = sticker.toString('utf-8').includes('ANMF')
   if (isAnimated) {
@@ -313,5 +313,5 @@ const downloadStickerHandler = async (
     sticker = await sharp(sticker).png().toBuffer()
     await replyContent({ image: sticker })
   }
-  data.reactSuccess()
+  ctx.reactSuccess()
 }

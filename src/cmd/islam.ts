@@ -1,6 +1,6 @@
 import stringId from '../language'
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
 import { menu } from '../menu'
@@ -18,14 +18,14 @@ export default function () {
     error: {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
       notFound: (
-        data: MessageData
-      ) => `‼️ Daerah "${data.args[0]}" tidak ditemukan!
-      cek daerah dengan cara ➡️ ${data.prefix}jsh daerah`,
+        ctx: MessageContext
+      ) => `‼️ Daerah "${ctx.args[0]}" tidak ditemukan!
+      cek daerah dengan cara ➡️ ${ctx.prefix}jsh daerah`,
     },
-    usage: (data: MessageData) =>
-      `🕌 Jadwal sholat dengan cara ➡️ ${data.prefix}${data.cmd} <daerah>
+    usage: (ctx: MessageContext) =>
+      `🕌 Jadwal sholat dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <daerah>
 ⚠️ Daerah harus berupa nama kota atau kabupaten
-⚠️ Contoh: ${data.prefix}${data.cmd} sleman`,
+⚠️ Contoh: ${ctx.prefix}${ctx.cmd} sleman`,
   }
 
   stringId.surah = {
@@ -33,17 +33,17 @@ export default function () {
     error: {
       noArgs: '‼️ Tidak ada argumen yang diberikan!',
       notFound: (
-        data: MessageData
-      ) => `‼️ Surah '${data.args[0]}' tidak ditemukan atau ayat ${data.args[1]} tidak ada!
-Cek daftar surah dengan cara ➡️ ${data.prefix}surah daftar`,
-      invalidAyat: (data: MessageData) =>
-        `‼️ Ayat '${data.args[1]}' tidak valid!`,
+        ctx: MessageContext
+      ) => `‼️ Surah '${ctx.args[0]}' tidak ditemukan atau ayat ${ctx.args[1]} tidak ada!
+Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
+      invalidAyat: (ctx: MessageContext) =>
+        `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
       tooManyAyat: '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
     },
-    usage: (data: MessageData) =>
-      `📖 Baca surah Al-Qur'an dengan cara ➡️ ${data.prefix}${data.cmd} <nama surah> <ayat/ayat from-to>
+    usage: (ctx: MessageContext) =>
+      `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
 ⚠️ Nama surah harus berupa nama surah atau nomor surah
-⚠️ Contoh: ${data.prefix}${data.cmd} al-fatihah 1 atau ${data.prefix}${data.cmd} 1 1-5`,
+⚠️ Contoh: ${ctx.prefix}${ctx.cmd} al-fatihah 1 atau ${ctx.prefix}${ctx.cmd} 1 1-5`,
   }
 
   menu.push(
@@ -68,12 +68,11 @@ const get = axios.get
 const jadwalSholatHandler = async (
   _: WASocket,
   msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const args = data.args
-  if (!data.arg || data.arg == '')
-    return data.reply(stringId.jsholat.usage(data))
-  data.reactWait()
+  const args = ctx.args
+  if (!ctx.arg || ctx.arg == '') return ctx.reply(stringId.jsholat.usage(ctx))
+  ctx.reactWait()
   if (args[0] == 'daerah') {
     let { data: semuaKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/semua'
@@ -84,7 +83,7 @@ const jadwalSholatHandler = async (
       hasil += `${kota.lokasi}\n`
     }
     hasil += '╚═〘 *SeroBot* 〙'
-    await data.reply(hasil)
+    await ctx.reply(hasil)
   } else {
     let { data: cariKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/cari/' + args
@@ -93,7 +92,7 @@ const jadwalSholatHandler = async (
     try {
       kodek = cariKota.data[0].id
     } catch (err) {
-      return data.reply(stringId.jsholat.error.notFound(data))
+      return ctx.reply(stringId.jsholat.error.notFound(ctx))
     }
     const tgl = moment((msg.messageTimestamp as number) * 1000).format(
       'YYYY/MM/DD'
@@ -101,8 +100,7 @@ const jadwalSholatHandler = async (
     let { data: jadwalData } = await get(
       `https://api.myquran.com/v1/sholat/jadwal/${kodek}/${tgl}`
     )
-    if (jadwalData.status === 'false')
-      return data.reply('Internal server error')
+    if (jadwalData.status === 'false') return ctx.reply('Internal server error')
     const jadwal = jadwalData.data.jadwal
     let jadwalMsg = `╔══✪〘 Jadwal Sholat di ${jadwalData.data.lokasi} 〙✪\n`
     jadwalMsg += `╠> ${jadwal.tanggal}\n`
@@ -113,28 +111,28 @@ const jadwalSholatHandler = async (
     jadwalMsg += `╠> ${q3}Maghrib  : ${jadwal.maghrib}${q3}\n`
     jadwalMsg += `╠> ${q3}Isya'    : ${jadwal.isya}${q3}\n`
     jadwalMsg += '╚═〘 *SeroBot* 〙'
-    data.reply(jadwalMsg)
+    ctx.reply(jadwalMsg)
   }
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
 const SurahDatas = JSON.parse(fs.readFileSync('./src/raw/surah.json', 'utf-8'))
 
 const surahHandler = async (
-  waSocket: WASocket,
-  msg: WAMessage,
-  data: MessageData
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
 ) => {
-  const { args, cmd, from } = data
+  const { args, cmd } = ctx
 
-  if (!data.arg || data.arg == '') {
-    return data.reply(stringId.surah.usage(data))
+  if (!ctx.arg || ctx.arg == '') {
+    return ctx.reply(stringId.surah.usage(ctx))
   }
 
-  data.reactWait()
+  ctx.reactWait()
 
   if (args[0] == 'daftar') {
-    return await handleDaftar(data)
+    return await handleDaftar(ctx)
   }
 
   let surahNumber = isNaN(Number(args[0]))
@@ -142,30 +140,30 @@ const surahHandler = async (
     : Number(args[0])
 
   if (!surahNumber) {
-    return data.reply(stringId.surah.error.notFound(data))
+    return ctx.reply(stringId.surah.error.notFound(ctx))
   }
 
   const processAyat = args[1].includes('-')
     ? processMultipleAyat
     : processSingleAyat
 
-  await processAyat(data, surahNumber, cmd, from, msg, waSocket)
+  await processAyat(ctx, surahNumber, cmd)
 
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
-const handleDaftar = async (data: MessageData) => {
+const handleDaftar = async (ctx: MessageContext) => {
   let list = '╔══✪〘 Daftar Surah 〙✪\n'
-  SurahDatas.data.forEach((surah: any) => {
+  SurahDatas.ctx.forEach((surah: any) => {
     list += `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}\n`
   })
   list += '╚═〘 *SeroBot* 〙'
-  data.reactSuccess()
-  return await data.reply(list)
+  ctx.reactSuccess()
+  return await ctx.reply(list)
 }
 
 const getSurahNumberByName = (name: string) => {
-  let sdatas = SurahDatas.data
+  let sdatas = SurahDatas.ctx
   let index = sdatas.findIndex((surah: any) => {
     return (
       surah.name.transliteration.id
@@ -178,75 +176,50 @@ const getSurahNumberByName = (name: string) => {
 }
 
 const processMultipleAyat = async (
-  data: MessageData,
+  ctx: MessageContext,
   surahNumber: number,
-  cmd: string,
-  from: string,
-  msg: WAMessage,
-  waSocket: WASocket
+  cmd: string
 ) => {
-  let ayatNumbers = data.args[1].split('-')
+  let ayatNumbers = ctx.args[1].split('-')
 
   if (ayatNumbers.length > 2) {
-    return data.reply(stringId.surah.error.invalidAyat(data))
+    return ctx.reply(stringId.surah.error.invalidAyat(ctx))
   }
 
   let ayatFrom = Number(ayatNumbers[0])
   let ayatTo = Number(ayatNumbers[1])
 
   if (isNaN(ayatFrom) || isNaN(ayatTo)) {
-    return data.reply(stringId.surah.error.invalidAyat(data))
+    return ctx.reply(stringId.surah.error.invalidAyat(ctx))
   }
 
   if (ayatFrom > ayatTo) {
-    return data.reply(stringId.surah.error.invalidAyat(data))
+    return ctx.reply(stringId.surah.error.invalidAyat(ctx))
   }
 
   if (ayatTo - ayatFrom > 10) {
-    return data.reply(stringId.surah.error.tooManyAyat(data))
+    return ctx.reply(stringId.surah.error.tooManyAyat(ctx))
   }
 
   for (let i = ayatFrom; i <= ayatTo; i++) {
-    await getAyatSurahDataAndSend(
-      data,
-      surahNumber,
-      i,
-      cmd,
-      from,
-      msg,
-      waSocket
-    )
+    await getAyatSurahDataAndSend(ctx, surahNumber, i, cmd)
   }
 }
 
 const processSingleAyat = async (
-  data: MessageData,
+  ctx: MessageContext,
   surahNumber: number,
-  cmd: string,
-  from: string,
-  msg: WAMessage,
-  waSocket: WASocket
+  cmd: string
 ) => {
-  let ayatNumber = isNaN(Number(data.args[1])) ? 1 : Number(data.args[1])
-  await getAyatSurahDataAndSend(
-    data,
-    surahNumber,
-    ayatNumber,
-    cmd,
-    from,
-    msg,
-    waSocket
-  )
+  let ayatNumber = isNaN(Number(ctx.args[1])) ? 1 : Number(ctx.args[1])
+  await getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
 }
 
 const getAyatSurahDataAndSend = async (
-  data: MessageData,
+  ctx: MessageContext,
   surahNumber: number,
   ayatNumber: number,
-  cmd: string,
-  from: string,
-  msg: WAMessage,
-  waSocket: WASocket
+  cmd: string
 ) => {
   try {
     const result = await get(
@@ -255,7 +228,7 @@ const getAyatSurahDataAndSend = async (
     const sdata = result.data.data
 
     if (cmd === 'recite') {
-      await data.replyContent({
+      await ctx.replyContent({
         audio: { url: sdata.audio.primary },
         mimetype: 'audio/mp3',
         ptt: true,
@@ -263,11 +236,11 @@ const getAyatSurahDataAndSend = async (
     }
 
     const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
-    await data.send(message)
+    await ctx.send(message)
 
     return true
   } catch (err: any) {
-    data.reactError()
-    return data.reply(err.response.data.message)
+    ctx.reactError()
+    return ctx.reply(err.response.data.message)
   }
 }

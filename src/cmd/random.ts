@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import { apiCall } from '../lib/apicall'
 import stringId from '../language'
 import { actions } from '../handler'
@@ -30,29 +30,29 @@ export default function () {
 const gimmeHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
   let param = ''
-  if (data.args[0]) {
-    param = data.args[0].toLowerCase()
+  if (ctx.args[0]) {
+    param = ctx.args[0].toLowerCase()
   }
-  if (data.cmd == 'ri' && data.arg == '') {
-    throw new Error(stringId.gimme.usage(data.prefix))
+  if (ctx.cmd == 'ri' && ctx.arg == '') {
+    throw new Error(stringId.gimme.usage(ctx.prefix))
   }
 
-  await data.reactWait()
+  await ctx.reactWait()
   const result = await apiCall(`https://meme-api.com/gimme/${param}`).catch(
     (err) => {
-      throw new Error(err.response.data.message)
+      throw new Error(err.response.ctx.message)
     }
   )
 
   if (result?.url) {
-    await data.replyContent({
+    await ctx.replyContent({
       image: { url: result.url },
       caption: result.title,
     })
-    return data.reactSuccess()
+    return ctx.reactSuccess()
   } else {
     throw new Error(stringId.gimme.error.internal)
   }

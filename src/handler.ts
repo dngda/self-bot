@@ -4,7 +4,7 @@ import {
   MessageUpsertType,
   proto,
 } from '@whiskeysockets/baileys'
-import { serializeMessage, MessageData, logCmd, getPrefix } from './utils'
+import { serializeMessage, MessageContext, logCmd, getPrefix } from './utils'
 import { getMessage, storeMessage } from './lib/store'
 import initGeneralCmd from './cmd/general'
 import initBrowserCmd from './cmd/browser'
@@ -74,26 +74,26 @@ export const messageHandler = async (
       'Message received',
       util.inspect(msg, false, null, true)
     )
-    const data = await serializeMessage(waSocket, msg)
+    const ctx = await serializeMessage(waSocket, msg)
     try {
-      if (msg.key.fromMe || isAllowedChat(data)) {
-        noPrefixHandler(waSocket, msg, data)
+      if (msg.key.fromMe || isAllowedChat(ctx)) {
+        noPrefixHandler(waSocket, msg, ctx)
 
-        const cmd = getCommand(data.cmd) as string
-        if (data.isCmd && cmd in actions) {
+        const cmd = getCommand(ctx.cmd) as string
+        if (ctx.isCmd && cmd in actions) {
           console.log(
             chalk.green('[LOG]'),
             'Serialized cmd msg:',
-            util.inspect(data, false, null, true)
+            util.inspect(ctx, false, null, true)
           )
-          logCmd(msg, data)
-          await actions[cmd](waSocket, msg, data)
+          logCmd(msg, ctx)
+          await actions[cmd](waSocket, msg, ctx)
         }
       }
     } catch (error: any) {
       console.log(error)
-      data.reply(`${error}`)
-      data.reactError()
+      ctx.reply(`${error}`)
+      ctx.reactError()
     }
 
     storeMessageData(msg)
@@ -101,8 +101,8 @@ export const messageHandler = async (
   }
 }
 
-const isAllowedChat = (data: MessageData) =>
-  config?.publicModeChats.includes(data.from)
+const isAllowedChat = (ctx: MessageContext) =>
+  config?.publicModeChats.includes(ctx.from)
 const isStatusMessage = (msg: WAMessage) =>
   msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
   msg.key.remoteJid == 'status@broadcast'
@@ -111,8 +111,8 @@ const isHistorySync = (msg: WAMessage) =>
   proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
 
 // --------------------------------------------------------- //
-const handleNoteCommand = async (data: MessageData) => {
-  const { fromMe, participant, from, body, reply } = data
+const handleNoteCommand = async (ctx: MessageContext) => {
+  const { fromMe, participant, from, body, reply } = ctx
   const id = fromMe ? 'me' : participant ?? from
   const note = await getNoteContent(id, body as string)
   if (note) reply(note)
@@ -121,9 +121,9 @@ const handleNoteCommand = async (data: MessageData) => {
 const handleRepeatCommand = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const quoted = data.quotedMsg
+  const quoted = ctx.quotedMsg
   if (quoted) {
     const msg: proto.IWebMessageInfo = {
       key: _msg.key,
@@ -135,7 +135,7 @@ const handleRepeatCommand = async (
     if (quotedData.isCmd) {
       const cmd = getCommand(quotedData.cmd) as string
       if (cmd in actions) {
-        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', data)
+        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', ctx)
         logCmd(msg, quotedData)
         await actions[cmd](_wa, quoted, quotedData)
       }
@@ -146,7 +146,7 @@ const handleRepeatCommand = async (
 const handleStickerCommand = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
   const { stickerMessage } = _msg.message ?? {}
   const stickerSha = stickerMessage?.fileSha256
@@ -155,19 +155,19 @@ const handleStickerCommand = async (
 
   try {
     if (stickerSha in config.stickerCommands) {
-      data.cmd = config.stickerCommands[stickerSha].cmd
-      data.arg = config.stickerCommands[stickerSha].arg
-      data.args = data.arg.split(' ')
-      const cmd = getCommand(data.cmd)
-      await actions[cmd]?.(_wa, _msg, data)
+      ctx.cmd = config.stickerCommands[stickerSha].cmd
+      ctx.arg = config.stickerCommands[stickerSha].arg
+      ctx.args = ctx.arg.split(' ')
+      const cmd = getCommand(ctx.cmd)
+      await actions[cmd]?.(_wa, _msg, ctx)
     }
   } catch (error) {
     console.error(error)
   }
 }
 
-const mathHandler = async (data: MessageData) => {
-  const { body } = data
+const mathHandler = async (ctx: MessageContext) => {
+  const { body } = ctx
   if (!body?.startsWith('=')) return null
   const args = body.slice(1)
   if (!args || args == '') return null
@@ -182,25 +182,25 @@ const mathHandler = async (data: MessageData) => {
       .replace(/%/g, '/100')
       .replace('**', '^')
   )
-  return await data.reply(`${result}`)
+  return await ctx.reply(`${result}`)
 }
 
 const noPrefixHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { body } = data
+  const { body } = ctx
 
   if (/^#\w+$/.test(body as string)) {
-    await handleNoteCommand(data)
+    await handleNoteCommand(ctx)
   } else if (/^-r$/.test(body as string)) {
-    await handleRepeatCommand(_wa, _msg, data)
+    await handleRepeatCommand(_wa, _msg, ctx)
   } else if (/^cekprefix$/.test(body as string)) {
-    await data.reply(`Prefix: '${getPrefix()}'`)
+    await ctx.reply(`Prefix: '${getPrefix()}'`)
   } else {
-    await mathHandler(data)
-    await handleStickerCommand(_wa, _msg, data)
+    await mathHandler(ctx)
+    await handleStickerCommand(_wa, _msg, ctx)
   }
 }
 

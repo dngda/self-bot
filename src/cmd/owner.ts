@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
@@ -55,37 +55,37 @@ export default function () {
   )
 }
 
-const evalJSON = async (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
-  if (!data.fromMe) return null
-  data.reactSuccess()
-  return await data.reply(JSON.stringify(eval(data.arg), null, 2))
+const evalJSON = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
+  if (!ctx.fromMe) return null
+  ctx.reactSuccess()
+  return await ctx.reply(JSON.stringify(eval(ctx.arg), null, 2))
 }
 
 // @ts-ignore
 var var1, var2, var3, var4, var5, var6, var7, var8, var9, var10
 
-const evalJS = async (_wa: WASocket, _msg: WAMessage, data: MessageData) => {
-  if (!data.fromMe) return null
-  data.reactSuccess()
-  return eval(`(async () => { ${data.arg} })()`)
+const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
+  if (!ctx.fromMe) return null
+  ctx.reactSuccess()
+  return eval(`(async () => { ${ctx.arg} })()`)
 }
 
 const offlineHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  if (!data.fromMe) return null
+  if (!ctx.fromMe) return null
   await _wa.sendPresenceUpdate('unavailable')
-  return data.reactSuccess()
+  return ctx.reactSuccess()
 }
 
 const refreshBrowserHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  if (!data.fromMe) return null
+  if (!ctx.fromMe) return null
   await browser.refreshContext()
-  return data.reactSuccess()
+  return ctx.reactSuccess()
 }

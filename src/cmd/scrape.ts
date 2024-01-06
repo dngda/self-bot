@@ -1,6 +1,6 @@
 import { pinterest, tinyUrl } from '../lib'
 import { sample, sampleSize } from 'lodash'
-import { MessageData } from '../utils'
+import { MessageContext } from '../utils'
 import { WASocket, WAMessage } from '@whiskeysockets/baileys'
 import { actions } from '../handler'
 import stringId from '../language'
@@ -16,8 +16,8 @@ export default function () {
 
   stringId.pinterest = {
     hint: '🔍 _Search gambar di pinterest_',
-    usage: (data: MessageData) =>
-      `🔍 Search gambar di pinterest dengan cara ➡️ ${data.prefix}${data.cmd} <query>`,
+    usage: (ctx: MessageContext) =>
+      `🔍 Search gambar di pinterest dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
   }
 
   stringId.videodl = {
@@ -27,10 +27,10 @@ export default function () {
       internalError: '‼️ Terjadi kesalahan! Coba refresh browser.',
       maxDuration: '‼️ Durasi video melebihi 10 menit!',
     },
-    usage: (data: MessageData) =>
-      `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${data.prefix}${data.cmd} <url>`,
-    getAudio: (data: MessageData) =>
-      `🎶 Convert to Audio by reply this with *${data.prefix}mp3*`,
+    usage: (ctx: MessageContext) =>
+      `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <url>`,
+    getAudio: (ctx: MessageContext) =>
+      `🎶 Convert to Audio by reply this with *${ctx.prefix}mp3*`,
     sent: (q: string) => `✅ Sent ${q}p\n\nother format:\n`,
   }
 
@@ -53,39 +53,39 @@ export default function () {
 const pinterestHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { arg, args } = data
-  if (arg == '') throw new Error(stringId.pinterest.usage(data))
-  data.reactWait()
+  const { arg, args } = ctx
+  if (arg == '') throw new Error(stringId.pinterest.usage(ctx))
+  ctx.reactWait()
   const result = await pinterest(arg)
   if (result.length == 0) {
-    data.reactError()
-    return data.reply(`Tidak ada hasil.`)
+    ctx.reactError()
+    return ctx.reply(`Tidak ada hasil.`)
   }
 
   const qty = Number(args[0])
   if (qty <= 10) {
     const images = sampleSize(result, qty)
     for (const image of images) {
-      await data.replyContent({
+      await ctx.replyContent({
         image: { url: image },
         caption: `Origin: ${image}`,
       })
     }
-    data.reactSuccess()
+    ctx.reactSuccess()
     return null
   } else {
     if (qty > 10) {
-      data.reactError()
-      return data.reply(`Max 10, bro.`)
+      ctx.reactError()
+      return ctx.reply(`Max 10, bro.`)
     }
   }
 
   const image = sample(result) as string
-  data.reactSuccess()
+  ctx.reactSuccess()
 
-  return await data.replyContent({
+  return await ctx.replyContent({
     image: { url: image },
     caption: `Origin: ${image}`,
   })
@@ -115,15 +115,15 @@ const getDuration = (result: any) => {
 export const videoHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
-  data: MessageData
+  ctx: MessageContext
 ) => {
-  const { arg, isQuoted, quotedMsg } = data
+  const { arg, isQuoted, quotedMsg } = ctx
   const quotedMsgText =
     quotedMsg?.extendedTextMessage?.text || quotedMsg?.conversation || ''
   const url = isQuoted ? quotedMsgText : arg
-  if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(data))
+  if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(ctx))
 
-  data.reactWait()
+  ctx.reactWait()
 
   if (
     tiktokPattern.test(url) ||
@@ -131,25 +131,25 @@ export const videoHandler = async (
     reelsPattern.test(url) ||
     instagramPattern.test(url)
   ) {
-    await tiktokReels(url, data)
+    await tiktokReels(url, ctx)
   } else if (
     twitterPattern.test(url) || 
     xPattern.test(url)
     ) {
-    await twitter(url, data)
+    await twitter(url, ctx)
   } else if (
     youtubePattern.test(url) ||
     youtubeShortPattern.test(url) ||
     youtubeShortsPattern.test(url)
   ) {
-    await youtube(url, data)
+    await youtube(url, ctx)
   } else {
-    data.reply(stringId.videodl.error.invalidUrl)
-    return data.reactError()
+    ctx.reply(stringId.videodl.error.invalidUrl)
+    return ctx.reactError()
   }
 }
 
-async function tiktokReels(url: string, data: MessageData) {
+async function tiktokReels(url: string, ctx: MessageContext) {
   let urls: string[] =
     tiktokPattern.exec(url) ??
     tiktokShortPattern.exec(url) ??
@@ -160,16 +160,16 @@ async function tiktokReels(url: string, data: MessageData) {
   const result = await browser.scrapeSSyoutube(urls[0])
   const duration = getDuration(result)
 
-  await data.replyContent({
+  await ctx.replyContent({
     video: { url: result.url[0].url },
     seconds: duration,
-    caption: stringId.videodl.getAudio(data),
+    caption: stringId.videodl.getAudio(ctx),
   })
 
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
-async function twitter(url: string, data: MessageData) {
+async function twitter(url: string, ctx: MessageContext) {
   let urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
   const result = await browser.scrapeSSyoutube(urls[0])
   if (result.message) throw new Error(JSON.stringify(result))
@@ -185,17 +185,17 @@ async function twitter(url: string, data: MessageData) {
     }
     captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
   }
-  captions += stringId.videodl.getAudio(data)
+  captions += stringId.videodl.getAudio(ctx)
 
-  await data.replyContent({
+  await ctx.replyContent({
     video: { url: selectedUrl },
     caption: captions,
   })
 
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
 
-async function youtube(url: string, data: MessageData) {
+async function youtube(url: string, ctx: MessageContext) {
   let urls: string[] =
     youtubePattern.exec(url) ??
     youtubeShortPattern.exec(url) ??
@@ -220,8 +220,8 @@ async function youtube(url: string, data: MessageData) {
     }
   } catch (error: any) {
     console.log(chalk.red("[ERR]"), error)
-    await data.reactError()
-    return data.reply(stringId.videodl.error.internalError)
+    await ctx.reactError()
+    return ctx.reply(stringId.videodl.error.internalError)
   }
   captions += stringId.videodl.sent(selectedQuality)
 
@@ -235,13 +235,13 @@ async function youtube(url: string, data: MessageData) {
     }
     captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
   }
-  captions += stringId.videodl.getAudio(data)
+  captions += stringId.videodl.getAudio(ctx)
 
-  await data.replyContent({
+  await ctx.replyContent({
     video: { url: selectedUrl },
     seconds: duration,
     caption: captions.trim(),
   })
 
-  data.reactSuccess()
+  ctx.reactSuccess()
 }
