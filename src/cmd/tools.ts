@@ -319,11 +319,11 @@ const toMp3Handler = async (
   data.reactWait()
   const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
   const audio = await videoToMp3(mediaData)
-  await waSocket.sendMessage(
-    data.from,
-    { audio: { url: audio }, mimetype: 'audio/mp4' },
-    { quoted: msg, ephemeralExpiration: data.expiration! }
-  )
+  await data.replyContent({
+    audio: { url: audio },
+    mimetype: 'audio/mp3',
+    ptt: true,
+  })
   data.reactSuccess()
 }
 
@@ -364,7 +364,7 @@ const videoSplitHandler = async (
       { quoted: msg, ephemeralExpiration: data.expiration! }
     )
 
-    unlink(`tmp/vs/${video[i]}`, _ => _)
+    unlink(`tmp/vs/${video[i]}`, (_) => _)
   }
   data.reactSuccess()
 }
@@ -400,13 +400,14 @@ const gttsHandler = async (
 ) => {
   const { args, arg, replyVoiceNote, reactWait, reactSuccess } = data
   if (args.length == 0) return data.reply(stringId.say.usage(data))
-  
+
   let lang = 'id'
   let text = arg
-  if (data.quotedMsg && data.quotedMsg.conversation) text = data.quotedMsg.conversation
-  if (data.cmd == "tts") {
+  if (data.quotedMsg && data.quotedMsg.conversation)
+    text = data.quotedMsg.conversation
+  if (data.cmd == 'tts') {
     lang = args[0]
-    text = args.slice(1).join(" ")
+    text = args.slice(1).join(' ')
   }
 
   if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
@@ -419,6 +420,6 @@ const gttsHandler = async (
   await replyVoiceNote(opus)
   await reactSuccess()
 
-  unlink(filepath, _ => _)
-  unlink(opus, _ => _)
+  unlink(filepath, (_) => _)
+  unlink(opus, (_) => _)
 }

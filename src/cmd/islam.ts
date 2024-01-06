@@ -255,15 +255,11 @@ const getAyatSurahDataAndSend = async (
     const sdata = result.data.data
 
     if (cmd === 'recite') {
-      await waSocket.sendMessage(
-        from,
-        {
-          audio: { url: sdata.audio.primary },
-          mimetype: 'audio/mp4',
-          ptt: true,
-        },
-        { quoted: msg, ephemeralExpiration: data.expiration! }
-      )
+      await data.replyContent({
+        audio: { url: sdata.audio.primary },
+        mimetype: 'audio/mp3',
+        ptt: true,
+      })
     }
 
     const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
