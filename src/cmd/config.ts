@@ -6,7 +6,7 @@ import { menu } from '../menu'
 
 export default function () {
   Object.assign(actions, {
-    toggle: togglePublicHandler,
+    public: togglePublicHandler,
     scmd: stickerCmdHandler,
     setp: setPrefixHandler,
   })
@@ -15,8 +15,8 @@ export default function () {
     hint: '⚙️ _Toggle public mode pada chat ini_',
     info: (isPublic: boolean, prefix: string) =>
       isPublic
-        ? `❕Public-mode aktif, semua member akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
-        : `❕Self-mode aktif`,
+        ? `🍻 Public-mode aktif, semua partisipan akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
+        : `🤳🏼 Self-mode aktif`,
   }
 
   stringId.stickerCmd = {
@@ -49,7 +49,7 @@ export default function () {
 
   menu.push(
     {
-      command: 'toggle',
+      command: 'public',
       hint: stringId.public.hint,
       alias: 'mode',
       type: 'config',
