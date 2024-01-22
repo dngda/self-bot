@@ -12,9 +12,9 @@ export class PlaywrightBrowser {
     this.ctx = {} as any
   }
 
-  async initBrowser() {
+  async init(headless = true) {
     chromium.use(stealthPlugin())
-    const browser = await chromium.launch()
+    const browser = await chromium.launch({ headless })
     const context = await browser.newContext({
       userAgent: getRandom(),
     })
