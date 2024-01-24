@@ -6,18 +6,10 @@ import {
 } from '@whiskeysockets/baileys'
 import { serializeMessage, MessageContext, logCmd, getPrefix } from './utils'
 import { getMessage, storeMessage } from './lib/store'
-import initGeneralCmd from './cmd/general'
-import initBrowserCmd from './cmd/browser'
-import initStickerCmd from './cmd/sticker'
-import initScrapeCmd from './cmd/scrape'
-import initConfigCmd from './cmd/config'
-import initRandomCmd from './cmd/random'
-import initIslamCmd from './cmd/islam'
-import initToolsCmd from './cmd/tools'
-import initOwnerCmd from './cmd/owner'
 import { getNoteContent } from './lib'
 import { getCommand } from './menu'
 import * as math from 'mathjs'
+import initCmds from './cmd'
 import chalk from 'chalk'
 import util from 'util'
 import fs from 'fs'
@@ -43,17 +35,7 @@ export let updateConfig = () => {
 
 // every handler must have 3 parameters:
 export const actions: { [index: string]: any } = {}
-
-initGeneralCmd()
-initStickerCmd()
-initScrapeCmd()
-initBrowserCmd()
-initToolsCmd()
-initIslamCmd()
-initRandomCmd()
-
-initConfigCmd()
-initOwnerCmd()
+initCmds()
 
 export const messageHandler = async (
   waSocket: WASocket,
