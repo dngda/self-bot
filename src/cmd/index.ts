@@ -8,7 +8,7 @@ import sticker from './sticker'
 import tools from './tools'
 import config from './config'
 
-export default = () => {
+export default () => {
   general()
   sticker()
   islam()
