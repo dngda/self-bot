@@ -294,8 +294,3 @@ const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
 
   return true
 }
-console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
-console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
-console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
-console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
-console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
