@@ -247,7 +247,6 @@ const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
     msg.message?.ephemeralMessage?.message?.viewOnceMessageV2 ||
     msg.message?.ephemeralMessage?.message?.viewOnceMessageV2Extension
 
-  console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
   if (!viewOnce) return null
 
   const from = msg.key.participant || msg.key.remoteJid!
