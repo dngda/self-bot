@@ -247,13 +247,18 @@ const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
     msg.message?.ephemeralMessage?.message?.viewOnceMessageV2 ||
     msg.message?.ephemeralMessage?.message?.viewOnceMessageV2Extension
 
+  console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
   if (!viewOnce) return null
 
-  const { remoteJid, participant } = msg.key
-  if (!remoteJid || !participant) return null
-  const from = participant
-  const subject = (await wa.groupMetadata(remoteJid)).subject
-  const sumber = `from _${subject}_ by @${from.replace('@s.whatsapp.net', '')}`
+  const from = msg.key.participant || msg.key.remoteJid!
+  let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
+  if (msg.key.participant) {
+    const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
+    sumber = `from _${subject}_ by @${msg.key.participant!.replace(
+      '@s.whatsapp.net',
+      ''
+    )}`
+  }
 
   const msgdata = `One view msg ${sumber}:`
 
@@ -289,3 +294,8 @@ const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
 
   return true
 }
+console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
+console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
+console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
+console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
+console.log('🚀 ~ listenOneViewMessage ~ viewOnce:', viewOnce)
