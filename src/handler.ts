@@ -2,6 +2,7 @@ import {
   WASocket,
   WAMessage,
   MessageUpsertType,
+  downloadMediaMessage,
   proto,
 } from '@whiskeysockets/baileys'
 import { serializeMessage, MessageContext, logCmd, getPrefix } from './utils'
@@ -15,13 +16,18 @@ import util from 'util'
 import fs from 'fs'
 
 interface BotConfig {
+  [key: string]: any
   publicModeChats: string[]
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
+  norevoke?: boolean
+  oneview?: boolean
 }
 
 export let config: BotConfig = {
   publicModeChats: [],
   stickerCommands: {},
+  norevoke: false,
+  oneview: false,
 }
 
 if (fs.existsSync('./data/config.json')) {
@@ -79,7 +85,8 @@ export const messageHandler = async (
     }
 
     storeMessageData(msg)
-    listenDeletedMessage(waSocket, msg)
+    if (config.norevoke) listenDeletedMessage(waSocket, msg)
+    if (config.oneview) listenOneViewMessage(waSocket, msg)
   }
 }
 
@@ -228,5 +235,57 @@ const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
       contextInfo: { forwardingScore: 1, isForwarded: true },
     })
   }
+  return true
+}
+
+const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
+  const viewOnce =
+    msg.message?.viewOnceMessage ||
+    msg.message?.viewOnceMessageV2 ||
+    msg.message?.viewOnceMessageV2Extension ||
+    msg.message?.ephemeralMessage?.message?.viewOnceMessage ||
+    msg.message?.ephemeralMessage?.message?.viewOnceMessageV2 ||
+    msg.message?.ephemeralMessage?.message?.viewOnceMessageV2Extension
+
+  if (!viewOnce) return null
+
+  const { remoteJid, participant } = msg.key
+  if (!remoteJid || !participant) return null
+  const from = participant
+  const subject = (await wa.groupMetadata(remoteJid)).subject
+  const sumber = `from _${subject}_ by @${from.replace('@s.whatsapp.net', '')}`
+
+  const msgdata = `One view msg ${sumber}:`
+
+  await wa.sendMessage(process.env.OWNER_NUMBER!, {
+    text: msgdata,
+    mentions: [from],
+  })
+
+  const { message } = viewOnce
+  const { imageMessage, videoMessage } = message as proto.IMessage
+  if (imageMessage) {
+    const mediaData = await downloadMediaMessage(
+      { key: msg.key, message: message },
+      'buffer',
+      {}
+    )
+    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+      image: mediaData as Buffer,
+      contextInfo: { forwardingScore: 1, isForwarded: true },
+    })
+  }
+  if (videoMessage) {
+    const mediaData = await downloadMediaMessage(
+      { key: msg.key, message: message },
+      'buffer',
+      {}
+    )
+    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+      video: mediaData as Buffer,
+      contextInfo: { forwardingScore: 1, isForwarded: true },
+    })
+  }
+
   return true
 }

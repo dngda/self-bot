@@ -9,6 +9,7 @@ export default function () {
     public: togglePublicHandler,
     scmd: stickerCmdHandler,
     setp: setPrefixHandler,
+    on: toggleConfigHandler,
   })
 
   stringId.public = {
@@ -47,6 +48,16 @@ export default function () {
     reseted: '✅ Prefix berhasil direset',
   }
 
+  stringId.toggleConfig = {
+    hint: '⚙️ _Toggle config_',
+    usage: (ctx: MessageContext) =>
+      `Toggle config dengan: ${ctx.prefix}on <config> / off <config>
+Config: public, norevoke, oneview
+➡️ Contoh: ${ctx.prefix}on norevoke`,
+    success: (config: string, status: boolean) =>
+      `✅ Config "${config}" berhasil diubah menjadi "${status}"`,
+  }
+
   menu.push(
     {
       command: 'public',
@@ -64,6 +75,12 @@ export default function () {
       command: 'setp',
       hint: stringId.setPrefix.hint,
       alias: 'setprefix, resetprefix',
+      type: 'config',
+    },
+    {
+      command: 'on',
+      hint: stringId.toggleConfig.hint,
+      alias: 'off',
       type: 'config',
     }
   )
@@ -162,4 +179,38 @@ const setPrefixHandler = async (
   }
 
   return ctx.reactSuccess()
+}
+
+const toggleConfigHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
+) => {
+  if (!ctx.fromMe) return
+  const configName = ctx.args[0]
+  const status = ctx.cmd === 'on'
+  if (!configName) {
+    ctx.reply(stringId.toggleConfig.usage(ctx))
+    return
+  }
+
+  if (!(configName in config) && configName !== 'public') {
+    ctx.reply(stringId.toggleConfig.usage(ctx))
+    return
+  }
+
+  if (configName === 'public') {
+    if (status) {
+      config.publicModeChats.push(ctx.from)
+    } else {
+      config.publicModeChats = config.publicModeChats.filter(
+        (x: any) => x !== ctx.from
+      )
+    }
+  } else {
+    config[configName] = status
+  }
+
+  updateConfig()
+  return ctx.reply(stringId.toggleConfig.success(configName, status))
 }
