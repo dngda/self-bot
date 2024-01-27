@@ -19,8 +19,8 @@ interface BotConfig {
   [key: string]: any
   publicModeChats: string[]
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
-  norevoke?: boolean
-  oneview?: boolean
+  norevoke: boolean
+  oneview: boolean
 }
 
 export let config: BotConfig = {

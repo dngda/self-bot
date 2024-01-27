@@ -194,11 +194,6 @@ const toggleConfigHandler = async (
     return
   }
 
-  if (!(configName in config) && configName !== 'public') {
-    ctx.reply(stringId.toggleConfig.usage(ctx))
-    return
-  }
-
   if (configName === 'public') {
     if (status) {
       config.publicModeChats.push(ctx.from)
@@ -207,8 +202,11 @@ const toggleConfigHandler = async (
         (x: any) => x !== ctx.from
       )
     }
-  } else {
+  } else if (configName in config) {
     config[configName] = status
+  } else {
+    ctx.reply(stringId.toggleConfig.usage(ctx))
+    return
   }
 
   updateConfig()
