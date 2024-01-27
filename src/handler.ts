@@ -16,7 +16,7 @@ import util from 'util'
 import fs from 'fs'
 
 interface BotConfig {
-  [key: string]: any
+  [index: string]: any
   publicModeChats: string[]
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
   norevoke: boolean
