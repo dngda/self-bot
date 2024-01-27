@@ -202,7 +202,7 @@ const toggleConfigHandler = async (
         (x: any) => x !== ctx.from
       )
     }
-  } else if (config[configName] !== undefined) {
+  } else if (configName in config) {
     config[configName] = status
   } else {
     ctx.reply(stringId.toggleConfig.usage(ctx))
