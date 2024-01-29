@@ -15,7 +15,7 @@ export default function () {
     sticker: stickerHandler,
     ttpc: ttpHandler,
     memefy: memefyHandler,
-    dls: downloadStickerHandler,
+    sdl: downloadStickerHandler,
   })
 
   stringId.sticker = {
@@ -88,7 +88,7 @@ export default function () {
       type: 'sticker',
     },
     {
-      command: 'dls',
+      command: 'sdl',
       hint: stringId.dls.hint,
       alias: 'toimg, tomedia',
       type: 'sticker',
