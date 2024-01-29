@@ -270,7 +270,7 @@ async function handleAddNoteCommand(
 ) {
   let note: string
   if (isQuoted) {
-    note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
+    note = quotedMsg?.conversation || quotedMsg?.extendedTextMessage?.text || ''
   } else {
     if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
@@ -299,7 +299,7 @@ async function handleEditNoteCommand(
 ) {
   let note: string
   if (isQuoted) {
-    note = quotedMsg?.conversation! || quotedMsg?.extendedTextMessage?.text!
+    note = quotedMsg?.conversation || quotedMsg?.extendedTextMessage?.text || ''
   } else {
     if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
@@ -335,8 +335,9 @@ const videoSplitHandler = async (
   const { isQuotedVideo, isVideo, download, downloadQuoted } = ctx
   if (!isVideo && !isQuotedVideo) throw new Error(stringId.vsplit.usage(ctx))
   let seconds =
-    msg.message?.videoMessage?.seconds! ||
-    ctx.quotedMsg?.videoMessage?.seconds!
+    msg.message?.videoMessage?.seconds ||
+    ctx.quotedMsg?.videoMessage?.seconds ||
+    0
 
   if (seconds < 30 && seconds != 0)
     throw new Error(stringId.vsplit.error.duration)
@@ -376,7 +377,7 @@ const ocrHandler = async (
   ctx.reactWait()
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
 
-  let language = args[0] as ocrApi.OcrSpaceLanguages
+  const language = args[0] as ocrApi.OcrSpaceLanguages
   const res = await ocr(language, mediaData)
   console.log('🚀 ~ file: tools.ts:366 ~ res:', res)
   const text = res.ParsedResults[0].ParsedText

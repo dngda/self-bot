@@ -155,8 +155,9 @@ const processVideo = async (
   Stype: StickerTypes
 ) => {
   const seconds =
-    msg.message?.videoMessage?.seconds! ||
-    ctx.quotedMsg?.videoMessage?.seconds!
+    msg.message?.videoMessage?.seconds ||
+    ctx.quotedMsg?.videoMessage?.seconds ||
+    0
   const videoLimit = 10
   if (seconds >= videoLimit)
     throw new Error(stringId.sticker.error.videoLimit(videoLimit))
@@ -188,7 +189,10 @@ const processVideo = async (
       msgKey = msgInfo?.key
       isSendNotif = true
     } else {
-      const garbage = (quality == 30) ? '. At this point, the sticker may look like garbage.' : ''
+      const garbage =
+        quality == 30
+          ? '. At this point, the sticker may look like garbage.'
+          : ''
       wa.sendMessage(ctx.from, {
         edit: msgKey,
         text: stringId.sticker.error.q(quality) + garbage,
@@ -221,8 +225,9 @@ const ttpHandler = async (
   ctx.reactWait()
   const text =
     arg ||
-    ctx.quotedMsg?.conversation! ||
-    ctx.quotedMsg?.extendedTextMessage?.text!
+    ctx.quotedMsg?.conversation ||
+    ctx.quotedMsg?.extendedTextMessage?.text ||
+    ''
   const textLimit = 100
   if (text.length > textLimit)
     throw new Error(stringId.ttp.error.textLimit(textLimit))
@@ -265,16 +270,16 @@ const memefyHandler = async (
   if (isQuotedSticker) image = await ctx.downloadSticker()
   else image = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
 
-  let simage = await sharp(image).png()
+  const simage = await sharp(image).png()
   if (_arg.includes('-c')) simage.resize(512, 512)
   _arg = _arg.replace('-c', '')
   image = await simage.toBuffer()
 
-  let top = _arg.split('|')[0] || '_'
-  let bottom = _arg.split('|')[1] || '_'
+  const top = _arg.split('|')[0] || '_'
+  const bottom = _arg.split('|')[1] || '_'
 
-  let uploadedImageUrl = await uploadImage(image)
-  let memeBuffer = await memegen(top, bottom, uploadedImageUrl)
+  const uploadedImageUrl = await uploadImage(image)
+  const memeBuffer = await memegen(top, bottom, uploadedImageUrl)
 
   if (cmd === 'memefy') {
     ctx.reactSuccess()
@@ -305,10 +310,10 @@ const downloadStickerHandler = async (
 
   const isAnimated = sticker.toString('utf-8').includes('ANMF')
   if (isAnimated) {
-    const gif = await sharp(sticker, {animated: true}).gif().toBuffer()
+    const gif = await sharp(sticker, { animated: true }).gif().toBuffer()
     const mp4 = await gifToMp4(gif)
     await replyContent({ video: { url: mp4 } })
-    fs.unlink(mp4, _ => _)
+    fs.unlink(mp4, (_) => _)
   } else {
     sticker = await sharp(sticker).png().toBuffer()
     await replyContent({ image: sticker })

@@ -21,22 +21,22 @@ export async function memegen(
   bottom: string,
   image: string
 ): Promise<Buffer> {
-  let topText = top
+  const topText = top
     .trim()
     .replace(/\s/g, '_')
     .replace(/\?/g, '~q')
     .replace(/%/g, '~p')
     .replace(/#/g, '~h')
     .replace(/\//g, '~s')
-  let bottomText = bottom
+  const bottomText = bottom
     .trim()
     .replace(/\s/g, '_')
     .replace(/\?/g, '~q')
     .replace(/%/g, '~p')
     .replace(/#/g, '~h')
     .replace(/\//g, '~s')
-  let url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${image}`
-  let res = await axios.get(url, { responseType: 'arraybuffer' })
+  const url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${image}`
+  const res = await axios.get(url, { responseType: 'arraybuffer' })
   return Buffer.from(res.data)
 }
 

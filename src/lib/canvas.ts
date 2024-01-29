@@ -11,13 +11,13 @@ export const textToPicture = async (
       text = text.replace(/\s/g, '\n')
       const canvas = createCanvas(512, 512)
       const ctx = canvas.getContext('2d')
-      let textData = text.split('\n')
+      const textData = text.split('\n')
 
       combineShortWords(textData)
       separateLongWords(textData)
 
-      let posisiY = calculateStartingPositionY(ctx, textData)
-      let ukuranFont = calculateFontSize(ctx, textData)
+      const posisiY = calculateStartingPositionY(ctx, textData)
+      const ukuranFont = calculateFontSize(ctx, textData)
       const lineHeight = calculateLineHeight(ctx, ukuranFont)
       setCanvasStyles(
         ctx,
@@ -74,21 +74,21 @@ function calculateStartingPositionY(
   textData: string[]
 ) {
   let posisiY = 256
-  let longest = textData.reduce((a, b) => {
+  const longest = textData.reduce((a, b) => {
     return a.length > b.length ? a : b
   })
-  let inpText = ctx.measureText(longest)
-  let ukuranFont = 150 - inpText.width - textData.length * 5
+  const inpText = ctx.measureText(longest)
+  const ukuranFont = 150 - inpText.width - textData.length * 5
   const lineHeight = inpText.actualBoundingBoxAscent + ukuranFont
   posisiY = posisiY - ((textData.length - 1) * lineHeight) / 2
   return posisiY
 }
 
 function calculateFontSize(ctx: CanvasRenderingContext2D, textData: string[]) {
-  let longest = textData.reduce((a, b) => {
+  const longest = textData.reduce((a, b) => {
     return a.length > b.length ? a : b
   })
-  let inpText = ctx.measureText(longest)
+  const inpText = ctx.measureText(longest)
   return 150 - inpText.width - textData.length * 5
 }
 

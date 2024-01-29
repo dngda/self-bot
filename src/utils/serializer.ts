@@ -9,7 +9,7 @@ import {
   downloadContentFromMessage,
 } from '@whiskeysockets/baileys'
 import dotenv from 'dotenv'
-import { config } from '../handler'
+import { BotConfig, config } from '../handler'
 dotenv.config()
 
 type snu = string | null | undefined
@@ -54,7 +54,7 @@ export interface MessageContext {
   isMedia: boolean | null
   isEphemeral: boolean | null
 
-  config: Record<string, any>
+  config: BotConfig
   download: () => Promise<Buffer>
   downloadQuoted: () => Promise<Buffer>
   downloadSticker: () => Promise<Buffer>
@@ -121,7 +121,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     )
   }
 
-  const getQuotedMsg = (contextInfo: any) => {
+  const getQuotedMsg = (contextInfo: proto.IContextInfo | null | undefined) => {
     return (
       contextInfo?.quotedMessage?.ephemeralMessage?.message ||
       contextInfo?.quotedMessage
@@ -143,7 +143,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     name: msg.pushName,
     contextInfo: getContextInfo(),
     isGroup: msg.key.remoteJid!.endsWith('@g.us'),
-  } as any
+  } as MessageContext
 
   getCmdProperties(ctx)
   ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
@@ -193,8 +193,11 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   ctx.downloadSticker = async () => {
-    const stickerMessage = ctx.contextInfo?.quotedMessage?.stickerMessage!
-    const stream = await downloadContentFromMessage(stickerMessage, 'sticker')
+    if (!ctx.isQuotedSticker) {
+      throw new Error('No quoted sticker')
+    }
+    const stickerMessage = ctx.contextInfo?.quotedMessage?.stickerMessage
+    const stream = await downloadContentFromMessage(stickerMessage!, 'sticker')
     let buffer = Buffer.from([])
     for await (const chunk of stream) {
       buffer = Buffer.concat([buffer, chunk])

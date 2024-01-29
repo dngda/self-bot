@@ -15,7 +15,7 @@ import chalk from 'chalk'
 import util from 'util'
 import fs from 'fs'
 
-interface BotConfig {
+export interface BotConfig {
   [index: string]: any
   publicModeChats: string[]
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
@@ -31,11 +31,11 @@ export let config: BotConfig = {
 }
 
 if (fs.existsSync('./data/config.json')) {
-  let conf = fs.readFileSync('./data/config.json', 'utf-8')
+  const conf = fs.readFileSync('./data/config.json', 'utf-8')
   if (conf != '') config = JSON.parse(conf)
 }
 
-export let updateConfig = () => {
+export const updateConfig = () => {
   fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
 }
 

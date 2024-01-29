@@ -1,5 +1,5 @@
 import stealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { BrowserContext, Browser } from 'playwright'
+import { BrowserContext, Browser, Page, Response } from 'playwright'
 import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
@@ -53,25 +53,39 @@ export class PlaywrightBrowser {
   }
 
   async scrapeSSyoutube(url: string) {
-    return new Promise<any>(async (resolve, reject) => {
-      const page = await this.openPage('https://ssyoutube.com/')
-      try {
-        await page.type('#id_url', url)
-        await page.on('response', async (response) => {
+    const page = await this.openPage('https://ssyoutube.com/')
+
+    // Handle the response separately
+    const handleResponse = (page: Page) : Promise<any> => {
+      return new Promise((resolve, reject) => {
+        page.on('response', async (response: Response) => {
           if (
             response.request().resourceType() === 'xhr' &&
             response.request().url().includes('convert')
           ) {
-            resolve(await response.json())
-            await page.close()
+            try {
+              const data = await response.json()
+              resolve(data)
+            } catch (error) {
+              reject(error)
+            }
           }
         })
-        await page.click('#search')
-      } catch (error: any) {
-        page.close()
-        reject(error)
-      }
-    })
+      })
+    }
+
+    try {
+      await page.type('#id_url', url)
+      await page.click('#search')
+
+      // Wait for the response
+      const result = await handleResponse(page)
+      await page.close()
+      return result
+    } catch (error) {
+      await page.close()
+      throw error
+    }
   }
 
   async refreshContext() {

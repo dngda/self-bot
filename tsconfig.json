@@ -16,6 +16,6 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "skipLibCheck": true,
-    "strictNullChecks": true,
+    "strictNullChecks": true
   }
 }

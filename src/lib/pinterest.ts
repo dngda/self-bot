@@ -17,21 +17,21 @@ export const pinterest = (query: string) =>
       })
       .then((res) => {
         const $ = cheerio.load(res.data)
-        let hasil: string[] = []
+        const hasil: string[] = []
         $(
           'body > div > div > div > div > div > div > div > div > div > div > div'
         ).each(function (_, b) {
           $(b)
             .find('div')
             .each(function (_, d) {
-              let Link = $(d)
+              const Link = $(d)
                 .find('div > div > div > div > a')
                 .find('img')
                 .attr('src')
               hasil.push(Link || '')
             })
         })
-        let Data = new Set()
+        const Data = new Set()
         hasil.forEach((h) => {
           if (h === undefined) return
           if (!h.includes('236x')) return

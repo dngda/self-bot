@@ -95,7 +95,7 @@ const togglePublicHandler = async (
   let isPublic = config.publicModeChats.includes(ctx.from)
   if (isPublic) {
     config.publicModeChats = config.publicModeChats.filter(
-      (x: any) => x !== ctx.from
+      (x: string) => x !== ctx.from
     )
     isPublic = false
   } else {
@@ -118,7 +118,7 @@ const stickerCmdHandler = async (
     ctx.reply(stringId.stickerCmd.usage(ctx))
     return
   }
-  const stickerSha = Buffer.from(quoted.stickerMessage?.fileSha256!).toString(
+  const stickerSha = Buffer.from(quoted.stickerMessage?.fileSha256).toString(
     'base64'
   )
 
@@ -199,7 +199,7 @@ const toggleConfigHandler = async (
       config.publicModeChats.push(ctx.from)
     } else {
       config.publicModeChats = config.publicModeChats.filter(
-        (x: any) => x !== ctx.from
+        (x: string) => x !== ctx.from
       )
     }
   } else if (configName in config) {

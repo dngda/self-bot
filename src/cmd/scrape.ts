@@ -103,13 +103,19 @@ const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
 const getDuration = (result: any) => {
-  let duration: number
-  if (result.meta?.hasOwnProperty('duration')) {
-    const minutes = +result.meta.duration.split(':')[0]
-    const seconds = +result.meta.duration.split(':')[1]
-    duration = minutes * 60 + seconds
-  } else duration = 0
-  return duration
+  if (result.meta?.duration) {
+    const timeParts = result.meta.duration.split(':').map(Number);
+    if (timeParts.length === 2) {
+      // Format MM:SS
+      const [minutes, seconds] = timeParts;
+      return minutes * 60 + seconds;
+    } else if (timeParts.length === 3) {
+      // Format HH:MM:SS
+      const [hours, minutes, seconds] = timeParts;
+      return hours * 3600 + minutes * 60 + seconds;
+    }
+  }
+  return 0;
 }
 
 export const videoHandler = async (
@@ -150,7 +156,7 @@ export const videoHandler = async (
 }
 
 async function tiktokReels(url: string, ctx: MessageContext) {
-  let urls: string[] =
+  const urls: string[] =
     tiktokPattern.exec(url) ??
     tiktokShortPattern.exec(url) ??
     reelsPattern.exec(url) ??
@@ -170,13 +176,13 @@ async function tiktokReels(url: string, ctx: MessageContext) {
 }
 
 async function twitter(url: string, ctx: MessageContext) {
-  let urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
+  const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
   const result = await browser.scrapeSSyoutube(urls[0])
   if (result.message) throw new Error(JSON.stringify(result))
-  let resultUrls = result.url.sort((a: any, b: any) => {
+  const resultUrls = result.url.sort((a: any, b: any) => {
     return Number(a.quality) - Number(b.quality)
   })
-  let selectedUrl = resultUrls[0].url
+  const selectedUrl = resultUrls[0].url
   let captions = ''
   for (const video of resultUrls) {
     if (video?.url == selectedUrl) {
@@ -196,7 +202,7 @@ async function twitter(url: string, ctx: MessageContext) {
 }
 
 async function youtube(url: string, ctx: MessageContext) {
-  let urls: string[] =
+  const urls: string[] =
     youtubePattern.exec(url) ??
     youtubeShortPattern.exec(url) ??
     youtubeShortsPattern.exec(url) ??

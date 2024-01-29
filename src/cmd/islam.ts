@@ -74,18 +74,18 @@ const jadwalSholatHandler = async (
   if (!ctx.arg || ctx.arg == '') return ctx.reply(stringId.jsholat.usage(ctx))
   ctx.reactWait()
   if (args[0] == 'daerah') {
-    let { data: semuaKota } = await get(
+    const { data: semuaKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/semua'
     )
     let hasil = '╔══✪〘 Daftar Kota 〙✪\n'
-    for (let kota of semuaKota) {
+    for (const kota of semuaKota) {
       hasil += '╠> '
       hasil += `${kota.lokasi}\n`
     }
     hasil += '╚═〘 *SeroBot* 〙'
     await ctx.reply(hasil)
   } else {
-    let { data: cariKota } = await get(
+    const { data: cariKota } = await get(
       'https://api.myquran.com/v1/sholat/kota/cari/' + args
     )
     let kodek = ''
@@ -97,7 +97,7 @@ const jadwalSholatHandler = async (
     const tgl = moment((msg.messageTimestamp as number) * 1000).format(
       'YYYY/MM/DD'
     )
-    let { data: jadwalData } = await get(
+    const { data: jadwalData } = await get(
       `https://api.myquran.com/v1/sholat/jadwal/${kodek}/${tgl}`
     )
     if (jadwalData.status === 'false') return ctx.reply('Internal server error')
@@ -135,7 +135,7 @@ const surahHandler = async (
     return await handleDaftar(ctx)
   }
 
-  let surahNumber = isNaN(Number(args[0]))
+  const surahNumber = isNaN(Number(args[0]))
     ? getSurahNumberByName(args[0])
     : Number(args[0])
 
@@ -163,8 +163,8 @@ const handleDaftar = async (ctx: MessageContext) => {
 }
 
 const getSurahNumberByName = (name: string) => {
-  let sdatas = SurahDatas.ctx
-  let index = sdatas.findIndex((surah: any) => {
+  const sdatas = SurahDatas.ctx
+  const index = sdatas.findIndex((surah: any) => {
     return (
       surah.name.transliteration.id
         .toLowerCase()
@@ -180,14 +180,14 @@ const processMultipleAyat = async (
   surahNumber: number,
   cmd: string
 ) => {
-  let ayatNumbers = ctx.args[1].split('-')
+  const ayatNumbers = ctx.args[1].split('-')
 
   if (ayatNumbers.length > 2) {
     return ctx.reply(stringId.surah.error.invalidAyat(ctx))
   }
 
-  let ayatFrom = Number(ayatNumbers[0])
-  let ayatTo = Number(ayatNumbers[1])
+  const ayatFrom = Number(ayatNumbers[0])
+  const ayatTo = Number(ayatNumbers[1])
 
   if (isNaN(ayatFrom) || isNaN(ayatTo)) {
     return ctx.reply(stringId.surah.error.invalidAyat(ctx))
@@ -211,7 +211,7 @@ const processSingleAyat = async (
   surahNumber: number,
   cmd: string
 ) => {
-  let ayatNumber = isNaN(Number(ctx.args[1])) ? 1 : Number(ctx.args[1])
+  const ayatNumber = isNaN(Number(ctx.args[1])) ? 1 : Number(ctx.args[1])
   await getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
 }
 
