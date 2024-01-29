@@ -177,46 +177,6 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   ctx.isEphemeral = msg.message?.ephemeralMessage != null
   ctx.expiration = ctx.contextInfo?.expiration
 
-  Object.defineProperty(ctx, 'quotedMsg', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'download', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'downloadQuoted', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'downloadSticker', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'reply', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'send', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'replySticker', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'replyContent', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'replyVoiceNote', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'reactWait', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'reactSuccess', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'reactError', {
-    enumerable: false,
-  })
-  Object.defineProperty(ctx, 'config', {
-    enumerable: false,
-  })
-
   ctx.download = async () => {
     let msgData: WAMessage
     if (ctx.isEphemeral) {
@@ -316,6 +276,46 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   ctx.config = config
+
+  Object.defineProperty(ctx, 'quotedMsg', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'download', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'downloadQuoted', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'downloadSticker', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'reply', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'send', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'replySticker', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'replyContent', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'replyVoiceNote', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'reactWait', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'reactSuccess', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'reactError', {
+    enumerable: false,
+  })
+  Object.defineProperty(ctx, 'config', {
+    enumerable: false,
+  })
 
   return ctx
 }
