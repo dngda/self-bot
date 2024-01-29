@@ -72,11 +72,7 @@ export const messageHandler = async (
           console.log(
             chalk.green('[CTX]'),
             'Serialized CMD Message Context:',
-            util.inspect(ctx, {
-              showHidden: false,
-              customInspect: false,
-              colors: true,
-            })
+            util.inspect(ctx, false, null, true)
           )
           logCmd(msg, ctx)
           await actions[cmd](waSocket, msg, ctx)
