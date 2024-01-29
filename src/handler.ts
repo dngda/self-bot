@@ -59,7 +59,7 @@ export const messageHandler = async (
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
     console.log(
       chalk.green('[LOG]'),
-      'Message received',
+      'RAW Message Received',
       util.inspect(msg, false, null, true)
     )
     const ctx = await serializeMessage(waSocket, msg)
@@ -70,9 +70,13 @@ export const messageHandler = async (
         const cmd = getCommand(ctx.cmd) as string
         if (ctx.isCmd && cmd in actions) {
           console.log(
-            chalk.green('[LOG]'),
-            'Serialized cmd msg:',
-            util.inspect(ctx, false, null, true)
+            chalk.green('[CTX]'),
+            'Serialized CMD Message Context:',
+            util.inspect(ctx, {
+              showHidden: false,
+              customInspect: false,
+              colors: true,
+            })
           )
           logCmd(msg, ctx)
           await actions[cmd](waSocket, msg, ctx)

@@ -28,16 +28,16 @@ export const getPrefix = () => {
 }
 
 export interface MessageContext {
-  body: snu
-  isCmd: boolean
-  cmd: string
-  prefix: string
-  arg: string
-  args: string[]
   from: string
   fromMe: boolean | null | undefined
-  participant: snu
   name: snu
+  participant: snu
+  body: snu
+  prefix: string
+  isCmd: boolean
+  cmd: string
+  arg: string
+  args: string[]
   groupName: string | null
   quotedMsg: WAMessageContent | null | undefined
   contextInfo: proto.IContextInfo | null | undefined
@@ -76,10 +76,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
       msg.message?.extendedTextMessage?.text ||
       msg.message?.imageMessage?.caption ||
       msg.message?.videoMessage?.caption ||
+      msg.message?.documentWithCaptionMessage?.message?.documentMessage
+        ?.caption ||
       msg.message?.ephemeralMessage?.message?.conversation ||
       msg.message?.ephemeralMessage?.message?.extendedTextMessage?.text ||
       msg.message?.ephemeralMessage?.message?.imageMessage?.caption ||
-      msg.message?.ephemeralMessage?.message?.videoMessage?.caption
+      msg.message?.ephemeralMessage?.message?.videoMessage?.caption ||
+      msg.message?.ephemeralMessage?.message?.documentWithCaptionMessage
+        ?.message?.documentMessage?.caption
     )
   }
 
@@ -136,24 +140,26 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   }
 
   const ctx: MessageContext = {
-    body: getBody(),
     from: msg.key.remoteJid!,
+    name: msg.pushName,
+    body: getBody(),
     fromMe: msg.key.fromMe,
     participant: msg.key.participant,
-    name: msg.pushName,
     contextInfo: getContextInfo(),
     isGroup: msg.key.remoteJid!.endsWith('@g.us'),
   } as MessageContext
 
   getCmdProperties(ctx)
-  ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
   ctx.groupName = await getGroupName(ctx.isGroup, ctx.from)
+  ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
   ctx.isQuotedImage =
     ctx.quotedMsg?.imageMessage != null ||
     ctx.quotedMsg?.documentMessage?.mimetype?.includes('image') != null
   ctx.isQuotedVideo = ctx.quotedMsg?.videoMessage != null
   ctx.isQuotedSticker = ctx.quotedMsg?.stickerMessage != null
-  ctx.isQuotedDocument = ctx.quotedMsg?.documentMessage != null
+  ctx.isQuotedDocument =
+    ctx.quotedMsg?.documentMessage != null ||
+    ctx.quotedMsg?.documentWithCaptionMessage?.message?.documentMessage != null
   ctx.isQuoted = ctx.quotedMsg != null
   ctx.isImage =
     msg.message?.imageMessage != null ||
