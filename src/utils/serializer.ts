@@ -154,7 +154,10 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
   ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
   ctx.isQuotedImage =
     ctx.quotedMsg?.imageMessage != null ||
-    ctx.quotedMsg?.documentMessage?.mimetype?.includes('image') != null
+    ctx.quotedMsg?.documentMessage?.mimetype?.includes('image') != null ||
+    ctx.quotedMsg?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
+      'image'
+    ) != null
   ctx.isQuotedVideo = ctx.quotedMsg?.videoMessage != null
   ctx.isQuotedSticker = ctx.quotedMsg?.stickerMessage != null
   ctx.isQuotedDocument =
