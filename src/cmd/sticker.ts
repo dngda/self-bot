@@ -175,7 +175,8 @@ const processVideo = async (
   let resultBuffer = await doConvert(quality)
   let isSendNotif = false
   let msgKey: proto.IMessageKey | undefined
-  while (resultBuffer.length > 1024 * 1024) {
+  const STICKER_ANIMATED_LIMIT = 1024 * 1024 // WA limit only max 1 MB for animated sticker
+  while (resultBuffer.length > STICKER_ANIMATED_LIMIT) {
     if (!isSendNotif) {
       const msgInfo = await wa.sendMessage(
         ctx.from,
