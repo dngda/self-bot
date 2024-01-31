@@ -31,7 +31,7 @@ export default function () {
   Object.assign(actions, {
     flip: flipHandler,
     onev: oneViewHandler,
-    note: noteHandler,
+    notes: noteHandler,
     tomp3: toMp3Handler,
     vsplit: videoSplitHandler,
     ocr: ocrHandler,
@@ -109,9 +109,9 @@ export default function () {
       type: 'tools',
     },
     {
-      command: 'note',
+      command: 'notes',
       hint: stringId.note.hint,
-      alias: 'addnote, delnote, editnote, notes',
+      alias: 'addnote, delnote, editnote',
       type: 'tools',
     },
     {
@@ -222,7 +222,6 @@ const noteHandler = async (
   const id = fromMe ? 'me' : participant ?? from
 
   switch (cmd) {
-    case 'note':
     case 'notes':
       return handleNoteCommand(id, ctx)
     case 'addnote':
