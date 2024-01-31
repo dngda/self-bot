@@ -75,7 +75,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
 `
 
   menuMsg += `
-!----------- Help - Usage -----------!\n`
+!------------ Help - Usage ------------!\n`
   menuMsg += `\u200E`.repeat(850) // Add spoiler tag (read more button)
   menuMsg += ` _Accepted prefix:_ '${getPrefix()}'\n`
   const menus = getMenu()
