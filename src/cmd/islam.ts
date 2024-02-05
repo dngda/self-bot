@@ -154,7 +154,7 @@ const surahHandler = async (
 
 const handleDaftar = async (ctx: MessageContext) => {
   let list = '╔══✪〘 Daftar Surah 〙✪\n'
-  SurahDatas.ctx.forEach((surah: any) => {
+  SurahDatas.data.forEach((surah: any) => {
     list += `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}\n`
   })
   list += '╚═〘 *SeroBot* 〙'
@@ -163,7 +163,7 @@ const handleDaftar = async (ctx: MessageContext) => {
 }
 
 const getSurahNumberByName = (name: string) => {
-  const sdatas = SurahDatas.ctx
+  const sdatas = SurahDatas.data
   const index = sdatas.findIndex((surah: any) => {
     return (
       surah.name.transliteration.id
