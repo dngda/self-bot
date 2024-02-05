@@ -75,7 +75,7 @@ const jadwalSholatHandler = async (
   ctx.reactWait()
   if (args[0] == 'daerah') {
     const { data: semuaKota } = await get(
-      'https://api.myquran.com/v1/sholat/kota/semua'
+      'https://api.myquran.com/v2/sholat/kota/semua'
     )
     let hasil = '╔══✪〘 Daftar Kota 〙✪\n'
     for (const kota of semuaKota) {
@@ -86,7 +86,7 @@ const jadwalSholatHandler = async (
     await ctx.reply(hasil)
   } else {
     const { data: cariKota } = await get(
-      'https://api.myquran.com/v1/sholat/kota/cari/' + args
+      'https://api.myquran.com/v2/sholat/kota/cari/' + args
     )
     let kodek = ''
     try {
@@ -98,7 +98,7 @@ const jadwalSholatHandler = async (
       'YYYY/MM/DD'
     )
     const { data: jadwalData } = await get(
-      `https://api.myquran.com/v1/sholat/jadwal/${kodek}/${tgl}`
+      `https://api.myquran.com/v2/sholat/jadwal/${kodek}/${tgl}`
     )
     if (jadwalData.status === 'false') return ctx.reply('Internal server error')
     const jadwal = jadwalData.data.jadwal
