@@ -9,7 +9,7 @@ export default function () {
     public: togglePublicHandler,
     scmd: stickerCmdHandler,
     setp: setPrefixHandler,
-    on: toggleConfigHandler,
+    con: toggleConfigHandler,
   })
 
   stringId.public = {
@@ -78,9 +78,9 @@ Config: public, norevoke, oneview
       type: 'config',
     },
     {
-      command: 'on',
+      command: 'con',
       hint: stringId.toggleConfig.hint,
-      alias: 'off',
+      alias: 'coff',
       type: 'config',
     }
   )
@@ -188,7 +188,7 @@ const toggleConfigHandler = async (
 ) => {
   if (!ctx.fromMe) return
   const configName = ctx.args[0]
-  const status = ctx.cmd === 'on'
+  const status = ctx.cmd === 'con'
   if (!configName) {
     ctx.reply(stringId.toggleConfig.usage(ctx))
     return
