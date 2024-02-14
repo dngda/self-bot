@@ -27,14 +27,16 @@ export class PlaywrightBrowser {
   async takeScreenshot(
     url: string,
     filePath: string,
-    viewPort = { width: 1920, height: 1080 }
+    viewPort = { width: 1920, height: 1080 },
+    delay = 0
   ) {
     const page = await this.ctx.newPage()
     await page.setViewportSize(viewPort)
 
     try {
       await page.goto(url)
-      await page.waitForLoadState('networkidle')
+      await page.waitForLoadState()
+      await page.waitForTimeout(delay)
       await page.screenshot({ path: filePath })
       await page.close()
       return true
@@ -48,11 +50,11 @@ export class PlaywrightBrowser {
   async openPage(url: string) {
     const page = await this.ctx.newPage()
     await page.goto(url)
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState()
     return page
   }
 
-  async scrapeSSyoutube(url: string) {
+  async getSocialVideo(url: string) {
     const page = await this.openPage('https://ssyoutube.com/')
 
     // Handle the response separately

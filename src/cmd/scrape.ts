@@ -163,7 +163,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
     instagramPattern.exec(url) ??
     []
 
-  const result = await browser.scrapeSSyoutube(urls[0])
+  const result = await browser.getSocialVideo(urls[0])
   const duration = getDuration(result)
 
   await ctx.replyContent({
@@ -177,7 +177,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
 
 async function twitter(url: string, ctx: MessageContext) {
   const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
-  const result = await browser.scrapeSSyoutube(urls[0])
+  const result = await browser.getSocialVideo(urls[0])
   if (result.message) throw new Error(JSON.stringify(result))
   const resultUrls = result.url.sort((a: any, b: any) => {
     return Number(a.quality) - Number(b.quality)
@@ -207,7 +207,7 @@ async function youtube(url: string, ctx: MessageContext) {
     youtubeShortPattern.exec(url) ??
     youtubeShortsPattern.exec(url) ??
     []
-  const result = await browser.scrapeSSyoutube(urls[0])
+  const result = await browser.getSocialVideo(urls[0])
   const duration = getDuration(result)
 
   if (duration / 60 > 10) throw new Error(stringId.videodl.error.maxDuration)
