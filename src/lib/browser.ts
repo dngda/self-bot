@@ -28,15 +28,14 @@ export class PlaywrightBrowser {
     url: string,
     filePath: string,
     viewPort = { width: 1920, height: 1080 },
-    delay = 0,
-    state = 'networkidle'
+    delay = 0
   ) {
     const page = await this.ctx.newPage()
     await page.setViewportSize(viewPort)
 
     try {
       await page.goto(url)
-      await page.waitForLoadState(state)
+      await page.waitForLoadState('networkidle')
       await page.waitForTimeout(delay)
       await page.screenshot({ path: filePath })
       await page.close()
@@ -59,7 +58,7 @@ export class PlaywrightBrowser {
     const page = await this.openPage('https://ssyoutube.com/')
 
     // Handle the response separately
-    const handleResponse = (page: Page) : Promise<any> => {
+    const handleResponse = (page: Page): Promise<any> => {
       return new Promise((resolve, reject) => {
         page.on('response', async (response: Response) => {
           if (
