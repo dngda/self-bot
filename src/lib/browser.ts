@@ -28,14 +28,15 @@ export class PlaywrightBrowser {
     url: string,
     filePath: string,
     viewPort = { width: 1920, height: 1080 },
-    delay = 0
+    delay = 0,
+    state = 'networkidle'
   ) {
     const page = await this.ctx.newPage()
     await page.setViewportSize(viewPort)
 
     try {
       await page.goto(url)
-      await page.waitForLoadState()
+      await page.waitForLoadState(state)
       await page.waitForTimeout(delay)
       await page.screenshot({ path: filePath })
       await page.close()

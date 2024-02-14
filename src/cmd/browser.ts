@@ -69,7 +69,9 @@ const crjogjaHandler = async (
     .takeScreenshot(
       'http://sipora.staklimyogyakarta.com/radar/',
       'tmp/radar.png',
-      { width: 600, height: 600 }
+      { width: 600, height: 600 },
+      0,
+      'networkidle'
     )
     .then((r) => {
       if (!r) {
