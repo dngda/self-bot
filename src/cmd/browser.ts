@@ -41,7 +41,7 @@ export default function () {
     {
       command: 'crjogja',
       hint: stringId.crjogja.hint,
-      alias: 'crj',
+      alias: 'cj',
       type: 'browser',
     },
     {

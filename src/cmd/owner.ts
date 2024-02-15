@@ -70,6 +70,9 @@ let var1, var2, var3, var4, var5, var6, var7, var8, var9, var10
 
 const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
   if (!ctx.fromMe) return null
+  if (ctx.cmd == 'eval') {
+    _wa.sendMessage(ctx.from, { edit: _msg.key, text: '_Evaluating..._' })
+  }
   ctx.reactSuccess()
   return eval(`(async () => { ${ctx.arg} })()`)
 }
