@@ -6,6 +6,7 @@ import { actions } from '../handler'
 import { menu } from '../menu'
 import axios from 'axios'
 import fs from 'fs'
+import { mp3ToOpus } from '../lib'
 
 export default function () {
   Object.assign(actions, {
@@ -228,11 +229,18 @@ const getAyatSurahDataAndSend = async (
     const sdata = result.data.data
 
     if (cmd === 'recite') {
-      await ctx.replyContent({
-        audio: { url: sdata.audio.primary },
-        mimetype: 'audio/mp3',
-        ptt: true,
-      })
+      const path = `./tmp/${sdata.number.inQuran}.mp3`
+      const pathConverted = `./tmp/${sdata.number.inQuran}.opus`
+      if (!fs.existsSync(pathConverted)) {
+        const audio = await get(sdata.audio.primary, {
+          responseType: 'arraybuffer',
+        })
+        fs.writeFileSync(path, audio.data)
+
+        const opus = await mp3ToOpus(path, pathConverted)
+
+        await ctx.replyVoiceNote(opus)
+      }
     }
 
     const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`

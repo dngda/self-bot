@@ -48,18 +48,22 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
   })
 }
 
-export const mp3ToOpus = async (path: string): Promise<string> => {
-  let i = 1
-  while (fs.existsSync(`tmp/audio${i}.opus`)) {
-    i++
+export const mp3ToOpus = async (path: string, target = ''): Promise<string> => {
+  let _target = target
+  if (!_target) {
+    let i = 1
+    while (fs.existsSync(`tmp/audio${i}.opus`)) {
+      i++
+    }
+    _target = `tmp/audio${i}.opus`
   }
 
   return new Promise((resolve, reject) => {
     ffmpeg(path)
       .audioCodec('libopus')
-      .save(`tmp/audio${i}.opus`)
+      .save(_target)
       .on('end', () => {
-        resolve(`tmp/audio${i}.opus`)
+        resolve(_target)
       })
       .on('error', (err) => {
         reject(err)
@@ -79,7 +83,7 @@ export const gifToMp4 = async (buffer: Buffer): Promise<string> => {
       .outputOptions(['-movflags faststart', '-pix_fmt yuv420p'])
       .save(`tmp/sticker${i}.mp4`)
       .on('end', () => {
-        fs.unlink(`tmp/sticker${i}.gif`, _ => _)
+        fs.unlink(`tmp/sticker${i}.gif`, (_) => _)
         resolve(`tmp/sticker${i}.mp4`)
       })
       .on('error', (err) => {
