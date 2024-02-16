@@ -229,8 +229,8 @@ const getAyatSurahDataAndSend = async (
     const sdata = result.data.data
 
     if (cmd === 'recite') {
-      const path = `./tmp/${sdata.number.inQuran}.mp3`
-      const pathConverted = `./tmp/${sdata.number.inQuran}.opus`
+      const path = `./tmp/ayat/${sdata.number.inQuran}.mp3`
+      const pathConverted = `./tmp/ayat/${sdata.number.inQuran}.opus`
       if (!fs.existsSync(pathConverted)) {
         const audio = await get(sdata.audio.primary, {
           responseType: 'arraybuffer',
@@ -240,6 +240,9 @@ const getAyatSurahDataAndSend = async (
         const opus = await mp3ToOpus(path, pathConverted)
 
         await ctx.replyVoiceNote(opus)
+        fs.unlink(path, () => {})
+      }else{
+        await ctx.replyVoiceNote(pathConverted)
       }
     }
 
