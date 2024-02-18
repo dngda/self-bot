@@ -101,8 +101,9 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
     }
     menuMsg += '\n╚══✪\n'
   }
-  menuMsg += `\nPerhitungan mathjs gunakan prefiks '='`
-  menuMsg += `\n(cth: =10x1+2)\n`
+  menuMsg += `\n-> Perhitungan matematika pake prefix '='`
+  menuMsg += `\n\t\t(cth: =10x1+2)\n`
+  menuMsg += `\n-> Quote pesan perintah dengan '-r' untuk mengulang perintah\n`
   if (!ctx.fromMe) {
     menuMsg += `\nCode: https://github.com/dngda/self-bot `
     menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`

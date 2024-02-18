@@ -44,7 +44,10 @@ export default function () {
       `Set prefix dengan: ${ctx.prefix}setp <prefix>
 ➡️ Contoh: ${ctx.prefix}setp !`,
     success: (prefix: string) =>
-      `✅ Prefix berhasil diubah menjadi "${prefix}"`,
+      `✅ Prefix berhasil diubah menjadi "${prefix}"
+➡️ Coba kirimkan: *${prefix}help*
+➡️ Reset prefix dengan: *${ctx.prefix}resetprefix*
+Cek prefix aktif dengan: *cekprefix*`,
     reseted: '✅ Prefix berhasil direset',
   }
 
