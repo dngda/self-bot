@@ -17,22 +17,28 @@ import fs from 'fs'
 
 export interface BotConfig {
   [index: string]: any
-  publicModeChats: string[]
+  allowedChats: string[]
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
   norevoke: boolean
   oneview: boolean
 }
 
 export let config: BotConfig = {
-  publicModeChats: [],
+  allowedChats: [],
   stickerCommands: {},
   norevoke: false,
   oneview: false,
+  public: false,
 }
 
 if (fs.existsSync('./data/config.json')) {
   const conf = fs.readFileSync('./data/config.json', 'utf-8')
   if (conf != '') config = JSON.parse(conf)
+  if (!config.allowedChats) config.allowedChats = []
+  if (!config.stickerCommands) config.stickerCommands = {}
+  if (!config.norevoke) config.norevoke = false
+  if (!config.oneview) config.oneview = false
+  if (!config.public) config.public = false
 }
 
 export const updateConfig = () => {
@@ -64,7 +70,7 @@ export const messageHandler = async (
     )
     const ctx = await serializeMessage(waSocket, msg)
     try {
-      if (msg.key.fromMe || isAllowedChat(ctx)) {
+      if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
         noPrefixHandler(waSocket, msg, ctx)
 
         const cmd = getCommand(ctx.cmd) as string
@@ -91,7 +97,7 @@ export const messageHandler = async (
 }
 
 const isAllowedChat = (ctx: MessageContext) =>
-  config?.publicModeChats.includes(ctx.from)
+  config?.allowedChats.includes(ctx.from)
 const isStatusMessage = (msg: WAMessage) =>
   msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
   msg.key.remoteJid == 'status@broadcast'

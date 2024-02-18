@@ -16,7 +16,7 @@ export default function () {
     hint: '⚙️ _Toggle public mode pada chat ini_',
     info: (isPublic: boolean, prefix: string) =>
       isPublic
-        ? `🍻 Public-mode aktif, semua partisipan akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
+        ? `🍻 Chat public-mode aktif, semua partisipan akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
         : `🤳🏼 Self-mode aktif`,
   }
 
@@ -51,9 +51,12 @@ export default function () {
   stringId.toggleConfig = {
     hint: '⚙️ _Toggle config_',
     usage: (ctx: MessageContext) =>
-      `Toggle config dengan: ${ctx.prefix}on <config> / off <config>
-Config: public, norevoke, oneview
-➡️ Contoh: ${ctx.prefix}on norevoke`,
+      `Toggle config dengan: ${ctx.prefix}con <config> / coff <config>
+Config:
+- public: allow global chat to use bot
+- norevoke: The revoked message will be forwarded to the owner.
+- oneview: The OneView message will be forwarded and showed to the owner.
+➡️ Contoh: ${ctx.prefix}con norevoke`,
     success: (config: string, status: boolean) =>
       `✅ Config "${config}" berhasil diubah menjadi "${status}"`,
   }
@@ -92,14 +95,14 @@ const togglePublicHandler = async (
   ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return
-  let isPublic = config.publicModeChats.includes(ctx.from)
+  let isPublic = config.allowedChats.includes(ctx.from)
   if (isPublic) {
-    config.publicModeChats = config.publicModeChats.filter(
+    config.allowedChats = config.allowedChats.filter(
       (x: string) => x !== ctx.from
     )
     isPublic = false
   } else {
-    config.publicModeChats.push(ctx.from)
+    config.allowedChats.push(ctx.from)
     isPublic = true
   }
   updateConfig()
@@ -194,15 +197,7 @@ const toggleConfigHandler = async (
     return
   }
 
-  if (configName === 'public') {
-    if (status) {
-      config.publicModeChats.push(ctx.from)
-    } else {
-      config.publicModeChats = config.publicModeChats.filter(
-        (x: string) => x !== ctx.from
-      )
-    }
-  } else if (configName in config) {
+  if (configName in config) {
     config[configName] = status
   } else {
     ctx.reply(stringId.toggleConfig.usage(ctx))
