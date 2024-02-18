@@ -21,6 +21,7 @@ export interface BotConfig {
   stickerCommands: { [index: string]: { cmd: string; arg: string } }
   norevoke: boolean
   oneview: boolean
+  public: boolean
 }
 
 export let config: BotConfig = {
