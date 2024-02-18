@@ -198,11 +198,12 @@ const storeMessageData = (msg: WAMessage) => {
   if (!key) return null
   if (msg.message?.protocolMessage) return null
 
-  storeMessage(key.id!, (msg.messageTimestamp! as number), msg.message!)
+  storeMessage(key.id!, msg.messageTimestamp! as number, msg.message!)
   return true
 }
 
 const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
+  if (msg.key.fromMe) return null
   if (
     msg.message?.protocolMessage?.type ==
     proto.Message.ProtocolMessage.Type.REVOKE
@@ -239,6 +240,7 @@ const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
 }
 
 const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
+  if (msg.key.fromMe) return null
   const viewOnce =
     msg.message?.viewOnceMessage ||
     msg.message?.viewOnceMessageV2 ||
