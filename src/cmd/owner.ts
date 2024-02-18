@@ -14,10 +14,10 @@ export default function () {
   })
 
   stringId.eval = {
-    hint: '_Evaluate JS/TS code_',
+    hint: '_Evaluate JS code_',
   }
   stringId.return = {
-    hint: '_Evaluate JS/TS variable dan return hasilnya_',
+    hint: '_Evaluate variable at runtime dan return hasilnya_',
   }
   stringId.offline = {
     hint: '_Mark bot as offline_',
