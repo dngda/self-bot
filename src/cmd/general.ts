@@ -117,9 +117,9 @@ const hideTagHandler = async (
   _msg: WAMessage,
   ctx: MessageContext
 ) => {
-  const { arg, from, isGroup, expiration } = ctx
+  const { arg, from, isGroup, expiration, isQuoted } = ctx
   if (!isGroup) throw new Error(stringId.tag.error.nonGroup)
-  if (!arg) throw new Error(stringId.tag.error.noArgs)
+  if (!arg && !isQuoted) throw new Error(stringId.tag.error.noArgs)
 
   await ctx.reactWait()
   const groupMetadata = await wa.groupMetadata(from)
@@ -130,18 +130,38 @@ const hideTagHandler = async (
     if (contact) mentions.push(contact)
   }
 
-  await wa.sendMessage(
-    from,
-    {
-      text: arg,
-      contextInfo: {
-        mentionedJid: mentions,
+  if (isQuoted) {
+    await wa.sendMessage(
+      from,
+      {
+        forward:{
+          key: {
+            id: ctx.contextInfo?.stanzaId,
+          },
+          message: ctx.quotedMsg,
+        },
+        contextInfo: {
+          mentionedJid: mentions,
+        },
       },
-    },
-    {
-      ephemeralExpiration: expiration!,
-    }
-  )
+      {
+        ephemeralExpiration: expiration!,
+      }
+    )
+  } else {
+    await wa.sendMessage(
+      from,
+      {
+        text: arg,
+        contextInfo: {
+          mentionedJid: mentions,
+        },
+      },
+      {
+        ephemeralExpiration: expiration!,
+      }
+    )
+  }
 
   await ctx.reactSuccess()
 }
