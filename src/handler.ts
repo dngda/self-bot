@@ -198,7 +198,7 @@ const storeMessageData = (msg: WAMessage) => {
   if (!key) return null
   if (msg.message?.protocolMessage) return null
 
-  storeMessage(key.id!, msg.messageTimestamp!, msg.message!)
+  storeMessage(key.id!, (msg.messageTimestamp! as number), msg.message!)
   return true
 }
 
