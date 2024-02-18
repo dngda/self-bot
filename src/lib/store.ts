@@ -1,8 +1,9 @@
 import { proto } from '@whiskeysockets/baileys'
 import util from 'util'
+import Long from 'long'
 
 interface StoredMessage {
-  timestamp: number
+  timestamp: number | Long | null
   message: proto.IMessage
 }
 
@@ -10,7 +11,7 @@ const MessageStore = new Map<string, StoredMessage>()
 
 export const storeMessage = (
   id: string,
-  timestamp: number,
+  timestamp: number | Long | null,
   message: proto.IMessage
 ) => {
   MessageStore.set(id, { timestamp, message })
@@ -28,7 +29,7 @@ export const printStore = (...txt: any[]) => {
 setInterval(() => {
   const now = Date.now()
   MessageStore.forEach((value, key) => {
-    if (now - value.timestamp > 1000 * 60 * 60 * 3) {
+    if (now - (value.timestamp! as number) > 1000 * 60 * 60 * 3) {
       MessageStore.delete(key)
     }
   })
