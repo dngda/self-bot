@@ -46,7 +46,7 @@ export default function () {
     success: (prefix: string) =>
       `✅ Prefix berhasil diubah menjadi "${prefix}"
 ➡️ Coba kirimkan: *${prefix}help*
-➡️ Reset prefix dengan: *${ctx.prefix}resetprefix*
+➡️ Reset prefix dengan: *${prefix}resetprefix*
 Cek prefix aktif dengan: *cekprefix*`,
     reseted: '✅ Prefix berhasil direset',
   }
