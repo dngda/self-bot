@@ -84,7 +84,7 @@ export const executeSavedScriptInNote = async (
   _msg: WAMessage,
   ctx: MessageContext
 ) => {
-  const owner = process.env.OWNER_NUMBER
+  const owner = process.env.OWNER_NUMBER!
   const notes = await getNotesNames(owner)
   const scripts = notes.filter((note) => note.startsWith('script_'))
   if (scripts.length == 0) return console.log('No saved script found')
