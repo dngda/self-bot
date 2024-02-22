@@ -79,17 +79,12 @@ const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
   return eval(`(async () => { ${ctx.arg} })()`)
 }
 
-export const executeSavedScriptInNote = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  _ctx: MessageContext
-) => {
-  const owner = process.env.OWNER_NUMBER!
-  const notes = await getNotesNames(owner)
+export const executeSavedScriptInNote = async (_wa: WASocket) => {
+  const notes = await getNotesNames('me')
   const scripts = notes.filter((note) => note.startsWith('script_'))
   if (scripts.length == 0) return console.log('No saved script found')
   for (const script of scripts) {
-    const content = await getNoteContent(owner, script)
+    const content = await getNoteContent('me', script)
     console.log(chalk.red('[CMD]'), 'Executing script:', script)
     await eval(`(async () => { ${content} })()`)
   }

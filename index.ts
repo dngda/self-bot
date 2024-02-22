@@ -15,6 +15,7 @@ import dotenv from 'dotenv'
 import chalk from 'chalk'
 
 import { PlaywrightBrowser } from './src/lib'
+import { executeSavedScriptInNote } from './src/cmd/owner'
 export const browser = new PlaywrightBrowser()
 browser.init()
 
@@ -87,6 +88,8 @@ const startSock = async () => {
         waSocket.sendMessage(process.env.OWNER_NUMBER!, {
           text: '✅ Bot is ready!',
         })
+
+        executeSavedScriptInNote(waSocket)
       }
     }
 
