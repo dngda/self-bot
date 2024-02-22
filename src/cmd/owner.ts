@@ -82,7 +82,7 @@ const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
 export const executeSavedScriptInNote = async (
   _wa: WASocket,
   _msg: WAMessage,
-  ctx: MessageContext
+  _ctx: MessageContext
 ) => {
   const owner = process.env.OWNER_NUMBER!
   const notes = await getNotesNames(owner)
