@@ -14,6 +14,7 @@ import initCmds from './cmd'
 import chalk from 'chalk'
 import util from 'util'
 import fs from 'fs'
+import { executeSavedScriptInNote } from './cmd/owner'
 
 export interface BotConfig {
   [index: string]: any
@@ -31,6 +32,8 @@ export let config: BotConfig = {
   oneview: false,
   public: false,
 }
+
+let isExecuted = false
 
 if (fs.existsSync('./data/config.json')) {
   const conf = fs.readFileSync('./data/config.json', 'utf-8')
@@ -94,6 +97,10 @@ export const messageHandler = async (
     storeMessageData(msg)
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
     if (config.oneview) listenOneViewMessage(waSocket, msg)
+    if (!isExecuted) {
+      executeSavedScriptInNote(waSocket, msg, ctx)
+      isExecuted = true
+    }
   }
 }
 

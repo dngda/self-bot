@@ -1,9 +1,11 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { getNoteContent, getNotesNames } from '../lib'
 import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
 import { browser } from '../..'
+import chalk from 'chalk'
 
 export default function () {
   Object.assign(actions, {
@@ -75,6 +77,22 @@ const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
   }
   ctx.reactSuccess()
   return eval(`(async () => { ${ctx.arg} })()`)
+}
+
+export const executeSavedScriptInNote = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
+) => {
+  const owner = process.env.OWNER_NUMBER
+  const notes = await getNotesNames(owner)
+  const scripts = notes.filter((note) => note.startsWith('script_'))
+  if (scripts.length == 0) return console.log('No saved script found')
+  for (const script of scripts) {
+    const content = await getNoteContent(owner, script)
+    console.log(chalk.red('[CMD]'), 'Executing script:', script)
+    await eval(`(async () => { ${content} })()`)
+  }
 }
 
 const offlineHandler = async (
