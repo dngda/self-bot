@@ -60,7 +60,7 @@ export default function () {
 const evalJSON = async (
   _wa: WASocket,
   _msg: WAMessage,
-  ctx: MessageContext
+  _ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return null
   ctx.reactSuccess()
