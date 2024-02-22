@@ -62,9 +62,9 @@ const evalJSON = async (
   _msg: WAMessage,
   _ctx: MessageContext
 ) => {
-  if (!ctx.fromMe) return null
-  ctx.reactSuccess()
-  return await ctx.reply(JSON.stringify(eval(ctx.arg), null, 2))
+  if (!_ctx.fromMe) return null
+  _ctx.reactSuccess()
+  return await _ctx.reply(JSON.stringify(eval(_ctx.arg), null, 2))
 }
 
 /* @ts-expect-error : reserved variables for eval */
