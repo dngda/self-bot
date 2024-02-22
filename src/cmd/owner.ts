@@ -81,7 +81,7 @@ const evalJS = async (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
 
 export const executeSavedScriptInNote = async (_wa: WASocket) => {
   const notes = await getNotesNames('me')
-  const scripts = notes.filter((note) => note.startsWith('script_'))
+  const scripts = notes.filter((note) => note.startsWith('#script_'))
   if (scripts.length == 0) return console.log('No saved script found')
   for (const script of scripts) {
     const content = await getNoteContent('me', script)
