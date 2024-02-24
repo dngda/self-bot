@@ -278,7 +278,14 @@ async function handleAddNoteCommand(
     const mediaData = ctx.isQuoted
       ? await ctx.downloadQuoted()
       : await ctx.download()
-    const ext = ctx.isVideo ? 'mp4' : 'jpg'
+    let ext
+    if (ctx.isVideo) {
+      ext = 'mp4'
+      note = quotedMsg?.videoMessage?.caption || ''
+    } else {
+      ext = 'jpg'
+      note = quotedMsg?.imageMessage?.caption || ''
+    }
     const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
     writeFileSync(path, mediaData)
 
@@ -319,7 +326,14 @@ async function handleEditNoteCommand(
     const mediaData = ctx.isQuoted
       ? await ctx.downloadQuoted()
       : await ctx.download()
-    const ext = ctx.isVideo ? 'mp4' : 'jpg'
+    let ext
+    if (ctx.isVideo) {
+      ext = 'mp4'
+      note = quotedMsg?.videoMessage?.caption || ''
+    } else {
+      ext = 'jpg'
+      note = quotedMsg?.imageMessage?.caption || ''
+    }
     const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
     writeFileSync(path, mediaData)
 
