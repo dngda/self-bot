@@ -6,11 +6,11 @@ import {
 } from '@whiskeysockets/baileys'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import ocrApi from 'ocr-space-api-wrapper'
+import { unlink, writeFileSync } from 'fs'
 import { MessageContext } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
 import { Readable } from 'stream'
-import { unlink } from 'fs'
 import { menu } from '../menu'
 import sharp from 'sharp'
 import {
@@ -274,8 +274,21 @@ async function handleAddNoteCommand(
     if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
   }
-  await createNote(id, noteName, note)
-  ctx.reply('📝 Catatan berhasil disimpan!')
+  if (ctx.isMedia) {
+    const mediaData = ctx.isQuoted
+      ? await ctx.downloadQuoted()
+      : await ctx.download()
+    const ext = ctx.isVideo ? 'mp4' : 'jpg'
+    const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
+    writeFileSync(path, mediaData)
+
+    await createNote(id, noteName, note, path)
+  }
+  {
+    await createNote(id, noteName, note)
+  }
+
+  return ctx.reply('📝 Catatan berhasil disimpan!')
 }
 
 async function handleDeleteNoteCommand(
@@ -283,9 +296,9 @@ async function handleDeleteNoteCommand(
   noteName: string,
   ctx: MessageContext
 ) {
-  const res = await deleteNote(id, noteName)
-  if (!res) return ctx.reply(stringId.note.error.noNote)
-  ctx.reply('🗑️ Catatan berhasil dihapus!')
+  const mediaPath = await deleteNote(id, noteName)
+  if (mediaPath) unlink(mediaPath, (_) => _)
+  return ctx.reply('🗑️ Catatan berhasil dihapus!')
 }
 
 async function handleEditNoteCommand(
@@ -303,9 +316,21 @@ async function handleEditNoteCommand(
     if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
     note = args.slice(1).join(' ')
   }
-  const res = await updateNoteContent(id, noteName, note)
-  if (!res) return ctx.reply(stringId.note.error.noNote)
-  ctx.reply('✏️ Catatan berhasil diedit!')
+  if (ctx.isMedia) {
+    const mediaData = ctx.isQuoted
+      ? await ctx.downloadQuoted()
+      : await ctx.download()
+    const ext = ctx.isVideo ? 'mp4' : 'jpg'
+    const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
+    writeFileSync(path, mediaData)
+
+    const res = await updateNoteContent(id, noteName, note, path)
+    if (!res) return ctx.reply(stringId.note.error.noNote)
+  } else {
+    const res = await updateNoteContent(id, noteName, note)
+    if (!res) return ctx.reply(stringId.note.error.noNote)
+  }
+  return ctx.reply('✏️ Catatan berhasil diedit!')
 }
 
 const toMp3Handler = async (

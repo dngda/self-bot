@@ -27,16 +27,25 @@ const Note = sequelize.define('note', {
     type: new DataTypes.TEXT(),
     allowNull: false,
   },
+  media: {
+    type: new DataTypes.STRING(128),
+    allowNull: true,
+  },
 })
 
 export async function initNoteDatabase() {
   console.log(chalk.yellow('Initializing database...'))
-  await sequelize.sync()
+  await sequelize.sync({ alter: true })
   console.log(chalk.green('Database synced!'))
 }
 
-export async function createNote(from: string, title: string, content: string) {
-  const note = await Note.create({ from, title, content })
+export async function createNote(
+  from: string,
+  title: string,
+  content: string,
+  media?: string
+) {
+  const note = await Note.create({ from, title, content, media })
   return note.toJSON()
 }
 
@@ -50,20 +59,22 @@ export async function getNotesNames(from: string) {
 
 export async function getNoteContent(from: string, title: string) {
   const note = await Note.findOne({ where: { from, title } })
-  return note?.toJSON().content
+  return note?.toJSON()
 }
 
 export async function updateNoteContent(
   from: string,
   title: string,
-  content: string
+  content: string,
+  media?: string
 ) {
-  const note = await Note.update({ content }, { where: { from, title } })
+  const note = await Note.update({ content, media }, { where: { from, title } })
   return note[0] > 0
 }
 
 export async function deleteNote(from: string, title: string) {
   const note = await Note.findOne({ where: { from, title } })
+  const hasMedia = note?.toJSON().media
   await note?.destroy()
-  return note?.toJSON()
+  return hasMedia
 }
