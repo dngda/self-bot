@@ -56,6 +56,7 @@ export default function () {
     hint: '📝 _Database catatan_',
     error: {
       noNote: '‼️ Catatan tidak ditemukan!',
+      duplicate: '‼️ Error atau Catatan dengan nama tersebut sudah ada!',
     },
     usage: (ctx: MessageContext) =>
       `📝 Simpan catatan dengan cara ➡️ ${ctx.prefix}addnote #nama <catatan>`,
@@ -252,9 +253,9 @@ const noteHandler = async (
 async function handleNoteCommand(id: string, ctx: MessageContext) {
   const note = await getNotesNames(id)
   if (note.length == 0) return ctx.reply(stringId.note.error.noNote)
-  let noteList = '📝 Daftar catatanmu:\n'
+  let noteList = '📝 Note List:\n'
   note.forEach((n) => {
-    noteList += `- ${n}\n`
+    noteList += `> ${n}\n`
   })
   ctx.reply(noteList.replace(/\n$/, ''))
 }
@@ -289,9 +290,11 @@ async function handleAddNoteCommand(
     const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
     writeFileSync(path, mediaData)
 
-    await createNote(id, noteName, note, path)
+    const res = await createNote(id, noteName, note, path)
+    if (!res) return ctx.reply(stringId.note.error.duplicate)
   } else {
-    await createNote(id, noteName, note)
+    const res = await createNote(id, noteName, note)
+    if (!res) return ctx.reply(stringId.note.error.duplicate)
   }
 
   return ctx.reply('📝 Catatan berhasil disimpan!')

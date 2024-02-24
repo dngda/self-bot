@@ -40,8 +40,13 @@ export async function createNote(
   content: string,
   media?: string
 ) {
-  const note = await Note.create({ from, title, content, media })
-  return note.toJSON()
+  const note = await Note.create({ from, title, content, media }).catch(
+    (error) => {
+      console.log(chalk.red('[ERR]'), error)
+      return null
+    }
+  )
+  return note?.toJSON()
 }
 
 export async function getNotesNames(from: string) {
