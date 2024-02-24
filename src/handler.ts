@@ -111,7 +111,19 @@ const handleNoteCommand = async (ctx: MessageContext) => {
   const { fromMe, participant, from, body, reply } = ctx
   const id = fromMe ? 'me' : participant ?? from
   const note = await getNoteContent(id, body as string)
-  if (note) reply(note)
+  if (note) {
+    if (note.media) {
+      const media = fs.readFileSync(note.media)
+      if (note.media.endsWith('.mp4')) {
+        await ctx.replyContent({ video: media, caption: note.content })
+      }
+      if (note.media.endsWith('.jpg')) {
+        await ctx.replyContent({ image: media, caption: note.content })
+      }
+    } else {
+      await reply(note.content)
+    }
+  }
 }
 
 const handleRepeatCommand = async (

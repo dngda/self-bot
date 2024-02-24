@@ -84,7 +84,7 @@ export const executeSavedScriptInNote = async (_wa: WASocket) => {
   const scripts = notes.filter((note) => note.startsWith('#script_'))
   if (scripts.length == 0) return console.log('No saved script found')
   for (const script of scripts) {
-    const content = await getNoteContent('me', script)
+    const { content } = await getNoteContent('me', script)
     console.log(chalk.cyan('[CMD]'), 'Executing script:', script)
     await eval(`(async () => { ${content} })()`)
   }
