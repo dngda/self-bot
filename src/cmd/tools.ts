@@ -255,7 +255,7 @@ async function handleNoteCommand(id: string, ctx: MessageContext) {
   if (note.length == 0) return ctx.reply(stringId.note.error.noNote)
   let noteList = '📝 Note List:\n'
   note.forEach((n) => {
-    noteList += `> ${n}\n`
+    noteList += `${n}\n`
   })
   ctx.reply(noteList.replace(/\n$/, ''))
 }
@@ -297,7 +297,7 @@ async function handleAddNoteCommand(
     if (!res) return ctx.reply(stringId.note.error.duplicate)
   }
 
-  return ctx.reply('📝 Catatan berhasil disimpan!')
+  return ctx.reply('📝 Note saved!')
 }
 
 async function handleDeleteNoteCommand(
@@ -307,7 +307,7 @@ async function handleDeleteNoteCommand(
 ) {
   const mediaPath = await deleteNote(id, noteName)
   if (mediaPath) unlink(mediaPath, (_) => _)
-  return ctx.reply('🗑️ Catatan berhasil dihapus!')
+  return ctx.reply('🗑️ Note deleted!')
 }
 
 async function handleEditNoteCommand(
@@ -346,7 +346,7 @@ async function handleEditNoteCommand(
     const res = await updateNoteContent(id, noteName, note)
     if (!res) return ctx.reply(stringId.note.error.noNote)
   }
-  return ctx.reply('✏️ Catatan berhasil diedit!')
+  return ctx.reply('✏️ Note edited!')
 }
 
 const toMp3Handler = async (
