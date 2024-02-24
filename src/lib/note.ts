@@ -8,20 +8,15 @@ const sequelize = new Sequelize({
 })
 
 const Note = sequelize.define('note', {
-  id: {
-    type: new DataTypes.INTEGER(),
-    autoIncrement: true,
-    primaryKey: true,
-  },
   from: {
     type: new DataTypes.STRING(128),
     key: 'from',
-    allowNull: false,
+    primaryKey: true,
   },
   title: {
     type: new DataTypes.STRING(128),
     key: 'title',
-    allowNull: false,
+    primaryKey: true,
   },
   content: {
     type: new DataTypes.TEXT(),

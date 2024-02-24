@@ -283,8 +283,7 @@ async function handleAddNoteCommand(
     writeFileSync(path, mediaData)
 
     await createNote(id, noteName, note, path)
-  }
-  {
+  } else {
     await createNote(id, noteName, note)
   }
 
