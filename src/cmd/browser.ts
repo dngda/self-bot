@@ -96,7 +96,7 @@ const ddgSearchHandler = async (
   msg: WAMessage,
   ctx: MessageContext
 ) => {
-  if (ctx.args.length === 0) return ctx.reply(stringId.gs.usage(ctx))
+  if (ctx.args[0] == '') return ctx.reply(stringId.gs.usage(ctx))
   ctx.reactWait()
   const query = ctx.args.join(' ')
   const url = `https://duckduckgo.com/?q=${encodeURIComponent(
@@ -129,7 +129,7 @@ const googleSearchHandler = async (
   msg: WAMessage,
   ctx: MessageContext
 ) => {
-  if (ctx.args.length === 0) return ctx.reply(stringId.ddg.usage(ctx))
+  if (ctx.args[0] == '') return ctx.reply(stringId.ddg.usage(ctx))
   ctx.reactWait()
   const query = ctx.args.join(' ')
   const url = `https://www.google.com/search?client=firefox-b-d&q=${encodeURIComponent(

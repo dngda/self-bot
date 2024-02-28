@@ -216,7 +216,6 @@ const noteHandler = async (
   ctx: MessageContext
 ) => {
   const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = ctx
-  if (args.length === 0) return ctx.reply(stringId.note.usage(ctx))
   const noteName = args[0].toLowerCase().startsWith('#')
     ? args[0].toLowerCase()
     : `#${args[0].toLowerCase()}`
@@ -413,7 +412,6 @@ const ocrHandler = async (
 ) => {
   const { isQuotedImage, isImage, download, downloadQuoted, args } = ctx
   if (!isImage && !isQuotedImage) throw new Error(stringId.ocr.error.noImage)
-  if (args.length === 0) return ctx.reply(stringId.ocr.usage(ctx))
   ctx.reactWait()
   const mediaData = isQuotedImage ? await downloadQuoted() : await download()
 
@@ -432,7 +430,7 @@ const gttsHandler = async (
   ctx: MessageContext
 ) => {
   const { args, arg, replyVoiceNote, reactWait, reactSuccess } = ctx
-  if (args.length == 0) return ctx.reply(stringId.say.usage(ctx))
+  if (arg == '') return ctx.reply(stringId.say.usage(ctx))
 
   let lang = 'id'
   let text = arg

@@ -35,8 +35,7 @@ export default function () {
     hint: '_Get status from contact._',
     usage: (prefix: string) => `${prefix}gs <number>`,
     error: {
-      invalidNumber: 'Invalid number',
-      notFound: 'Contact not found',
+      notFound: '🫙 Status update not found',
     },
   }
 
@@ -129,7 +128,7 @@ const getStatusHandler = async (
   ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return null
-  if (ctx.args.length == 0) {
+  if (ctx.args[0] == '') {
     return ctx.reply(stringId.getStatus.usage(ctx.prefix))
   }
 
