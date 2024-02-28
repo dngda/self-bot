@@ -6,6 +6,7 @@ import { actions } from '../handler'
 import { menu } from '../menu'
 import { browser } from '../..'
 import chalk from 'chalk'
+import { getStatus } from '../lib/store'
 
 export default function () {
   Object.assign(actions, {
@@ -13,6 +14,7 @@ export default function () {
     return: evalJSON,
     offline: offlineHandler,
     rbrowser: refreshBrowserHandler,
+    gs: getStatusHandler,
   })
 
   stringId.eval = {
@@ -27,6 +29,15 @@ export default function () {
 
   stringId.refreshBrowser = {
     hint: '_Refresh playwright browser context._',
+  }
+
+  stringId.getStatus = {
+    hint: '_Get status from contact._',
+    usage: (prefix: string) => `${prefix}gs <number>`,
+    error: {
+      invalidNumber: 'Invalid number',
+      notFound: 'Contact not found',
+    },
   }
 
   menu.push(
@@ -53,27 +64,29 @@ export default function () {
       hint: stringId.refreshBrowser.hint,
       alias: 'rb',
       type: 'owner',
+    },
+    {
+      command: 'gs',
+      hint: stringId.getStatus.hint,
+      alias: 'getstatus',
+      type: 'owner',
     }
   )
 }
 
-const evalJSON = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  _ctx: MessageContext
-) => {
-  if (!_ctx.fromMe) return null
-  _ctx.reactSuccess()
-  return await _ctx.reply(JSON.stringify(eval(_ctx.arg), null, 2))
+const evalJSON = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
+  if (!_c.fromMe) return null
+  _c.reactSuccess()
+  return await _c.reply(JSON.stringify(eval(_c.arg), null, 2))
 }
 
 /* @ts-expect-error : reserved variables for eval */
 let var1, var2, var3, var4, var5, var6, var7, var8, var9, var10
 
-const evalJS = async (_s: WASocket, _m: WAMessage, _c: MessageContext) => {
+const evalJS = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
   if (!_c.fromMe) return null
   if (_c.cmd == 'eval') {
-    _s.sendMessage(_c.from, { edit: _m.key, text: '_Evaluating..._' })
+    _w.sendMessage(_c.from, { edit: _m.key, text: '_Evaluating..._' })
   }
   _c.reactSuccess()
   return eval(`(async () => { ${_c.arg} })()`)
@@ -108,4 +121,38 @@ const refreshBrowserHandler = async (
   if (!ctx.fromMe) return null
   await browser.refreshContext()
   return ctx.reactSuccess()
+}
+
+const getStatusHandler = async (
+  _wa: WASocket,
+  _msg: WAMessage,
+  ctx: MessageContext
+) => {
+  if (!ctx.fromMe) return null
+  if (ctx.args.length == 0) {
+    return ctx.reply(stringId.getStatus.usage(ctx.prefix))
+  }
+
+  let jid = ctx.args[0]
+  if (jid.startsWith('0')) jid = jid.replace('0', '62')
+  if (!jid.endsWith('@s.whatsapp.net')) jid += '@s.whatsapp.net'
+
+  const status = await getStatus(jid)
+  if (!status) return ctx.reply(stringId.getStatus.error.notFound)
+
+  let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
+  let i = 1
+  for (const stat of status) {
+    message += `${i}. ${
+      stat.message.conversation ||
+      stat.message.extendedTextMessage?.text ||
+      stat.message.imageMessage?.caption ||
+      stat.message.videoMessage?.caption ||
+      '(no caption)'
+    }\n`
+    i++
+  }
+  message += `\nReply this message with number to download status`
+
+  return _wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
 }

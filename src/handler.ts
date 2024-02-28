@@ -2,14 +2,23 @@ import {
   WASocket,
   WAMessage,
   MessageUpsertType,
-  downloadMediaMessage,
   proto,
 } from '@whiskeysockets/baileys'
-import { serializeMessage, MessageContext, logCmd, getPrefix } from './utils'
-import { getMessage, storeMessage } from './lib/store'
-import { getNoteContent } from './lib'
+import {
+  logCmd,
+  getPrefix,
+  MessageContext,
+  serializeMessage,
+  handleNoteCommand,
+  handleRepeatCommand,
+  handleMathEquation,
+  handleStickerCommand,
+  listenDeletedMessage,
+  listenOneViewMessage,
+  handleReplyToStatusList,
+} from './utils'
+import { storeMessage, storeStatus } from './lib/store'
 import { getCommand } from './menu'
-import * as math from 'mathjs'
 import initCmds from './cmd'
 import chalk from 'chalk'
 import util from 'util'
@@ -92,6 +101,7 @@ export const messageHandler = async (
     }
 
     storeMessageData(msg)
+    storeStatusData(msg)
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
     if (config.oneview) listenOneViewMessage(waSocket, msg)
   }
@@ -107,92 +117,6 @@ const isHistorySync = (msg: WAMessage) =>
   proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
 
 // --------------------------------------------------------- //
-const handleNoteCommand = async (ctx: MessageContext) => {
-  const { fromMe, participant, from, body, reply } = ctx
-  const id = fromMe ? 'me' : participant ?? from
-  const note = await getNoteContent(id, body as string)
-  if (note) {
-    if (note.media) {
-      const media = fs.readFileSync(note.media)
-      if (note.media.endsWith('.mp4')) {
-        await ctx.replyContent({ video: media, caption: note.content })
-      }
-      if (note.media.endsWith('.jpg')) {
-        await ctx.replyContent({ image: media, caption: note.content })
-      }
-    } else {
-      await reply(note.content)
-    }
-  }
-}
-
-const handleRepeatCommand = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  ctx: MessageContext
-) => {
-  const quoted = ctx.quotedMsg
-  if (quoted) {
-    const msg: proto.IWebMessageInfo = {
-      key: _msg.key,
-      messageTimestamp: _msg.messageTimestamp,
-      pushName: _msg.pushName,
-      message: quoted,
-    }
-    const quotedData = await serializeMessage(_wa, msg)
-    if (quotedData.isCmd) {
-      const cmd = getCommand(quotedData.cmd) as string
-      if (cmd in actions) {
-        console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', ctx)
-        logCmd(msg, quotedData)
-        await actions[cmd](_wa, quoted, quotedData)
-      }
-    }
-  }
-}
-
-const handleStickerCommand = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  ctx: MessageContext
-) => {
-  const { stickerMessage } = _msg.message ?? {}
-  const stickerSha = stickerMessage?.fileSha256
-    ? Buffer.from(stickerMessage.fileSha256!).toString('base64')
-    : ''
-
-  try {
-    if (stickerSha in config.stickerCommands) {
-      ctx.cmd = config.stickerCommands[stickerSha].cmd
-      ctx.arg = config.stickerCommands[stickerSha].arg
-      ctx.args = ctx.arg.split(' ')
-      const cmd = getCommand(ctx.cmd)
-      await actions[cmd]?.(_wa, _msg, ctx)
-    }
-  } catch (error) {
-    console.error(error)
-  }
-}
-
-const mathHandler = async (ctx: MessageContext) => {
-  const { body } = ctx
-  if (!body?.startsWith('=')) return null
-  const args = body.slice(1)
-  if (!args || args == '') return null
-  if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\([^()]+\)/g.test(args))
-    return null
-  console.log(chalk.blue('[MATH]'), 'Doing =', args)
-  const result = math.evaluate(
-    args
-      .replace(/x/gi, '*')
-      .replace(/×/g, '*')
-      .replace(/÷/g, '/')
-      .replace(/%/g, '/100')
-      .replace('**', '^')
-  )
-  return await ctx.reply(`${result}`)
-}
-
 const noPrefixHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
@@ -206,8 +130,10 @@ const noPrefixHandler = async (
     await handleRepeatCommand(_wa, _msg, ctx)
   } else if (/^cekprefix$/.test(body as string)) {
     await ctx.reply(`Prefix: '${getPrefix()}'`)
+  } else if (/^\d\d?$/.test(body as string)) {
+    await handleReplyToStatusList(_wa, _msg, ctx)
   } else {
-    await mathHandler(ctx)
+    await handleMathEquation(ctx)
     await handleStickerCommand(_wa, _msg, ctx)
   }
 }
@@ -221,99 +147,17 @@ const storeMessageData = (msg: WAMessage) => {
   return true
 }
 
-const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
-  if (msg.key.fromMe) return null
-  if (
-    msg.message?.protocolMessage?.type ==
-    proto.Message.ProtocolMessage.Type.REVOKE
-  ) {
-    const key = msg.message?.protocolMessage?.key
-    if (!key) return null
+const storeStatusData = (msg: WAMessage) => {
+  const key = msg.key
+  if (!key) return null
+  if (msg.message?.protocolMessage) return null
+  if (key.remoteJid != 'status@broadcast') return null
 
-    const _msg = getMessage(key.id!)
-    if (!_msg) return null
-
-    const from = msg.key.participant || msg.key.remoteJid!
-    let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
-    if (msg.key.participant) {
-      const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-      sumber = `from _${subject}_ by @${msg.key.participant!.replace(
-        '@s.whatsapp.net',
-        ''
-      )}`
-    }
-
-    const msgdata = `Deleted msg ${sumber}:`
-
-    await wa.sendMessage(process.env.OWNER_NUMBER!, {
-      text: msgdata,
-      mentions: [from],
-    })
-
-    await wa.sendMessage(process.env.OWNER_NUMBER!, {
-      forward: { key: key, message: _msg?.message },
-      contextInfo: { forwardingScore: 1, isForwarded: true },
-    })
-  }
-  return true
-}
-
-const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
-  if (msg.key.fromMe) return null
-  const viewOnce =
-    msg.message?.viewOnceMessage ||
-    msg.message?.viewOnceMessageV2 ||
-    msg.message?.viewOnceMessageV2Extension ||
-    msg.message?.ephemeralMessage?.message?.viewOnceMessage ||
-    msg.message?.ephemeralMessage?.message?.viewOnceMessageV2 ||
-    msg.message?.ephemeralMessage?.message?.viewOnceMessageV2Extension
-
-  if (!viewOnce) return null
-
-  const from = msg.key.participant || msg.key.remoteJid!
-  let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
-  if (msg.key.participant) {
-    const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-    sumber = `from _${subject}_ by @${msg.key.participant!.replace(
-      '@s.whatsapp.net',
-      ''
-    )}`
-  }
-
-  const msgdata = `One view msg ${sumber}:`
-
-  await wa.sendMessage(process.env.OWNER_NUMBER!, {
-    text: msgdata,
-    mentions: [from],
-  })
-
-  const { message } = viewOnce
-  const { imageMessage, videoMessage } = message as proto.IMessage
-  const caption = imageMessage?.caption || videoMessage?.caption || ''
-  if (imageMessage) {
-    const mediaData = await downloadMediaMessage(
-      { key: msg.key, message: message },
-      'buffer',
-      {}
-    )
-    await wa.sendMessage(process.env.OWNER_NUMBER!, {
-      image: mediaData as Buffer,
-      caption,
-      contextInfo: { forwardingScore: 1, isForwarded: true },
-    })
-  }
-  if (videoMessage) {
-    const mediaData = await downloadMediaMessage(
-      { key: msg.key, message: message },
-      'buffer',
-      {}
-    )
-    await wa.sendMessage(process.env.OWNER_NUMBER!, {
-      video: mediaData as Buffer,
-      caption,
-      contextInfo: { forwardingScore: 1, isForwarded: true },
-    })
-  }
-
+  storeStatus(
+    key,
+    key.remoteJid!,
+    msg.messageTimestamp! as number,
+    msg.message!
+  )
   return true
 }

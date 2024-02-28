@@ -53,7 +53,6 @@ const startSock = async () => {
     msgRetryCounterCache,
     generateHighQualityLinkPreview: true,
     markOnlineOnConnect: false,
-    shouldIgnoreJid: (jid) => jid?.endsWith('@broadcast'),
     getMessage: async (key) => {
       if (store) {
         const msg = await store.loadMessage(key.remoteJid!, key.id!)
