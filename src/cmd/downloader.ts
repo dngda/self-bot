@@ -11,7 +11,7 @@ import chalk from 'chalk'
 export default function () {
   Object.assign(actions, {
     pinterest: pinterestHandler,
-    video: videoHandler,
+    download: videoDownloadHandler,
   })
 
   stringId.pinterest = {
@@ -42,7 +42,7 @@ export default function () {
       type: 'scraper',
     },
     {
-      command: 'video',
+      command: 'download',
       hint: stringId.videodl.hint,
       alias: 'vdl',
       type: 'scraper',
@@ -70,7 +70,7 @@ const pinterestHandler = async (
     for (const image of images) {
       await ctx.replyContent({
         image: { url: image },
-        caption: `Origin: ${image}`,
+        caption: `Origin: ${await tinyUrl(image)}`,
       })
     }
     ctx.reactSuccess()
@@ -87,7 +87,7 @@ const pinterestHandler = async (
 
   return await ctx.replyContent({
     image: { url: image },
-    caption: `Origin: ${image}`,
+    caption: `Origin: ${await tinyUrl(image)}`,
   })
 }
 
@@ -104,21 +104,21 @@ const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
 const getDuration = (result: any) => {
   if (result.meta?.duration) {
-    const timeParts = result.meta.duration.split(':').map(Number);
+    const timeParts = result.meta.duration.split(':').map(Number)
     if (timeParts.length === 2) {
       // Format MM:SS
-      const [minutes, seconds] = timeParts;
-      return minutes * 60 + seconds;
+      const [minutes, seconds] = timeParts
+      return minutes * 60 + seconds
     } else if (timeParts.length === 3) {
       // Format HH:MM:SS
-      const [hours, minutes, seconds] = timeParts;
-      return hours * 3600 + minutes * 60 + seconds;
+      const [hours, minutes, seconds] = timeParts
+      return hours * 3600 + minutes * 60 + seconds
     }
   }
-  return 0;
+  return 0
 }
 
-export const videoHandler = async (
+export const videoDownloadHandler = async (
   _wa: WASocket,
   _msg: WAMessage,
   ctx: MessageContext
@@ -138,10 +138,7 @@ export const videoHandler = async (
     instagramPattern.test(url)
   ) {
     await tiktokReels(url, ctx)
-  } else if (
-    twitterPattern.test(url) || 
-    xPattern.test(url)
-    ) {
+  } else if (twitterPattern.test(url) || xPattern.test(url)) {
     await twitter(url, ctx)
   } else if (
     youtubePattern.test(url) ||
@@ -166,11 +163,31 @@ async function tiktokReels(url: string, ctx: MessageContext) {
   const result = await browser.getSocialVideo(urls[0])
   const duration = getDuration(result)
 
-  await ctx.replyContent({
-    video: { url: result.url[0].url },
-    seconds: duration,
-    caption: stringId.videodl.getAudio(ctx),
-  })
+  if (result.length > 1) {
+    let body = ''
+    let i = 1
+    for (const media of result) {
+      body += `📩 ${i}. (${media.url[0].type}) ${await tinyUrl(
+        media.url[0].url
+      )}\n`
+      i++
+    }
+
+    await ctx.reply(body)
+  } else {
+    if (result.url[0].type == 'jpg') {
+      await ctx.replyContent({
+        image: { url: result.url[0].url },
+        caption: `Origin: ${await tinyUrl(result.url[0].url)}`,
+      })
+    } else {
+      await ctx.replyContent({
+        video: { url: result.url[0].url },
+        seconds: duration,
+        caption: stringId.videodl.getAudio(ctx),
+      })
+    }
+  }
 
   ctx.reactSuccess()
 }
@@ -225,7 +242,7 @@ async function youtube(url: string, ctx: MessageContext) {
       selectedQuality = result.url[0].quality
     }
   } catch (error: any) {
-    console.log(chalk.red("[ERR]"), error)
+    console.log(chalk.red('[ERR]'), error)
     await ctx.reactError()
     return ctx.reply(stringId.videodl.error.internalError)
   }
