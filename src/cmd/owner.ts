@@ -36,6 +36,7 @@ export default function () {
       `Get list status: ${prefix}gs <number> atau reply contact`,
     error: {
       notFound: '🫙 Status update not found',
+      invalidJId: '🫙 Invalid JID',
     },
   }
 
@@ -131,12 +132,14 @@ const getStatusHandler = async (
   if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
     return ctx.reply(stringId.getStatus.usage(ctx.prefix))
   }
-  let jid = ctx.args[0]
+  let jid = ctx.arg
+  jid = jid.replace(' ', '')
+  jid = jid.replace(/-/g, '')
 
   const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
   if (vcard) {
     const _jid = vcard.match(/waid=(\d+)/)?.[1]
-    if (!_jid) return ctx.reply(stringId.getStatus.error.notFound)
+    if (!_jid) return ctx.reply(stringId.getStatus.error.invalidJId)
     jid = _jid
   }
 
