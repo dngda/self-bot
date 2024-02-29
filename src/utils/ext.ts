@@ -101,8 +101,9 @@ export const handleReplyToStatusList = async (
   ctx: MessageContext
 ) => {
   if (!msg.key.fromMe) return null
-  if (!ctx.quotedMsg?.conversation?.includes('Status from')) return null
+  if (!ctx.quotedMsg?.extendedTextMessage?.text?.includes('Status from')) return null
 
+  ctx.reactWait()
   const jids = ctx.quotedMsg?.extendedTextMessage?.contextInfo?.mentionedJid
   const jid = jids ? jids[0] : ''
 
@@ -114,6 +115,7 @@ export const handleReplyToStatusList = async (
   const status = statuses[parseInt(ctx.body as string) - 1]
   if (!status) return ctx.reply(stringId.getStatus.error.notFound)
 
+  ctx.reactSuccess()
   await wa.sendMessage(ctx.from, {
     forward: { key: status.key!, message: status.message },
     contextInfo: { forwardingScore: 1, isForwarded: true },
