@@ -11,9 +11,9 @@ export default function () {
   Object.assign(actions, {
     eval: evalJS,
     return: evalJSON,
+    gs: getStatusHandler,
     offline: offlineHandler,
     rbrowser: refreshBrowserHandler,
-    gs: getStatusHandler,
   })
 
   stringId.eval = {
@@ -32,7 +32,7 @@ export default function () {
 
   stringId.getStatus = {
     hint: '_Get status from contact._',
-    usage: (prefix: string) => `${prefix}gs <number>`,
+    usage: (prefix: string) => `Get list status: ${prefix}gs <number> atau reply contact`,
     error: {
       notFound: '🫙 Status update not found',
     },
@@ -127,11 +127,18 @@ const getStatusHandler = async (
   ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return null
-  if (ctx.args[0] == '') {
+  if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
     return ctx.reply(stringId.getStatus.usage(ctx.prefix))
   }
-
   let jid = ctx.args[0]
+
+  const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
+  if (vcard) {
+    const _jid = vcard.match(/(?<=\nTEL;waid=)(\d+)(?=\n)/)?.[0]
+    if (!_jid) return ctx.reply(stringId.getStatus.error.notFound)
+    jid = _jid
+  }
+
   if (jid.startsWith('0')) jid = jid.replace('0', '62')
   if (!jid.endsWith('@s.whatsapp.net')) jid += '@s.whatsapp.net'
 

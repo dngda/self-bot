@@ -14,7 +14,7 @@ let StatusStore = new Map<string, StoredMessage[]>()
 if (!fs.existsSync('data/status.json')) {
   fs.writeFileSync('data/status.json', '{}', 'utf-8')
 }
-StatusStore = JSON.parse(fs.readFileSync('status.json', 'utf-8')) as Map<
+StatusStore = JSON.parse(fs.readFileSync('data/status.json', 'utf-8')) as Map<
   string,
   StoredMessage[]
 >
@@ -80,7 +80,7 @@ setInterval(() => {
   })
 }, 1000 * 60 * 60)
 
-// save status every 1 hour
+// save status every 15 minutes
 setInterval(() => {
   fs.writeFileSync('data/status.json', JSON.stringify(StatusStore), 'utf-8')
-}, 1000 * 60 * 60)
+}, 1000 * 60 * 15)
