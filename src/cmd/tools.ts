@@ -254,7 +254,7 @@ async function handleNoteCommand(id: string, ctx: MessageContext) {
   if (note.length == 0) return ctx.reply(stringId.note.error.noNote)
   let noteList = '📝 Note List:\n'
   note.forEach((n) => {
-    noteList += `${n}\n`
+    noteList += `\t\t${n}\n`
   })
   ctx.reply(noteList.replace(/\n$/, ''))
 }
