@@ -144,6 +144,7 @@ const storeMessageData = (msg: WAMessage) => {
 }
 
 const storeStatusData = (msg: WAMessage) => {
+  if (msg.message?.protocolMessage) return null
   if (
     msg.message?.senderKeyDistributionMessage?.groupId != 'status@broadcast' &&
     msg.key.remoteJid != 'status@broadcast'

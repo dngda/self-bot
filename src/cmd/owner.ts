@@ -149,7 +149,13 @@ const getStatusHandler = async (
   let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
   let i = 1
   for (const stat of status) {
-    message += `${i}. ${
+    let mediaType: string
+    if (stat.message.imageMessage) mediaType = 'image'
+    if (stat.message.videoMessage) mediaType = 'video'
+    if (stat.message.audioMessage) mediaType = 'audio'
+    else mediaType = 'text'
+
+    message += `${i}. (${mediaType}) ${
       stat.message.conversation ||
       stat.message.extendedTextMessage?.text ||
       stat.message.imageMessage?.caption ||
