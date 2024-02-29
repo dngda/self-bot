@@ -90,5 +90,10 @@ setInterval(() => {
 
 // save status every 15 minutes
 setInterval(() => {
-  fs.writeFileSync('data/status.json', JSON.stringify(StatusStore), 'utf-8')
+  let obj = Object.create(null)
+  Array.from(StatusStore).forEach((el) => {
+    obj[el[0]] = el[1]
+  })
+
+  fs.writeFileSync('data/status.json', JSON.stringify(obj), 'utf-8')
 }, 1000 * 60 * 15)
