@@ -53,6 +53,7 @@ export interface MessageContext {
   isVideo: boolean | null
   isMedia: boolean | null
   isEphemeral: boolean | null
+  isStatusMessage: boolean | null
 
   config: BotConfig
   download: () => Promise<Buffer>
@@ -184,6 +185,10 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     ctx.isQuotedSticker ||
     ctx.isQuotedDocument
   ctx.isEphemeral = msg.message?.ephemeralMessage != null
+  ctx.isStatusMessage =
+    msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
+    msg.key.remoteJid == 'status@broadcast' ||
+    null
   ctx.expiration = ctx.contextInfo?.expiration
 
   ctx.download = async () => {

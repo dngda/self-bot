@@ -70,7 +70,6 @@ export const messageHandler = async (
   if (type === 'append') return null
 
   for (const msg of messages) {
-    if (isStatusMessage(msg)) return null
     if (isHistorySync(msg))
       return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
     console.log(
@@ -109,9 +108,6 @@ export const messageHandler = async (
 
 const isAllowedChat = (ctx: MessageContext) =>
   config?.allowedChats.includes(ctx.from)
-const isStatusMessage = (msg: WAMessage) =>
-  msg.message?.senderKeyDistributionMessage?.groupId == 'status@broadcast' ||
-  msg.key.remoteJid == 'status@broadcast'
 const isHistorySync = (msg: WAMessage) =>
   msg.message?.protocolMessage?.type ==
   proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
