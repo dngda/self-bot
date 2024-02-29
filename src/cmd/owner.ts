@@ -32,7 +32,8 @@ export default function () {
 
   stringId.getStatus = {
     hint: '_Get status from contact._',
-    usage: (prefix: string) => `Get list status: ${prefix}gs <number> atau reply contact`,
+    usage: (prefix: string) =>
+      `Get list status: ${prefix}gs <number> atau reply contact`,
     error: {
       notFound: '🫙 Status update not found',
     },
@@ -134,7 +135,7 @@ const getStatusHandler = async (
 
   const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
   if (vcard) {
-    const _jid = vcard.match(/(?<=\nTEL;waid=)(\d+)(?=\n)/)?.[0]
+    const _jid = vcard.match(/waid=(\d+)/)[1]
     if (!_jid) return ctx.reply(stringId.getStatus.error.notFound)
     jid = _jid
   }
