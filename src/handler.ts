@@ -144,14 +144,15 @@ const storeMessageData = (msg: WAMessage) => {
 }
 
 const storeStatusData = (msg: WAMessage) => {
-  const key = msg.key
-  if (!key) return null
-  if (msg.message?.protocolMessage) return null
-  if (key.remoteJid != 'status@broadcast') return null
+  if (
+    msg.message?.senderKeyDistributionMessage?.groupId != 'status@broadcast' &&
+    msg.key.remoteJid != 'status@broadcast'
+  )
+    return null
 
   storeStatus(
-    key,
-    key.remoteJid!,
+    msg.key,
+    msg.key.remoteJid!,
     msg.messageTimestamp! as number,
     msg.message!
   )
