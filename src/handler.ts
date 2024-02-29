@@ -152,7 +152,7 @@ const storeStatusData = (msg: WAMessage) => {
 
   storeStatus(
     msg.key,
-    msg.key.remoteJid!,
+    msg.key.participant!,
     msg.messageTimestamp! as number,
     msg.message!
   )
