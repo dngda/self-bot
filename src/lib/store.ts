@@ -14,10 +14,10 @@ let StatusStore = new Map<string, StoredMessage[]>()
 if (!fs.existsSync('data/status.json')) {
   fs.writeFileSync('data/status.json', '{}', 'utf-8')
 }
-StatusStore = JSON.parse(fs.readFileSync('data/status.json', 'utf-8')) as Map<
-  string,
-  StoredMessage[]
->
+
+const statusData = fs.readFileSync('data/status.json', 'utf-8')
+const statusJSON = JSON.parse(statusData)
+StatusStore = new Map(Object.entries(statusJSON))
 
 export const storeMessage = (
   id: string,
