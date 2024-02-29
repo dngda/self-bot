@@ -135,7 +135,7 @@ const getStatusHandler = async (
 
   const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
   if (vcard) {
-    const _jid = vcard.match(/waid=(\d+)/)[1]
+    const _jid = vcard.match(/waid=(\d+)/)?.[1]
     if (!_jid) return ctx.reply(stringId.getStatus.error.notFound)
     jid = _jid
   }
