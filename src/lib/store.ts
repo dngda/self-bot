@@ -46,6 +46,14 @@ export const getStatus = (jid: string) => {
   return StatusStore.get(jid)
 }
 
+export const getStatusList = () => {
+  const data = Array.from(StatusStore).map(([key, value]) => {
+    return { key: key, length: value.length }
+  })
+
+  return data
+}
+
 // for debugging
 export const printStatusStore = (...txt: any[]) => {
   console.log(...txt, util.inspect(StatusStore, false, null, true))

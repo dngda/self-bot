@@ -1,4 +1,4 @@
-import { getNoteContent, getNotesNames, getStatus } from '../lib'
+import { getNoteContent, getNotesNames, getStatus, getStatusList } from '../lib'
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
 import stringId from '../language'
@@ -68,7 +68,7 @@ export default function () {
     {
       command: 'gs',
       hint: stringId.getStatus.hint,
-      alias: 'getstatus',
+      alias: 'gsl',
       type: 'owner',
     }
   )
@@ -132,6 +132,21 @@ const getStatusHandler = async (
   if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
     return ctx.reply(stringId.getStatus.usage(ctx.prefix))
   }
+
+  if (ctx.cmd == 'gpl') {
+    const list = getStatusList()
+
+    let i = 1
+    let msg = ''
+    const mentions: string[] = []
+    list.forEach((el) => {
+      msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${el.length})\n`
+      mentions.push(el.key)
+    })
+
+    return _wa.sendMessage(ctx.from, { text: msg, mentions }, { quoted: _msg })
+  }
+
   let jid = ctx.arg
   jid = jid.replace(' ', '')
   jid = jid.replace(/-/g, '')
