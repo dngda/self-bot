@@ -30,7 +30,7 @@ const Note = sequelize.define('note', {
 
 export async function initNoteDatabase() {
   console.log(chalk.yellow('Initializing database...'))
-  await sequelize.sync({ alter: true })
+  await sequelize.sync()
   console.log(chalk.green('Database synced!'))
 }
 
