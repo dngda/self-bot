@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
-import { apiCall } from '../lib/apicall'
+import { apiCall } from '../lib'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'

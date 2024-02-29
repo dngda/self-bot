@@ -17,7 +17,7 @@ import {
   listenOneViewMessage,
   handleReplyToStatusList,
 } from './utils'
-import { storeMessage, storeStatus } from './lib/store'
+import { storeMessage, storeStatus } from './lib'
 import { getCommand } from './menu'
 import initCmds from './cmd'
 import chalk from 'chalk'

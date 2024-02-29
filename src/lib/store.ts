@@ -1,5 +1,6 @@
 import { proto } from '@whiskeysockets/baileys'
 import util from 'util'
+import fs from 'fs'
 
 interface StoredMessage {
   timestamp: number
@@ -8,7 +9,15 @@ interface StoredMessage {
 }
 
 const MessageStore = new Map<string, StoredMessage>()
-const StatusStore = new Map<string, StoredMessage[]>()
+let StatusStore = new Map<string, StoredMessage[]>()
+
+if (!fs.existsSync('data/status.json')) {
+  fs.writeFileSync('data/status.json', '{}', 'utf-8')
+}
+StatusStore = JSON.parse(fs.readFileSync('status.json', 'utf-8')) as Map<
+  string,
+  StoredMessage[]
+>
 
 export const storeMessage = (
   id: string,
@@ -38,6 +47,10 @@ export const getStatus = (jid: string) => {
 }
 
 // for debugging
+export const printStatusStore = (...txt: any[]) => {
+  console.log(...txt, util.inspect(StatusStore, false, null, true))
+}
+
 export const printMessageStore = (...txt: any[]) => {
   console.log(...txt, util.inspect(MessageStore, false, null, true))
 }
@@ -65,4 +78,9 @@ setInterval(() => {
       StatusStore.set(key, newMessages)
     }
   })
+}, 1000 * 60 * 60)
+
+// save status every 1 hour
+setInterval(() => {
+  fs.writeFileSync('data/status.json', JSON.stringify(StatusStore), 'utf-8')
 }, 1000 * 60 * 60)

@@ -4,7 +4,7 @@ import {
   downloadMediaMessage,
   proto,
 } from '@whiskeysockets/baileys'
-import { getMessage } from '../lib/store'
+import { getMessage } from '../lib'
 
 export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
   if (msg.key.fromMe) return null

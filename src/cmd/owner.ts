@@ -1,12 +1,11 @@
+import { getNoteContent, getNotesNames, getStatus } from '../lib'
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { getNoteContent, getNotesNames } from '../lib'
 import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
 import { browser } from '../..'
 import chalk from 'chalk'
-import { getStatus } from '../lib/store'
 
 export default function () {
   Object.assign(actions, {

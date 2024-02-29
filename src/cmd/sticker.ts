@@ -1,7 +1,7 @@
+import { textToPicture, uploadImage, memegen, gifToMp4 } from '../lib'
 import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
-import { textToPicture, uploadImage, memegen, gifToMp4 } from '../lib'
 import { MessageContext } from '../utils'
 import { actions } from '../handler'
 import stringId from '../language'
