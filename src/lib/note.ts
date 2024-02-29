@@ -9,21 +9,21 @@ const sequelize = new Sequelize({
 
 const Note = sequelize.define('note', {
   from: {
-    type: new DataTypes.STRING(128),
+    type: DataTypes.STRING(128),
     key: 'from',
     primaryKey: true,
   },
   title: {
-    type: new DataTypes.STRING(128),
+    type: DataTypes.STRING(128),
     key: 'title',
     primaryKey: true,
   },
   content: {
-    type: new DataTypes.TEXT(),
+    type: DataTypes.TEXT(),
     allowNull: false,
   },
   media: {
-    type: new DataTypes.STRING(128),
+    type: DataTypes.STRING(128),
     allowNull: true,
   },
 })

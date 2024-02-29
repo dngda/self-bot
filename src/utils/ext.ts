@@ -128,6 +128,6 @@ export const handleReplyToStatusList = async (
   ctx.reactSuccess()
   await wa.sendMessage(ctx.from, {
     forward: { key: status.key!, message: status.message },
-    contextInfo: { forwardingScore: 1, isForwarded: true },
+    contextInfo: { forwardingScore: 2, isForwarded: true },
   })
 }

@@ -45,7 +45,7 @@ export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
 
     await wa.sendMessage(process.env.OWNER_NUMBER!, {
       forward: { key: key, message: _msg?.message },
-      contextInfo: { forwardingScore: 1, isForwarded: true },
+      contextInfo: { forwardingScore: 2, isForwarded: true },
     })
   }
   return true
@@ -92,7 +92,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
     await wa.sendMessage(process.env.OWNER_NUMBER!, {
       image: mediaData as Buffer,
       caption,
-      contextInfo: { forwardingScore: 1, isForwarded: true },
+      contextInfo: { forwardingScore: 2, isForwarded: true },
     })
   }
   if (videoMessage) {
@@ -104,7 +104,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
     await wa.sendMessage(process.env.OWNER_NUMBER!, {
       video: mediaData as Buffer,
       caption,
-      contextInfo: { forwardingScore: 1, isForwarded: true },
+      contextInfo: { forwardingScore: 2, isForwarded: true },
     })
   }
 

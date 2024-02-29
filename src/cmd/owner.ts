@@ -154,8 +154,8 @@ const getStatusHandler = async (
   for (const stat of status) {
     let mediaType: string
     if (stat.message.imageMessage) mediaType = 'image'
-    if (stat.message.videoMessage) mediaType = 'video'
-    if (stat.message.audioMessage) mediaType = 'audio'
+    else if (stat.message.videoMessage) mediaType = 'video'
+    else if (stat.message.audioMessage) mediaType = 'audio'
     else mediaType = 'text'
 
     message += `${i}. (${mediaType}) ${
