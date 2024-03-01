@@ -33,7 +33,8 @@ export default function () {
   stringId.getStatus = {
     hint: '_Get status from contact._',
     usage: (prefix: string) =>
-      `Get list status: ${prefix}gs <number> atau reply contact`,
+      `📑 Get list status: ${prefix}gls
+      \n📑 Get status: ${prefix}gs <number> atau reply contact`,
     error: {
       notFound: '🫙 Status update not found',
       invalidJId: '🫙 Invalid JID',
@@ -68,7 +69,7 @@ export default function () {
     {
       command: 'gs',
       hint: stringId.getStatus.hint,
-      alias: 'gsl',
+      alias: 'gls',
       type: 'owner',
     }
   )
@@ -129,7 +130,7 @@ const getStatusHandler = async (
   ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return null
-  if (ctx.cmd == 'gpl') {
+  if (ctx.cmd == 'gls') {
     const list = getStatusList()
 
     let i = 1
