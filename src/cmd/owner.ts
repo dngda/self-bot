@@ -139,6 +139,7 @@ const getStatusHandler = async (
     list.forEach((el) => {
       msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${el.length})\n`
       mentions.push(el.key)
+      i++
     })
 
     return _wa.sendMessage(ctx.from, { text: msg, mentions }, { quoted: _msg })
