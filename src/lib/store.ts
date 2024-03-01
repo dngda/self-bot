@@ -80,7 +80,7 @@ setInterval(
         const now = Date.now()
         StatusStore.forEach((value, key) => {
             const newMessages = value.filter(
-                (msg) => now - msg.timestamp < 1000 * 60 * 60 * 24
+                (msg) => now - msg.timestamp > 1000 * 60 * 60 * 24
             )
             if (newMessages.length === 0) {
                 StatusStore.delete(key)
