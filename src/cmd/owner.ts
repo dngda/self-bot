@@ -137,7 +137,9 @@ const getStatusHandler = async (
         let msg = 'List Status Update:\n'
         const mentions: string[] = []
         list.forEach((el) => {
-            msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${el.length})\n`
+            msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${
+                el.length
+            })\n`
             mentions.push(el.key)
             i++
         })
@@ -179,7 +181,7 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
     let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
     let i = 1
     for (const stat of status) {
-        const msg = stat.message.message
+        const msg = stat.message
         let mediaType: string
         if (msg?.imageMessage) mediaType = 'image'
         else if (msg?.videoMessage) mediaType = 'video'

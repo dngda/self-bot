@@ -44,7 +44,7 @@ export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
         })
 
         await wa.sendMessage(process.env.OWNER_NUMBER!, {
-            forward: _msg?.message,
+            forward: { key: _msg.key, message: _msg.message },
             contextInfo: { forwardingScore: 2, isForwarded: true },
         })
     }

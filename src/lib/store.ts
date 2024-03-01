@@ -4,7 +4,8 @@ import fs from 'fs'
 
 interface StoredMessage {
     timestamp: number
-    message: proto.IWebMessageInfo
+    message: proto.IMessage
+    key: proto.IMessageKey
 }
 
 const MessageStore = new Map<string, StoredMessage>()
@@ -21,18 +22,20 @@ StatusStore = new Map(Object.entries(statusJSON))
 export const storeMessage = (
     id: string,
     timestamp: number,
-    message: proto.IWebMessageInfo
+    message: proto.IMessage,
+    key: proto.IMessageKey
 ) => {
-    MessageStore.set(id, { timestamp, message })
+    MessageStore.set(id, { timestamp, message, key })
 }
 
 export const storeStatus = (
     jid: string,
     timestamp: number,
-    message: proto.IWebMessageInfo
+    message: proto.IMessage,
+    key: proto.IMessageKey
 ) => {
     const messages = StatusStore.get(jid) || []
-    messages.push({ timestamp, message })
+    messages.push({ timestamp, message, key })
     StatusStore.set(jid, messages)
 }
 
@@ -62,45 +65,36 @@ export const printMessageStore = (...txt: any[]) => {
 }
 
 // clean up 3 hours old messages every 1 hour
-setInterval(
-    () => {
-        const now = Date.now()
-        MessageStore.forEach((value, key) => {
-            if (now - value.timestamp > 1000 * 60 * 60 * 3) {
-                MessageStore.delete(key)
-            }
-        })
-    },
-    1000 * 60 * 60
-)
+setInterval(() => {
+    const now = Date.now()
+    MessageStore.forEach((value, key) => {
+        if (now - value.timestamp > 1000 * 60 * 60 * 3) {
+            MessageStore.delete(key)
+        }
+    })
+}, 1000 * 60 * 60)
 
 // clean up 1 day old status every 1 hour
-setInterval(
-    () => {
-        const now = Date.now()
-        StatusStore.forEach((value, key) => {
-            const newMessages = value.filter(
-                (msg) => now - msg.timestamp > 1000 * 60 * 60 * 24
-            )
-            if (newMessages.length === 0) {
-                StatusStore.delete(key)
-            } else {
-                StatusStore.set(key, newMessages)
-            }
-        })
-    },
-    1000 * 60 * 60
-)
+setInterval(() => {
+    const now = Date.now()
+    StatusStore.forEach((value, key) => {
+        const newMessages = value.filter(
+            (msg) => now - msg.timestamp > 1000 * 60 * 60 * 24
+        )
+        if (newMessages.length === 0) {
+            StatusStore.delete(key)
+        } else {
+            StatusStore.set(key, newMessages)
+        }
+    })
+}, 1000 * 60 * 60)
 
 // save status every 15 minutes
-setInterval(
-    () => {
-        let obj = Object.create(null)
-        Array.from(StatusStore).forEach((el) => {
-            obj[el[0]] = el[1]
-        })
+setInterval(() => {
+    let obj = Object.create(null)
+    Array.from(StatusStore).forEach((el) => {
+        obj[el[0]] = el[1]
+    })
 
-        fs.writeFileSync('data/status.json', JSON.stringify(obj), 'utf-8')
-    },
-    1000 * 60 * 15
-)
+    fs.writeFileSync('data/status.json', JSON.stringify(obj), 'utf-8')
+}, 1000 * 60 * 15)

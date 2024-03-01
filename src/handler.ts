@@ -137,11 +137,14 @@ const noPrefixHandler = async (
 }
 
 const storeMessageData = (msg: proto.IWebMessageInfo) => {
-    const key = msg.key
-    if (!key) return null
     if (msg.message?.protocolMessage) return null
 
-    storeMessage(key.id!, msg.messageTimestamp! as number, msg)
+    storeMessage(
+        msg.key.id!,
+        msg.messageTimestamp! as number,
+        msg.message!,
+        msg.key
+    )
     return true
 }
 
@@ -149,6 +152,11 @@ const storeStatusData = (msg: proto.IWebMessageInfo) => {
     if (msg.message?.protocolMessage) return null
     if (msg.key.remoteJid != 'status@broadcast') return null
 
-    storeStatus(msg.key.participant!, msg.messageTimestamp! as number, msg)
+    storeStatus(
+        msg.key.participant!,
+        msg.messageTimestamp! as number,
+        msg.message!,
+        msg.key!
+    )
     return true
 }

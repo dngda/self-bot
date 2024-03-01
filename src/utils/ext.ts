@@ -128,7 +128,7 @@ export const handleReplyToContactStatusList = async (
 
     await ctx.reactSuccess()
     await wa.sendMessage(ctx.from, {
-        forward: status.message,
+        forward: { key: status.key, message: status.message },
         contextInfo: { forwardingScore: 2, isForwarded: true },
     })
 }
