@@ -9,14 +9,14 @@ import tools from './tools'
 import config from './config'
 
 export default () => {
-  general()
-  sticker()
-  islam()
-  downloader()
-  random()
-  browser()
-  tools()
+    general()
+    sticker()
+    islam()
+    downloader()
+    random()
+    browser()
+    tools()
 
-  config()
-  owner()
+    config()
+    owner()
 }

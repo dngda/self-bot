@@ -1,22 +1,22 @@
 import {
-  WASocket,
-  WAMessage,
-  MessageUpsertType,
-  proto,
+    WASocket,
+    WAMessage,
+    MessageUpsertType,
+    proto,
 } from '@whiskeysockets/baileys'
 import {
-  logCmd,
-  getPrefix,
-  MessageContext,
-  serializeMessage,
-  handleNoteCommand,
-  handleRepeatCommand,
-  handleMathEquation,
-  handleStickerCommand,
-  listenDeletedMessage,
-  listenOneViewMessage,
-  handleReplyToStatusList,
-  handleReplyToContactStatusList,
+    logCmd,
+    getPrefix,
+    MessageContext,
+    serializeMessage,
+    handleNoteCommand,
+    handleRepeatCommand,
+    handleMathEquation,
+    handleStickerCommand,
+    listenDeletedMessage,
+    listenOneViewMessage,
+    handleReplyToStatusList,
+    handleReplyToContactStatusList,
 } from './utils'
 import { storeMessage, storeStatus } from './lib'
 import { getCommand } from './menu'
@@ -26,34 +26,34 @@ import util from 'util'
 import fs from 'fs'
 
 export interface BotConfig {
-  [index: string]: any
-  allowedChats: string[]
-  stickerCommands: { [index: string]: { cmd: string; arg: string } }
-  norevoke: boolean
-  oneview: boolean
-  public: boolean
+    [index: string]: any
+    allowedChats: string[]
+    stickerCommands: { [index: string]: { cmd: string; arg: string } }
+    norevoke: boolean
+    oneview: boolean
+    public: boolean
 }
 
 export let config: BotConfig = {
-  allowedChats: [],
-  stickerCommands: {},
-  norevoke: false,
-  oneview: false,
-  public: false,
+    allowedChats: [],
+    stickerCommands: {},
+    norevoke: false,
+    oneview: false,
+    public: false,
 }
 
 if (fs.existsSync('./data/config.json')) {
-  const conf = fs.readFileSync('./data/config.json', 'utf-8')
-  if (conf != '') config = JSON.parse(conf)
-  if (!config.allowedChats) config.allowedChats = []
-  if (!config.stickerCommands) config.stickerCommands = {}
-  if (!config.norevoke) config.norevoke = false
-  if (!config.oneview) config.oneview = false
-  if (!config.public) config.public = false
+    const conf = fs.readFileSync('./data/config.json', 'utf-8')
+    if (conf != '') config = JSON.parse(conf)
+    if (!config.allowedChats) config.allowedChats = []
+    if (!config.stickerCommands) config.stickerCommands = {}
+    if (!config.norevoke) config.norevoke = false
+    if (!config.oneview) config.oneview = false
+    if (!config.public) config.public = false
 }
 
 export const updateConfig = () => {
-  fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
+    fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
 }
 
 // every handler must have 3 parameters:
@@ -61,94 +61,94 @@ export const actions: { [index: string]: any } = {}
 initCmds()
 
 export const messageHandler = async (
-  waSocket: WASocket,
-  event: {
-    messages: WAMessage[]
-    type: MessageUpsertType
-  }
-) => {
-  const { type, messages } = event
-  if (type === 'append') return null
-
-  for (const msg of messages) {
-    if (isHistorySync(msg))
-      return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
-    console.log(
-      chalk.green('[LOG]'),
-      'RAW Message Received',
-      util.inspect(msg, false, null, true)
-    )
-    const ctx = await serializeMessage(waSocket, msg)
-    try {
-      if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
-        noPrefixHandler(waSocket, msg, ctx)
-
-        const cmd = getCommand(ctx.cmd) as string
-        if (ctx.isCmd && cmd in actions) {
-          console.log(
-            chalk.green('[CTX]'),
-            'Serialized CMD Message Context:',
-            util.inspect(ctx, false, null, true)
-          )
-          logCmd(msg, ctx)
-          await actions[cmd](waSocket, msg, ctx)
-        }
-      }
-    } catch (error: any) {
-      console.log(error)
-      ctx.reply(`${error}`)
-      ctx.reactError()
+    waSocket: WASocket,
+    event: {
+        messages: WAMessage[]
+        type: MessageUpsertType
     }
+) => {
+    const { type, messages } = event
+    if (type === 'append') return null
 
-    storeMessageData(msg)
-    storeStatusData(msg)
-    if (config.norevoke) listenDeletedMessage(waSocket, msg)
-    if (config.oneview) listenOneViewMessage(waSocket, msg)
-  }
+    for (const msg of messages) {
+        if (isHistorySync(msg))
+            return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+        console.log(
+            chalk.green('[LOG]'),
+            'RAW Message Received',
+            util.inspect(msg, false, null, true)
+        )
+        const ctx = await serializeMessage(waSocket, msg)
+        try {
+            if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
+                noPrefixHandler(waSocket, msg, ctx)
+
+                const cmd = getCommand(ctx.cmd) as string
+                if (ctx.isCmd && cmd in actions) {
+                    console.log(
+                        chalk.green('[CTX]'),
+                        'Serialized CMD Message Context:',
+                        util.inspect(ctx, false, null, true)
+                    )
+                    logCmd(msg, ctx)
+                    await actions[cmd](waSocket, msg, ctx)
+                }
+            }
+        } catch (error: any) {
+            console.log(error)
+            ctx.reply(`${error}`)
+            ctx.reactError()
+        }
+
+        storeMessageData(msg)
+        storeStatusData(msg)
+        if (config.norevoke) listenDeletedMessage(waSocket, msg)
+        if (config.oneview) listenOneViewMessage(waSocket, msg)
+    }
 }
 
 const isAllowedChat = (ctx: MessageContext) =>
-  config?.allowedChats.includes(ctx.from)
+    config?.allowedChats.includes(ctx.from)
 const isHistorySync = (msg: WAMessage) =>
-  msg.message?.protocolMessage?.type ==
-  proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
+    msg.message?.protocolMessage?.type ==
+    proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
 
 // --------------------------------------------------------- //
 const noPrefixHandler = async (
-  _wa: WASocket,
-  _msg: WAMessage,
-  ctx: MessageContext
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
 ) => {
-  const { body } = ctx
+    const { body } = ctx
 
-  if (/^#\w+$/.test(body as string)) {
-    await handleNoteCommand(ctx)
-  } else if (/^-r$/.test(body as string)) {
-    await handleRepeatCommand(_wa, _msg, ctx)
-  } else if (/^cekprefix$/.test(body as string)) {
-    await ctx.reply(`Prefix: '${getPrefix()}'`)
-  } else if (/^\d\d?$/.test(body as string)) {
-    await handleReplyToStatusList(_wa, _msg, ctx)
-    await handleReplyToContactStatusList(_wa, _msg, ctx)
-  } else {
-    await handleMathEquation(ctx)
-    await handleStickerCommand(_wa, _msg, ctx)
-  }
+    if (/^#\w+$/.test(body as string)) {
+        await handleNoteCommand(ctx)
+    } else if (/^-r$/.test(body as string)) {
+        await handleRepeatCommand(_wa, _msg, ctx)
+    } else if (/^cekprefix$/.test(body as string)) {
+        await ctx.reply(`Prefix: '${getPrefix()}'`)
+    } else if (/^\d\d?$/.test(body as string)) {
+        await handleReplyToStatusList(_wa, _msg, ctx)
+        await handleReplyToContactStatusList(_wa, _msg, ctx)
+    } else {
+        await handleMathEquation(ctx)
+        await handleStickerCommand(_wa, _msg, ctx)
+    }
 }
 
 const storeMessageData = (msg: proto.IWebMessageInfo) => {
-  const key = msg.key
-  if (!key) return null
-  if (msg.message?.protocolMessage) return null
+    const key = msg.key
+    if (!key) return null
+    if (msg.message?.protocolMessage) return null
 
-  storeMessage(key.id!, msg.messageTimestamp! as number, msg)
-  return true
+    storeMessage(key.id!, msg.messageTimestamp! as number, msg)
+    return true
 }
 
 const storeStatusData = (msg: proto.IWebMessageInfo) => {
-  if (msg.message?.protocolMessage) return null
-  if (msg.key.remoteJid != 'status@broadcast') return null
+    if (msg.message?.protocolMessage) return null
+    if (msg.key.remoteJid != 'status@broadcast') return null
 
-  storeStatus(msg.key.participant!, msg.messageTimestamp! as number, msg)
-  return true
+    storeStatus(msg.key.participant!, msg.messageTimestamp! as number, msg)
+    return true
 }
