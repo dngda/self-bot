@@ -16,6 +16,7 @@ import {
   listenDeletedMessage,
   listenOneViewMessage,
   handleReplyToStatusList,
+  handleReplyToContactStatusList,
 } from './utils'
 import { storeMessage, storeStatus } from './lib'
 import { getCommand } from './menu'
@@ -128,6 +129,7 @@ const noPrefixHandler = async (
     await ctx.reply(`Prefix: '${getPrefix()}'`)
   } else if (/^\d\d?$/.test(body as string)) {
     await handleReplyToStatusList(_wa, _msg, ctx)
+    await handleReplyToContactStatusList(_wa, _msg, ctx)
   } else {
     await handleMathEquation(ctx)
     await handleStickerCommand(_wa, _msg, ctx)

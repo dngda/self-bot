@@ -8,6 +8,7 @@ import * as math from 'mathjs'
 import { logCmd } from '.'
 import chalk from 'chalk'
 import fs from 'fs'
+import { getStatusListMessage } from '../cmd/owner'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
   const { fromMe, participant, from, body, reply } = ctx
@@ -95,7 +96,7 @@ export const handleMathEquation = async (ctx: MessageContext) => {
   return await ctx.reply(`${result}`)
 }
 
-export const handleReplyToStatusList = async (
+export const handleReplyToContactStatusList = async (
   wa: WASocket,
   msg: WAMessage,
   ctx: MessageContext
@@ -130,4 +131,23 @@ export const handleReplyToStatusList = async (
     forward: status.message,
     contextInfo: { forwardingScore: 2, isForwarded: true },
   })
+}
+
+export const handleReplyToStatusList = async (
+  wa: WASocket,
+  msg: WAMessage,
+  ctx: MessageContext
+) => {
+  if (!msg.key.fromMe) return null
+  if (!ctx.quotedMsg?.extendedTextMessage?.text?.includes('List Status Update'))
+    return null
+
+  const jid =
+    ctx.quotedMsg.extendedTextMessage.contextInfo?.mentionedJid?.[
+      parseInt(ctx.body as string) - 1
+    ] || ''
+
+  const message = await getStatusListMessage(jid)
+
+  return wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
 }

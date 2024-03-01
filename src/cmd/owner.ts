@@ -141,6 +141,7 @@ const getStatusHandler = async (
       mentions.push(el.key)
       i++
     })
+    msg += `\nReply this message with number for detail`
 
     return _wa.sendMessage(ctx.from, { text: msg, mentions }, { quoted: _msg })
   }
@@ -162,8 +163,14 @@ const getStatusHandler = async (
   if (jid.startsWith('0')) jid = jid.replace('0', '62')
   if (!jid.endsWith('@s.whatsapp.net')) jid += '@s.whatsapp.net'
 
+  const message = await getStatusListMessage(jid)
+
+  return _wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
+}
+
+export const getStatusListMessage = async (jid: string): Promise<string> => {
   const status = await getStatus(jid)
-  if (!status) return ctx.reply(stringId.getStatus.error.notFound)
+  if (!status) return Promise.reject(stringId.getStatus.error.notFound)
 
   let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
   let i = 1
@@ -185,6 +192,5 @@ const getStatusHandler = async (
     i++
   }
   message += `\nReply this message with number to download status`
-
-  return _wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
+  return message
 }
