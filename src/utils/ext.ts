@@ -105,7 +105,7 @@ export const handleReplyToContactStatusList = async (
   if (!ctx.quotedMsg?.extendedTextMessage?.text?.includes('Status from'))
     return null
 
-  ctx.reactWait()
+  await ctx.reactWait()
   const jids = ctx.quotedMsg?.extendedTextMessage?.contextInfo?.mentionedJid
   const jid = jids ? jids[0] : ''
 
@@ -126,7 +126,7 @@ export const handleReplyToContactStatusList = async (
     return ctx.reply(stringId.getStatus.error.notFound)
   }
 
-  ctx.reactSuccess()
+  await ctx.reactSuccess()
   await wa.sendMessage(ctx.from, {
     forward: status.message,
     contextInfo: { forwardingScore: 2, isForwarded: true },
