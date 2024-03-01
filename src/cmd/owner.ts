@@ -129,15 +129,11 @@ const getStatusHandler = async (
   ctx: MessageContext
 ) => {
   if (!ctx.fromMe) return null
-  if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
-    return ctx.reply(stringId.getStatus.usage(ctx.prefix))
-  }
-
   if (ctx.cmd == 'gpl') {
     const list = getStatusList()
 
     let i = 1
-    let msg = ''
+    let msg = 'List Status Update:\n'
     const mentions: string[] = []
     list.forEach((el) => {
       msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${el.length})\n`
@@ -147,9 +143,12 @@ const getStatusHandler = async (
     return _wa.sendMessage(ctx.from, { text: msg, mentions }, { quoted: _msg })
   }
 
+  if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
+    return ctx.reply(stringId.getStatus.usage(ctx.prefix))
+  }
+
   let jid = ctx.arg
-  jid = jid.replace(' ', '')
-  jid = jid.replace(/-/g, '')
+  jid = jid.replace(' ', '').replace(/-/g, '')
 
   const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
   if (vcard) {
@@ -167,17 +166,18 @@ const getStatusHandler = async (
   let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
   let i = 1
   for (const stat of status) {
+    const msg = stat.message.message
     let mediaType: string
-    if (stat.message.imageMessage) mediaType = 'image'
-    else if (stat.message.videoMessage) mediaType = 'video'
-    else if (stat.message.audioMessage) mediaType = 'audio'
+    if (msg?.imageMessage) mediaType = 'image'
+    else if (msg?.videoMessage) mediaType = 'video'
+    else if (msg?.audioMessage) mediaType = 'audio'
     else mediaType = 'text'
 
     message += `${i}. (${mediaType}) ${
-      stat.message.conversation ||
-      stat.message.extendedTextMessage?.text ||
-      stat.message.imageMessage?.caption ||
-      stat.message.videoMessage?.caption ||
+      msg?.conversation ||
+      msg?.extendedTextMessage?.text ||
+      msg?.imageMessage?.caption ||
+      msg?.videoMessage?.caption ||
       '(no caption)'
     }\n`
     i++

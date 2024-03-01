@@ -134,28 +134,19 @@ const noPrefixHandler = async (
   }
 }
 
-const storeMessageData = (msg: WAMessage) => {
+const storeMessageData = (msg: proto.IWebMessageInfo) => {
   const key = msg.key
   if (!key) return null
   if (msg.message?.protocolMessage) return null
 
-  storeMessage(key.id!, msg.messageTimestamp! as number, msg.message!)
+  storeMessage(key.id!, msg.messageTimestamp! as number, msg)
   return true
 }
 
-const storeStatusData = (msg: WAMessage) => {
+const storeStatusData = (msg: proto.IWebMessageInfo) => {
   if (msg.message?.protocolMessage) return null
-  if (
-    msg.message?.senderKeyDistributionMessage?.groupId != 'status@broadcast' &&
-    msg.key.remoteJid != 'status@broadcast'
-  )
-    return null
+  if (msg.key.remoteJid != 'status@broadcast') return null
 
-  storeStatus(
-    msg.key,
-    msg.key.participant!,
-    msg.messageTimestamp! as number,
-    msg.message!
-  )
+  storeStatus(msg.key.participant!, msg.messageTimestamp! as number, msg)
   return true
 }

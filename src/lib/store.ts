@@ -4,8 +4,7 @@ import fs from 'fs'
 
 interface StoredMessage {
   timestamp: number
-  message: proto.IMessage
-  key: proto.IMessageKey | null
+  message: proto.IWebMessageInfo
 }
 
 const MessageStore = new Map<string, StoredMessage>()
@@ -22,19 +21,18 @@ StatusStore = new Map(Object.entries(statusJSON))
 export const storeMessage = (
   id: string,
   timestamp: number,
-  message: proto.IMessage
+  message: proto.IWebMessageInfo
 ) => {
-  MessageStore.set(id, { timestamp, message, key: null })
+  MessageStore.set(id, { timestamp, message })
 }
 
 export const storeStatus = (
-  key: proto.IMessageKey,
   jid: string,
   timestamp: number,
-  message: proto.IMessage
+  message: proto.IWebMessageInfo
 ) => {
   const messages = StatusStore.get(jid) || []
-  messages.push({ timestamp, message, key })
+  messages.push({ timestamp, message })
   StatusStore.set(jid, messages)
 }
 
