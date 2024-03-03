@@ -127,7 +127,7 @@ const noPrefixHandler = async (
         await handleRepeatCommand(_wa, _msg, ctx)
     } else if (/^cekprefix$/.test(body as string)) {
         await ctx.reply(`Prefix: '${getPrefix()}'`)
-    } else if (/^\d\d?$/.test(body as string)) {
+    } else if (/^\d\d?\d?$/.test(body as string)) {
         await handleReplyToStatusList(_wa, _msg, ctx)
         await handleReplyToContactStatusList(_wa, _msg, ctx)
     } else {
