@@ -8,16 +8,24 @@ interface StoredMessage {
     key: proto.IMessageKey
 }
 
-const MessageStore = new Map<string, StoredMessage>()
+let MessageStore = new Map<string, StoredMessage>()
 let StatusStore = new Map<string, StoredMessage[]>()
 
 if (!fs.existsSync('data/status.json')) {
     fs.writeFileSync('data/status.json', '{}', 'utf-8')
 }
 
+if (!fs.existsSync('data/message.json')) {
+    fs.writeFileSync('data/message.json', '{}', 'utf-8')
+}
+
 const statusData = fs.readFileSync('data/status.json', 'utf-8')
 const statusJSON = JSON.parse(statusData)
 StatusStore = new Map(Object.entries(statusJSON))
+
+const messageData = fs.readFileSync('data/message.json', 'utf-8')
+const messageJSON = JSON.parse(messageData)
+MessageStore = new Map(Object.entries(messageJSON))
 
 export const storeMessage = (
     id: string,
@@ -91,10 +99,17 @@ setInterval(() => {
 
 // save status every 15 minutes
 setInterval(() => {
-    let obj = Object.create(null)
-    Array.from(StatusStore).forEach((el) => {
-        obj[el[0]] = el[1]
+    let messageObj = Object.create(null)
+    Array.from(MessageStore).forEach((el) => {
+        messageObj[el[0]] = el[1]
     })
 
-    fs.writeFileSync('data/status.json', JSON.stringify(obj), 'utf-8')
+    fs.writeFileSync('data/message.json', JSON.stringify(messageObj), 'utf-8')
+
+    let statusObj = Object.create(null)
+    Array.from(StatusStore).forEach((el) => {
+        statusObj[el[0]] = el[1]
+    })
+
+    fs.writeFileSync('data/status.json', JSON.stringify(statusObj), 'utf-8')
 }, 1000 * 60 * 15)

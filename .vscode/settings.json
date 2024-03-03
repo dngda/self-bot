@@ -1,5 +1,5 @@
 {
     "conventionalCommits.scopes": [
-        "status store"
+        "msg store"
     ]
 }

@@ -17,5 +17,8 @@
         "emitDecoratorMetadata": true,
         "skipLibCheck": true,
         "strictNullChecks": true
-    }
+    },
+    "exclude": [
+        "test"
+    ]
 }
