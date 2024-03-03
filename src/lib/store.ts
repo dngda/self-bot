@@ -76,7 +76,7 @@ export const printMessageStore = (...txt: any[]) => {
 setInterval(() => {
     const now = Date.now()
     MessageStore.forEach((value, key) => {
-        if (now - value.timestamp > 1000 * 60 * 60 * 3) {
+        if (now - value.timestamp * 1000 > 1000 * 60 * 60 * 3) {
             MessageStore.delete(key)
         }
     })
@@ -87,7 +87,7 @@ setInterval(() => {
     const now = Date.now()
     StatusStore.forEach((value, key) => {
         const newMessages = value.filter(
-            (msg) => now - msg.timestamp > 1000 * 60 * 60 * 24
+            (msg) => now - msg.timestamp * 1000 < 1000 * 60 * 60 * 24
         )
         if (newMessages.length === 0) {
             StatusStore.delete(key)
