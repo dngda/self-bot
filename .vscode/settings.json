@@ -1,5 +1,6 @@
 {
     "conventionalCommits.scopes": [
-        "msg store"
+        "msg store",
+        "listener"
     ]
 }

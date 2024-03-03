@@ -7,7 +7,6 @@ import {
 import { getMessage } from '../lib'
 
 export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
-    if (msg.key.fromMe) return null
     if (
         msg.message?.protocolMessage?.type ==
         proto.Message.ProtocolMessage.Type.REVOKE
@@ -20,23 +19,23 @@ export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
 
         const from = msg.key.participant || msg.key.remoteJid!
 
-        let sumber = `from @${from.replace('@s.whatsapp.net', '')}`
-        if (msg.key.participant) {
+        let sumber = `msg from @${from.replace('@s.whatsapp.net', '')}`
+        if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
             const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-            sumber = `from _${subject}_ by @${msg.key.participant!.replace(
+            sumber = `msg from _${subject}_ by @${msg.key.participant!.replace(
                 '@s.whatsapp.net',
                 ''
             )}`
         }
 
         if (msg.key.remoteJid == 'status@broadcast') {
-            sumber = `from status by @${msg.key.participant!.replace(
+            sumber = `status by @${msg.key.participant!.replace(
                 '@s.whatsapp.net',
                 ''
             )}`
         }
 
-        const msgdata = `Deleted msg ${sumber}:`
+        const msgdata = `Deleted ${sumber}:`
 
         await wa.sendMessage(process.env.OWNER_NUMBER!, {
             text: msgdata,

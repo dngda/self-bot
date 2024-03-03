@@ -149,6 +149,7 @@ const storeMessageData = (msg: proto.IWebMessageInfo) => {
 }
 
 const storeStatusData = (msg: proto.IWebMessageInfo) => {
+    if (msg.key.fromMe) return null
     if (msg.message?.protocolMessage) return null
     if (msg.key.remoteJid != 'status@broadcast') return null
 
