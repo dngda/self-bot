@@ -7,6 +7,7 @@ import {
 import { getMessage } from '../lib'
 
 export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
+    if (msg.key.fromMe) return null
     if (
         msg.message?.protocolMessage?.type ==
         proto.Message.ProtocolMessage.Type.REVOKE
