@@ -203,7 +203,7 @@ const processMultipleAyat = async (
     }
 
     if (ayatTo - ayatFrom > 10) {
-        return ctx.reply(stringId.surah.error.tooManyAyat(ctx))
+        return ctx.reply(stringId.surah.error.tooManyAyat)
     }
 
     for (let i = ayatFrom; i <= ayatTo; i++) {
