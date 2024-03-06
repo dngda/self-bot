@@ -1,5 +1,5 @@
 import stringId from '../language'
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
@@ -158,7 +158,9 @@ const surahHandler = async (
 const handleDaftar = async (ctx: MessageContext) => {
     let list = '╔══✪〘 Daftar Surah 〙✪\n'
     SurahDatas.data.forEach((surah: any) => {
-        list += `${surah.number}. ${surah.name.transliteration.id.toLowerCase()}\n`
+        list += `${
+            surah.number
+        }. ${surah.name.transliteration.id.toLowerCase()}\n`
     })
     list += '╚═〘 *SeroBot* 〙'
     ctx.reactSuccess()
@@ -202,12 +204,13 @@ const processMultipleAyat = async (
         return ctx.reply(stringId.surah.error.invalidAyat(ctx))
     }
 
-    if (ayatTo - ayatFrom > 10) {
+    if (ayatTo - ayatFrom >= 10) {
         return ctx.reply(stringId.surah.error.tooManyAyat)
     }
 
     for (let i = ayatFrom; i <= ayatTo; i++) {
         await getAyatSurahDataAndSend(ctx, surahNumber, i, cmd)
+        await delay(1000)
     }
 }
 
