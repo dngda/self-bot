@@ -41,6 +41,8 @@ Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
                 `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
             tooManyAyat:
                 '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
+            invalidMaxAyat: (total: number) =>
+                `‼️ Melebihi total ayat dalam surah (max ${total})`,
         },
         usage: (ctx: MessageContext) =>
             `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
@@ -182,6 +184,15 @@ const getSurahNumberByName = (name: string) => {
     return index != -1 ? sdatas[index].number : null
 }
 
+const getTotalVerses = (surahNumber: number): number => {
+    const sdatas = SurahDatas.data
+    const index = sdatas.findIndex((surah: any) => {
+        return surah.number == surahNumber
+    })
+
+    return sdatas[index].numberOfVerses
+}
+
 const processMultipleAyat = async (
     ctx: MessageContext,
     surahNumber: number,
@@ -206,6 +217,11 @@ const processMultipleAyat = async (
 
     if (ayatTo - ayatFrom >= 10) {
         return ctx.reply(stringId.surah.error.tooManyAyat)
+    }
+
+    const totalAyat = getTotalVerses(surahNumber)
+    if (ayatTo > totalAyat) {
+        return ctx.reply(stringId.surah.error.invalidMaxAyat(totalAyat))
     }
 
     for (let i = ayatFrom; i <= ayatTo; i++) {
