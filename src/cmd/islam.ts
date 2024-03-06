@@ -42,7 +42,7 @@ Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
             tooManyAyat:
                 '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
             invalidMaxAyat: (total: number) =>
-                `‼️ Melebihi total ayat dalam surah (max ${total})`,
+                `‼️ Melebihi total ayat dalam surah tersebut (max ${total})`,
         },
         usage: (ctx: MessageContext) =>
             `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
