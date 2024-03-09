@@ -1,9 +1,9 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
-import { apiCall } from '../lib'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
+import axios from 'axios'
 
 export default function () {
     Object.assign(actions, {
@@ -41,11 +41,11 @@ const gimmeHandler = async (
     }
 
     await ctx.reactWait()
-    const result = await apiCall(`https://meme-api.com/gimme/${param}`).catch(
-        (err) => {
+    const { data: result } = await axios
+        .get(`https://meme-api.com/gimme/${param}`)
+        .catch((err) => {
             throw new Error(err.response.ctx.message)
-        }
-    )
+        })
 
     if (result?.url) {
         await ctx.replyContent({

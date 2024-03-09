@@ -3,10 +3,10 @@ import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
+import { mp3ToOpus } from '../lib'
 import { menu } from '../menu'
 import axios from 'axios'
 import fs from 'fs'
-import { mp3ToOpus } from '../lib'
 
 export default function () {
     Object.assign(actions, {
