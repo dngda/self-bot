@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
 import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
@@ -8,6 +8,7 @@ import axios from 'axios'
 export default function () {
     Object.assign(actions, {
         meme: gimmeHandler,
+        roll: rollHandler,
     })
 
     stringId.gimme = {
@@ -18,6 +19,17 @@ export default function () {
         usage: (p: string) =>
             `Custom subreddit setelah cmd, contoh: _${p}meme dankmemes_`,
     }
+
+    stringId.roll = {
+        hint: '🎲 _Roll a dice_',
+    }
+
+    menu.push({
+        command: 'roll',
+        hint: stringId.roll.hint,
+        alias: 'r',
+        type: 'random',
+    })
 
     menu.push({
         command: 'meme',
@@ -56,4 +68,34 @@ const gimmeHandler = async (
     } else {
         throw new Error(stringId.gimme.error.internal)
     }
+}
+
+const rollHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    let roll = Math.floor(Math.random() * 100) + 1
+    const m_id = await _wa.sendMessage(
+        ctx.from,
+        { text: `⏳ ${roll}` },
+        { ephemeralExpiration: ctx.expiration! }
+    )
+    await delay(500)
+    for (let i = 0; i < 3; i++) {
+        roll = Math.floor(Math.random() * 100) + 1
+        await _wa.sendMessage(
+            ctx.from,
+            { edit: m_id?.key, text: `⏳ ${roll}` },
+            { ephemeralExpiration: ctx.expiration! }
+        )
+        await delay(500)
+    }
+
+    roll = Math.floor(Math.random() * 100) + 1
+    await _wa.sendMessage(
+        ctx.from,
+        { edit: m_id?.key, text: `🎲 ${roll}` },
+        { ephemeralExpiration: ctx.expiration! }
+    )
 }
