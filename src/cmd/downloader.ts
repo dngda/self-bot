@@ -1,4 +1,4 @@
-import { pinterest, tinyUrl } from '../lib'
+import { VideoData, pinterest, tinyUrl } from '../lib'
 import { sample, sampleSize } from 'lodash'
 import { MessageContext } from '../utils'
 import { WASocket, WAMessage } from '@whiskeysockets/baileys'
@@ -102,7 +102,7 @@ const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
 
-const getDuration = (result: any) => {
+const getDuration = (result: VideoData) => {
     if (result.meta?.duration) {
         const timeParts = result.meta.duration.split(':').map(Number)
         if (timeParts.length === 2) {
@@ -162,11 +162,12 @@ async function tiktokReels(url: string, ctx: MessageContext) {
 
     const result = await browser.getSocialVideo(urls[0])
     const duration = getDuration(result)
+    const resultArray = result as unknown as VideoData[]
 
-    if (result.length > 1) {
+    if (resultArray.length > 1) {
         let body = ''
         let i = 1
-        for (const media of result) {
+        for (const media of resultArray) {
             body += `📩 ${i}. (${media.url[0].type}) ${await tinyUrl(
                 media.url[0].url
             )}\n`
@@ -196,7 +197,7 @@ async function twitter(url: string, ctx: MessageContext) {
     const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
     const result = await browser.getSocialVideo(urls[0])
     if (result.message) throw new Error(JSON.stringify(result))
-    const resultUrls = result.url.sort((a: any, b: any) => {
+    const resultUrls = result.url.sort((a, b) => {
         return Number(a.quality) - Number(b.quality)
     })
     const selectedUrl = resultUrls[0].url

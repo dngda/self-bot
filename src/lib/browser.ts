@@ -4,6 +4,32 @@ import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
 
+export interface VideoData {
+    id: string
+    url: {
+        url: string
+        name: string
+        ext: string
+        type: string
+        quality: string
+        no_audio: boolean
+        audio: boolean
+        attr: {
+            title: string
+            class: string
+        }
+    }[]
+    meta: {
+        title: string
+        source: string
+        duration: string
+    }
+    thumb: string
+    video_quality: string[]
+    timestamp: number
+    message: string
+}
+
 export class PlaywrightBrowser {
     private ctx: BrowserContext
     private browser: Browser
@@ -54,7 +80,7 @@ export class PlaywrightBrowser {
         return page
     }
 
-    async getSocialVideo(url: string) {
+    async getSocialVideo(url: string): Promise<VideoData> {
         const page = await this.openPage('https://ssyoutube.com/')
 
         // Handle the response separately
@@ -68,7 +94,7 @@ export class PlaywrightBrowser {
                         try {
                             const data = await response.json()
                             resolve(data)
-                        } catch (error) {
+                        } catch (error: any) {
                             reject(error)
                         }
                     }
