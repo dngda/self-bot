@@ -197,7 +197,7 @@ async function twitter(url: string, ctx: MessageContext) {
     const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
     const result = await browser.getSocialVideo(urls[0])
     if (result.message) throw new Error(JSON.stringify(result))
-    const resultUrls = result.url.sort((a, b) => {
+    const resultUrls = [...result.url].sort((a, b) => {
         return Number(a.quality) - Number(b.quality)
     })
     const selectedUrl = resultUrls[0].url

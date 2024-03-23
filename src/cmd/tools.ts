@@ -278,25 +278,14 @@ async function handleAddNoteCommand(
         note = args.slice(1).join(' ')
     }
     if (ctx.isMedia) {
-        const mediaData = ctx.isQuoted
-            ? await ctx.downloadQuoted()
-            : await ctx.download()
-        let ext
-        if (ctx.isVideo) {
-            ext = 'mp4'
-            note =
-                quotedMsg?.videoMessage?.caption ||
-                args.slice(1).join(' ') ||
-                ''
-        } else {
-            ext = 'jpg'
-            note =
-                quotedMsg?.imageMessage?.caption ||
-                args.slice(1).join(' ') ||
-                ''
-        }
-        const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
-        writeFileSync(path, mediaData)
+        let path
+        ;({ path, note } = await handleMediaNotes(
+            ctx,
+            note,
+            quotedMsg,
+            args,
+            noteName
+        ))
 
         const res = await createNote(id, noteName, note, path)
         if (!res) return ctx.reply(stringId.note.error.duplicate)
@@ -306,6 +295,29 @@ async function handleAddNoteCommand(
     }
 
     return ctx.reply('📝 Note saved!')
+}
+
+async function handleMediaNotes(
+    ctx: MessageContext,
+    note: string,
+    quotedMsg: proto.IMessage | null | undefined,
+    args: string[],
+    noteName: string
+) {
+    const mediaData = ctx.isQuoted
+        ? await ctx.downloadQuoted()
+        : await ctx.download()
+    let ext
+    if (ctx.isVideo) {
+        ext = 'mp4'
+        note = quotedMsg?.videoMessage?.caption || args.slice(1).join(' ') || ''
+    } else {
+        ext = 'jpg'
+        note = quotedMsg?.imageMessage?.caption || args.slice(1).join(' ') || ''
+    }
+    const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
+    writeFileSync(path, mediaData)
+    return { path, note }
 }
 
 async function handleDeleteNoteCommand(
@@ -337,25 +349,14 @@ async function handleEditNoteCommand(
         note = args.slice(1).join(' ')
     }
     if (ctx.isMedia) {
-        const mediaData = ctx.isQuoted
-            ? await ctx.downloadQuoted()
-            : await ctx.download()
-        let ext
-        if (ctx.isVideo) {
-            ext = 'mp4'
-            note =
-                quotedMsg?.videoMessage?.caption ||
-                args.slice(1).join(' ') ||
-                ''
-        } else {
-            ext = 'jpg'
-            note =
-                quotedMsg?.imageMessage?.caption ||
-                args.slice(1).join(' ') ||
-                ''
-        }
-        const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
-        writeFileSync(path, mediaData)
+        let path
+        ;({ path, note } = await handleMediaNotes(
+            ctx,
+            note,
+            quotedMsg,
+            args,
+            noteName
+        ))
 
         const res = await updateNoteContent(id, noteName, note, path)
         if (!res) return ctx.reply(stringId.note.error.noNote)
@@ -453,8 +454,7 @@ const gttsHandler = async (
 
     let lang = 'id'
     let text = arg
-    if (ctx.quotedMsg && ctx.quotedMsg.conversation)
-        text = ctx.quotedMsg.conversation
+    if (ctx.quotedMsg?.conversation) text = ctx.quotedMsg.conversation
     if (ctx.cmd == 'tts') {
         lang = args[0]
         text = args.slice(1).join(' ')
