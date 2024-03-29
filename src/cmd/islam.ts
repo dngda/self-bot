@@ -74,10 +74,9 @@ const jadwalSholatHandler = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const args = ctx.args
     if (!ctx.arg || ctx.arg == '') return ctx.reply(stringId.jsholat.usage(ctx))
     ctx.reactWait()
-    if (args[0] == 'daerah') {
+    if (ctx.args[0] == 'daerah') {
         const { data: semuaKota } = await get(
             'https://api.myquran.com/v2/sholat/kota/semua'
         )
@@ -90,7 +89,8 @@ const jadwalSholatHandler = async (
         await ctx.reply(hasil)
     } else {
         const { data: cariKota } = await get(
-            'https://api.myquran.com/v2/sholat/kota/cari/' + args
+            'https://api.myquran.com/v2/sholat/kota/cari/' +
+                encodeURIComponent(ctx.arg)
         )
         let kodek = ''
         try {
