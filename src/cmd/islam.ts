@@ -82,7 +82,7 @@ const jadwalSholatHandler = async (
             'https://api.myquran.com/v2/sholat/kota/semua'
         )
         let hasil = '╔══✪〘 Daftar Kota 〙✪\n'
-        for (const kota of semuaKota) {
+        for (const kota of semuaKota.data) {
             hasil += '╠> '
             hasil += `${kota.lokasi}\n`
         }
