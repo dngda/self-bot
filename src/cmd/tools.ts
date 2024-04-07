@@ -410,19 +410,25 @@ const videoSplitHandler = async (
 
     if (seconds < 30) throw new Error(stringId.vsplit.error.duration)
 
-    const video = await splitVideo(mediaData)
+    const id = ctx.participant || ctx.from
+    const video = await splitVideo(id, mediaData)
+    const paths: string[] = []
     for (let i = 0; i < video.length; i++) {
         if (!video[i].endsWith('.mp4')) continue
+        if (!video[i].includes(id)) continue
+        const path = `tmp/vs/${id}_${video[i]}`
         await ctx.replyContent({
-            video: { url: `tmp/vs/${video[i]}` },
+            video: { url: path },
             caption: `0${i}`,
-            seconds: await getVideoDurationInSeconds(`tmp/vs/${video[i]}`),
+            seconds: await getVideoDurationInSeconds(path),
             mimetype: 'video/mp4',
         })
 
-        unlink(`tmp/vs/${video[i]}`, (_) => _)
+        paths.push(path)
     }
+
     ctx.reactSuccess()
+    paths.forEach((path: string) => unlink(path, (_) => _))
 }
 
 const ocrHandler = async (

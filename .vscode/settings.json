@@ -2,6 +2,7 @@
     "conventionalCommits.scopes": [
         "msg store",
         "listener",
-        "islam"
+        "islam",
+        "cmd"
     ]
 }

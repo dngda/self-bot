@@ -22,7 +22,7 @@ export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
     })
 }
 
-export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
+export const splitVideo = async (id: string, buffer: Buffer): Promise<string[]> => {
     let i = 1
     while (fs.existsSync(`tmp/video${i}.mp4`)) {
         i++
@@ -38,7 +38,7 @@ export const splitVideo = async (buffer: Buffer): Promise<string[]> => {
                 '-f segment',
                 '-reset_timestamps 1',
             ])
-            .save('tmp/vs/output%02d.mp4')
+            .save(`tmp/vs/${id}output%02d.mp4`)
             .on('end', () => {
                 resolve(fs.readdirSync('tmp/vs'))
             })
