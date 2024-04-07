@@ -38,7 +38,7 @@ export const splitVideo = async (id: string, buffer: Buffer): Promise<string[]> 
                 '-f segment',
                 '-reset_timestamps 1',
             ])
-            .save(`tmp/vs/${id}output%02d.mp4`)
+            .save(`tmp/vs/${id}_output%02d.mp4`)
             .on('end', () => {
                 resolve(fs.readdirSync('tmp/vs'))
             })

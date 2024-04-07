@@ -416,7 +416,8 @@ const videoSplitHandler = async (
     for (let i = 0; i < video.length; i++) {
         if (!video[i].endsWith('.mp4')) continue
         if (!video[i].includes(id)) continue
-        const path = `tmp/vs/${id}_${video[i]}`
+        const path = `tmp/vs/${video[i]}`
+
         await ctx.replyContent({
             video: { url: path },
             caption: `0${i}`,
