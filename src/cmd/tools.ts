@@ -26,6 +26,7 @@ import {
     mp3ToOpus,
     ocr,
 } from '../lib'
+import { delay } from 'lodash'
 
 export default function () {
     Object.assign(actions, {
@@ -429,7 +430,7 @@ const videoSplitHandler = async (
     }
 
     ctx.reactSuccess()
-    paths.forEach((path: string) => unlink(path, (_) => _))
+    delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
 }
 
 const ocrHandler = async (
