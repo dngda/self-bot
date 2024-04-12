@@ -92,6 +92,7 @@ After running it you need to scan the QR
 -   Social media video downloader using ssyoutube.com
 -   Split long video to 30s for WA Status
 -   Jadwal sholat kabupaten based
+-   Anti-delete msg/status
 -   Quran + audio per-ayah
 -   Get one-view media
 -   Sticker commands
