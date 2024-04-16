@@ -75,27 +75,30 @@ const rollHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    let roll = Math.floor(Math.random() * 100) + 1
+    let roll = Math.floor(Math.random() * 6) + 1
+    let roll2 = Math.floor(Math.random() * 6) + 1
     const m_id = await _wa.sendMessage(
         ctx.from,
-        { text: `⏳ ${roll}` },
+        { text: `⏳ ${roll} ⏳ ${roll2}` },
         { ephemeralExpiration: ctx.expiration! }
     )
     await delay(500)
     for (let i = 0; i < 3; i++) {
-        roll = Math.floor(Math.random() * 100) + 1
+        roll = Math.floor(Math.random() * 6) + 1
+        roll2 = Math.floor(Math.random() * 6) + 1
         await _wa.sendMessage(
             ctx.from,
-            { edit: m_id?.key, text: `⏳ ${roll}` },
+            { edit: m_id?.key, text: `⏳ ${roll} ⏳ ${roll2}` },
             { ephemeralExpiration: ctx.expiration! }
         )
         await delay(500)
-    }
+    } 
 
-    roll = Math.floor(Math.random() * 100) + 1
+    roll = Math.floor(Math.random() * 6) + 1
+    roll2 = Math.floor(Math.random() * 6) + 1
     await _wa.sendMessage(
         ctx.from,
-        { edit: m_id?.key, text: `🎲 ${roll}` },
+        { edit: m_id?.key, text: `🎲 ${roll} 🎲 ${roll2}` }, 
         { ephemeralExpiration: ctx.expiration! }
     )
 }
