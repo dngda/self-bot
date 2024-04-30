@@ -68,43 +68,71 @@ export const messageHandler = async (
     }
 ) => {
     const { type, messages } = event
-    if (type === 'append') return null
+    if (type === 'append') return false
 
     for (const msg of messages) {
-        if (isHistorySync(msg))
-            return console.log(chalk.green('[LOG]'), 'Syncing chats history...')
-        console.log(
-            chalk.green('[LOG]'),
-            'RAW Message Received',
-            util.inspect(msg, false, null, true)
-        )
-        const ctx = await serializeMessage(waSocket, msg)
-        try {
-            if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
-                noPrefixHandler(waSocket, msg, ctx)
-
-                const cmd = getCommand(ctx.cmd) as string
-                if (ctx.isCmd && cmd in actions) {
-                    console.log(
-                        chalk.green('[CTX]'),
-                        'Serialized CMD Message Context:',
-                        util.inspect(ctx, false, null, true)
-                    )
-                    logCmd(msg, ctx)
-                    await actions[cmd](waSocket, msg, ctx)
-                }
-            }
-        } catch (error: any) {
-            console.log(error)
-            ctx.reply(`${error}`)
-            ctx.reactError()
-        }
-
-        storeMessageData(msg)
-        storeStatusData(msg)
-        if (config.norevoke) listenDeletedMessage(waSocket, msg)
-        if (config.oneview) listenOneViewMessage(waSocket, msg)
+        await processMessage(waSocket, msg)
     }
+
+    return true
+}
+
+const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
+    if (isHistorySync(msg)) {
+        console.log(chalk.green('[LOG]'), 'Syncing chats history...')
+        return
+    }
+
+    logRawMessage(msg)
+
+    const ctx = await serializeMessage(waSocket, msg)
+
+    try {
+        await handleCommands(waSocket, msg, ctx)
+    } catch (error: any) {
+        handleError(ctx, error)
+    }
+
+    storeMessageData(msg)
+    storeStatusData(msg)
+
+    if (config.norevoke) listenDeletedMessage(waSocket, msg)
+    if (config.oneview) listenOneViewMessage(waSocket, msg)
+}
+
+const logRawMessage = (msg: WAMessage) => {
+    console.log(
+        chalk.green('[LOG]'),
+        'RAW Message Received',
+        util.inspect(msg, false, null, true)
+    )
+}
+
+const handleCommands = async (
+    waSocket: WASocket,
+    msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
+        noPrefixHandler(waSocket, msg, ctx)
+
+        const cmd = getCommand(ctx.cmd) as string
+        if (ctx.isCmd && cmd in actions) {
+            console.log(
+                chalk.green('[CTX]'),
+                'Serialized CMD Message Context:',
+                util.inspect(ctx, false, null, true)
+            )
+            logCmd(msg, ctx)
+            await actions[cmd](waSocket, msg, ctx)
+        }
+    }
+}
+
+const handleError = (ctx: MessageContext, error: any) => {
+    console.log(error)
+    ctx.reply(`${error}`)
+    ctx.reactError()
 }
 
 const isAllowedChat = (ctx: MessageContext) =>
