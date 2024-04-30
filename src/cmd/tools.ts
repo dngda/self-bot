@@ -411,7 +411,7 @@ const videoSplitHandler = async (
 
     if (seconds < 30) throw new Error(stringId.vsplit.error.duration)
 
-    const id = ctx.participant || ctx.from
+    const id = ctx.participant ?? ctx.from
     const video = await splitVideo(id, mediaData)
     const paths: string[] = []
     for (let i = 0; i < video.length; i++) {
