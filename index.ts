@@ -3,18 +3,17 @@ import makeWASocket, {
     makeCacheableSignalKeyStore,
     fetchLatestBaileysVersion,
     useMultiFileAuthState,
-    makeInMemoryStore,
     DisconnectReason,
     proto,
 } from '@whiskeysockets/baileys'
 import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import NodeCache from 'node-cache'
-import { textSync } from 'figlet'
+import { text, textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser } from './src/lib'
+import { PlaywrightBrowser, getMessage } from './src/lib'
 import { executeSavedScriptInNote } from './src/cmd/owner'
 export const browser = new PlaywrightBrowser()
 browser.init()
@@ -24,8 +23,6 @@ const logger = MAIN_LOGGER.child({})
 logger.level = 'error'
 
 const msgRetryCounterCache = new NodeCache()
-
-const store = makeInMemoryStore({ logger })
 
 const startSock = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
@@ -54,15 +51,10 @@ const startSock = async () => {
         generateHighQualityLinkPreview: true,
         markOnlineOnConnect: false,
         getMessage: async (key) => {
-            if (store) {
-                const msg = await store.loadMessage(key.remoteJid!, key.id!)
-                return msg?.message || undefined
-            }
-            return proto.Message.fromObject({})
+            const msg = await getMessage(key.id!)
+            return msg?.message || proto.Message.fromObject({message: {text: '_Failed to fetch message_'}})
         },
     })
-
-    store?.bind(waSocket.ev)
 
     waSocket.ev.process(async (events) => {
         if (events['connection.update']) {

@@ -278,8 +278,8 @@ const memefyHandler = async (
     _arg = _arg.replace('-c', '')
     image = await simage.toBuffer()
 
-    const top = _arg.split('|')[0] || '_'
-    const bottom = _arg.split('|')[1] || '_'
+    const top = _arg.trim().split('|')[0] || '_'
+    const bottom = _arg.trim().split('|')[1] || '_'
 
     const uploadedImageUrl = await uploadImage(image)
     const memeBuffer = await memegen(top, bottom, uploadedImageUrl)
