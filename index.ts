@@ -9,7 +9,7 @@ import makeWASocket, {
 import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import NodeCache from 'node-cache'
-import { text, textSync } from 'figlet'
+import { textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
