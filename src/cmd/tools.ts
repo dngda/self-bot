@@ -380,9 +380,9 @@ const toMp3Handler = async (
     const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
     const audio = await videoToMp3(mediaData)
     await ctx.replyContent({
-        audio: { url: audio },
+        document: { url: audio },
         mimetype: 'audio/mp3',
-        ptt: true,
+        fileName: 'converted_audio.mp3'
     })
     ctx.reactSuccess()
 }
