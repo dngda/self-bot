@@ -384,7 +384,7 @@ const toMp3Handler = async (
         mimetype: 'audio/mp3',
         fileName: 'converted_audio.mp3'
     })
-    ctx.reactSuccess()
+    await ctx.reactSuccess()
     unlink(audio, (_) => _)
 }
 
@@ -430,7 +430,7 @@ const videoSplitHandler = async (
         paths.push(path)
     }
 
-    ctx.reactSuccess()
+    await ctx.reactSuccess()
     delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
 }
 

@@ -59,15 +59,19 @@ export interface MessageContext {
     download: () => Promise<Buffer>
     downloadQuoted: () => Promise<Buffer>
     downloadSticker: () => Promise<Buffer>
-    reply: (text: string) => Promise<void>
-    send: (text: string) => Promise<void>
-    replySticker: (inputMedia: WAMediaUpload) => Promise<void>
-    replyContent: (content: AnyMessageContent) => Promise<void>
-    replyVoiceNote: (path: string) => Promise<void>
+    reply: (text: string) => Promise<proto.WebMessageInfo | undefined>
+    send: (text: string) => Promise<proto.WebMessageInfo | undefined>
+    replySticker: (
+        inputMedia: WAMediaUpload
+    ) => Promise<proto.WebMessageInfo | undefined>
+    replyContent: (
+        content: AnyMessageContent
+    ) => Promise<proto.WebMessageInfo | undefined>
+    replyVoiceNote: (path: string) => Promise<proto.WebMessageInfo | undefined>
 
-    reactWait: () => Promise<void>
-    reactSuccess: () => Promise<void>
-    reactError: () => Promise<void>
+    reactWait: () => Promise<proto.WebMessageInfo | undefined>
+    reactSuccess: () => Promise<proto.WebMessageInfo | undefined>
+    reactError: () => Promise<proto.WebMessageInfo | undefined>
 }
 
 export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
@@ -235,7 +239,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
 
     ctx.reply = async (text: string) => {
-        waSocket.sendMessage(
+        return waSocket.sendMessage(
             ctx.from,
             { text: text },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
@@ -243,7 +247,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
 
     ctx.send = async (text: string) => {
-        waSocket.sendMessage(
+        return waSocket.sendMessage(
             ctx.from,
             { text: text },
             { ephemeralExpiration: ctx.expiration! }
@@ -251,7 +255,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
 
     ctx.replySticker = async (inputMedia: WAMediaUpload) => {
-        waSocket.sendMessage(
+        return waSocket.sendMessage(
             ctx.from,
             { sticker: inputMedia },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
@@ -259,14 +263,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
 
     ctx.replyContent = async (content: AnyMessageContent) => {
-        waSocket.sendMessage(ctx.from, content, {
+        return waSocket.sendMessage(ctx.from, content, {
             quoted: msg,
             ephemeralExpiration: ctx.expiration!,
         })
     }
 
     ctx.replyVoiceNote = async (path: string) => {
-        waSocket.sendMessage(
+        return waSocket.sendMessage(
             ctx.from,
             {
                 audio: { url: path },
@@ -281,19 +285,19 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     }
 
     ctx.reactWait = async () => {
-        await waSocket.sendMessage(ctx.from, {
+        return waSocket.sendMessage(ctx.from, {
             react: { text: '⏳', key: msg.key },
         })
     }
 
     ctx.reactSuccess = async () => {
-        await waSocket.sendMessage(ctx.from, {
+        return waSocket.sendMessage(ctx.from, {
             react: { text: '✅', key: msg.key },
         })
     }
 
     ctx.reactError = async () => {
-        await waSocket.sendMessage(ctx.from, {
+        return waSocket.sendMessage(ctx.from, {
             react: { text: '❌', key: msg.key },
         })
     }
