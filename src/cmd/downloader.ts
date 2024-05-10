@@ -223,9 +223,10 @@ async function youtube(url: string, ctx: MessageContext) {
         youtubeShortsPattern.exec(url) ??
         []
     const result = await browser.getSocialVideo(urls[0])
+    if (result.message) throw new Error(JSON.stringify(result))
     const duration = getDuration(result)
 
-    if (duration / 60 > 10) throw new Error(stringId.videodl.error.maxDuration)
+    if (duration / 60 > 10) throw stringId.videodl.error.maxDuration
 
     let selectedUrl: string | URL
     let selectedQuality: string
@@ -240,7 +241,8 @@ async function youtube(url: string, ctx: MessageContext) {
             selectedQuality = result.url[0].quality
         }
     } catch (error: any) {
-        console.log(chalk.red('[ERR]'), error)
+        console.log(chalk.blue('[RES]'), result)
+        console.error(chalk.red('[ERR]'), error)
         throw stringId.videodl.error.internalError
     }
     captions += stringId.videodl.sent(selectedQuality)
