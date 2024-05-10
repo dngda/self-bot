@@ -8,12 +8,12 @@ export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
     }
     return new Promise((resolve, reject) => {
         fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
-        // ffmpeg -b:a 192k -vn
         ffmpeg(`tmp/video${i}.mp4`)
             .audioBitrate(192)
             .noVideo()
             .save(`tmp/audio${i}.mp3`)
             .on('end', () => {
+                fs.unlink(`tmp/video${i}.mp4`, (_) => _)
                 resolve(`tmp/audio${i}.mp3`)
             })
             .on('error', (err) => {
@@ -40,6 +40,7 @@ export const splitVideo = async (id: string, buffer: Buffer): Promise<string[]> 
             ])
             .save(`tmp/vs/${id}_output%02d.mp4`)
             .on('end', () => {
+                fs.unlink(`tmp/video${i}.mp4`, (_) => _)
                 resolve(fs.readdirSync('tmp/vs'))
             })
             .on('error', (err) => {

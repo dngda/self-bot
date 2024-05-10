@@ -385,6 +385,7 @@ const toMp3Handler = async (
         fileName: 'converted_audio.mp3'
     })
     ctx.reactSuccess()
+    unlink(audio, (_) => _)
 }
 
 const videoSplitHandler = async (
