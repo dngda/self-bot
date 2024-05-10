@@ -223,7 +223,7 @@ async function youtube(url: string, ctx: MessageContext) {
         youtubeShortsPattern.exec(url) ??
         []
     const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw new Error(JSON.stringify(result))
+    if (result.message) throw `‼️ ${result.message}`
     const duration = getDuration(result)
 
     if (duration / 60 > 10) throw stringId.videodl.error.maxDuration
