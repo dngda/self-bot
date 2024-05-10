@@ -74,7 +74,7 @@ const jadwalSholatHandler = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.arg || ctx.arg == '') return ctx.reply(stringId.jsholat.usage(ctx))
+    if (!ctx.arg || ctx.arg == '') throw stringId.jsholat.usage(ctx)
     ctx.reactWait()
     if (ctx.args[0] == 'daerah') {
         const { data: semuaKota } = await get(
@@ -96,7 +96,7 @@ const jadwalSholatHandler = async (
         try {
             kodek = cariKota.data[0].id
         } catch (err) {
-            return ctx.reply(stringId.jsholat.error.notFound(ctx))
+            throw stringId.jsholat.error.notFound(ctx)
         }
         const tgl = moment((msg.messageTimestamp as number) * 1000).format(
             'YYYY/MM/DD'
@@ -104,8 +104,7 @@ const jadwalSholatHandler = async (
         const { data: jadwalData } = await get(
             `https://api.myquran.com/v2/sholat/jadwal/${kodek}/${tgl}`
         )
-        if (jadwalData.status === 'false')
-            return ctx.reply('Internal server error')
+        if (jadwalData.status === 'false') throw 'Internal server error'
         const jadwal = jadwalData.data.jadwal
         let jadwalMsg = `╔══✪〘 Jadwal Sholat di ${jadwalData.data.lokasi} 〙✪\n`
         jadwalMsg += `╠> ${jadwal.tanggal}\n`
@@ -118,7 +117,7 @@ const jadwalSholatHandler = async (
         jadwalMsg += '╚═〘 *SeroBot* 〙'
         ctx.reply(jadwalMsg)
     }
-    ctx.reactSuccess()
+    return ctx.reactSuccess()
 }
 
 const SurahDatas = JSON.parse(fs.readFileSync('./src/raw/surah.json', 'utf-8'))
@@ -131,7 +130,7 @@ const surahHandler = async (
     const { args, cmd } = ctx
 
     if (!ctx.arg || ctx.arg == '') {
-        return ctx.reply(stringId.surah.usage(ctx))
+        throw stringId.surah.usage(ctx)
     }
 
     ctx.reactWait()
@@ -145,7 +144,7 @@ const surahHandler = async (
         : Number(args[0])
 
     if (!surahNumber) {
-        return ctx.reply(stringId.surah.error.notFound(ctx))
+        throw stringId.surah.error.notFound(ctx)
     }
 
     const processAyat = args[1].includes('-')
@@ -154,7 +153,7 @@ const surahHandler = async (
 
     await processAyat(ctx, surahNumber, cmd)
 
-    ctx.reactSuccess()
+    return ctx.reactSuccess()
 }
 
 const handleDaftar = async (ctx: MessageContext) => {
@@ -201,27 +200,27 @@ const processMultipleAyat = async (
     const ayatNumbers = ctx.args[1].split('-')
 
     if (ayatNumbers.length > 2) {
-        return ctx.reply(stringId.surah.error.invalidAyat(ctx))
+        throw stringId.surah.error.invalidAyat(ctx)
     }
 
     const ayatFrom = Number(ayatNumbers[0])
     const ayatTo = Number(ayatNumbers[1])
 
     if (isNaN(ayatFrom) || isNaN(ayatTo)) {
-        return ctx.reply(stringId.surah.error.invalidAyat(ctx))
+        throw stringId.surah.error.invalidAyat(ctx)
     }
 
     if (ayatFrom > ayatTo) {
-        return ctx.reply(stringId.surah.error.invalidAyat(ctx))
+        throw stringId.surah.error.invalidAyat(ctx)
     }
 
     if (ayatTo - ayatFrom >= 10) {
-        return ctx.reply(stringId.surah.error.tooManyAyat)
+        throw stringId.surah.error.tooManyAyat
     }
 
     const totalAyat = getTotalVerses(surahNumber)
     if (ayatTo > totalAyat) {
-        return ctx.reply(stringId.surah.error.invalidMaxAyat(totalAyat))
+        throw stringId.surah.error.invalidMaxAyat(totalAyat)
     }
 
     for (let i = ayatFrom; i <= ayatTo; i++) {

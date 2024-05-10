@@ -110,24 +110,21 @@ export const handleReplyToContactStatusList = async (
     const jid = jids ? jids[0] : ''
 
     if (jid == '') {
-        ctx.reactError()
-        return ctx.reply(stringId.getStatus.error.invalidJid)
+        throw stringId.getStatus.error.invalidJid
     }
 
     const statuses = await getStatus(jid)
     if (!statuses) {
-        ctx.reactError()
-        return ctx.reply(stringId.getStatus.error.notFound)
+        throw stringId.getStatus.error.notFound
     }
 
     const status = statuses[parseInt(ctx.body as string) - 1]
     if (!status) {
-        ctx.reactError()
-        return ctx.reply(stringId.getStatus.error.notFound)
+        throw stringId.getStatus.error.notFound
     }
 
     await ctx.reactSuccess()
-    await wa.sendMessage(ctx.from, {
+    return await wa.sendMessage(ctx.from, {
         forward: { key: status.key, message: status.message },
         contextInfo: { forwardingScore: 2, isForwarded: true },
     })

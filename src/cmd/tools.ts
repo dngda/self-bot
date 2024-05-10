@@ -252,12 +252,13 @@ const noteHandler = async (
 
 async function handleNoteCommand(id: string, ctx: MessageContext) {
     const note = await getNotesNames(id)
-    if (note.length == 0) return ctx.reply(stringId.note.error.noNote)
+    if (note.length == 0) throw stringId.note.error.noNote
     let noteList = '📝 Note List:\n'
     note.forEach((n) => {
         noteList += `· ${n}\n`
     })
-    ctx.reply(noteList.replace(/\n$/, ''))
+
+    return ctx.reply(noteList.replace(/\n$/, ''))
 }
 
 async function handleAddNoteCommand(
@@ -382,7 +383,7 @@ const toMp3Handler = async (
     await ctx.replyContent({
         document: { url: audio },
         mimetype: 'audio/mp3',
-        fileName: 'converted_audio.mp3'
+        fileName: 'converted_audio.mp3',
     })
     await ctx.reactSuccess()
     unlink(audio, (_) => _)
@@ -459,7 +460,7 @@ const gttsHandler = async (
     ctx: MessageContext
 ) => {
     const { args, arg, replyVoiceNote, reactWait, reactSuccess } = ctx
-    if (arg == '') return ctx.reply(stringId.say.usage(ctx))
+    if (arg == '') throw stringId.say.usage(ctx)
 
     let lang = 'id'
     let text = arg
@@ -469,7 +470,7 @@ const gttsHandler = async (
         text = args.slice(1).join(' ')
     }
 
-    if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang)
+    if (!LANGUAGES[lang]) throw stringId.say.error.lang
 
     await reactWait()
     const filepath = `tmp/gtts_${_msg.key.id!}.mp3`

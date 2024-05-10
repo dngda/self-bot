@@ -147,9 +147,10 @@ export const videoDownloadHandler = async (
     ) {
         await youtube(url, ctx)
     } else {
-        ctx.reply(stringId.videodl.error.invalidUrl)
-        return ctx.reactError()
+        throw stringId.videodl.error.invalidUrl
     }
+
+    return ctx.reactSuccess()
 }
 
 async function tiktokReels(url: string, ctx: MessageContext) {
@@ -189,8 +190,6 @@ async function tiktokReels(url: string, ctx: MessageContext) {
             })
         }
     }
-
-    ctx.reactSuccess()
 }
 
 async function twitter(url: string, ctx: MessageContext) {
@@ -215,8 +214,6 @@ async function twitter(url: string, ctx: MessageContext) {
         video: { url: selectedUrl },
         caption: captions,
     })
-
-    ctx.reactSuccess()
 }
 
 async function youtube(url: string, ctx: MessageContext) {
@@ -244,8 +241,7 @@ async function youtube(url: string, ctx: MessageContext) {
         }
     } catch (error: any) {
         console.log(chalk.red('[ERR]'), error)
-        await ctx.reactError()
-        return ctx.reply(stringId.videodl.error.internalError)
+        throw stringId.videodl.error.internalError
     }
     captions += stringId.videodl.sent(selectedQuality)
 
@@ -266,6 +262,4 @@ async function youtube(url: string, ctx: MessageContext) {
         seconds: duration,
         caption: captions.trim(),
     })
-
-    ctx.reactSuccess()
 }

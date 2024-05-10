@@ -110,18 +110,18 @@ const ddgSearchHandler = async (
                 return ctx.reply(stringId.gs.error.timeOut)
             }
 
-            waSocket.sendMessage(
+            return waSocket.sendMessage(
                 ctx.from,
                 { image: { url: 'tmp/ddg.png' } },
                 { quoted: msg, ephemeralExpiration: ctx.expiration! }
             )
-            return ctx.reactSuccess()
         })
         .catch((e) => {
             console.log(e)
             ctx.reactError()
             return ctx.reply(stringId.gs.error.timeOut)
         })
+    return ctx.reactSuccess()
 }
 
 const googleSearchHandler = async (
@@ -143,16 +143,17 @@ const googleSearchHandler = async (
                 return ctx.reply(stringId.ddg.error.timeOut)
             }
 
-            waSocket.sendMessage(
+            return waSocket.sendMessage(
                 ctx.from,
                 { image: { url: 'tmp/google.png' } },
                 { quoted: msg, ephemeralExpiration: ctx.expiration! }
             )
-            return ctx.reactSuccess()
         })
         .catch((e) => {
             console.log(e)
             ctx.reactError()
             return ctx.reply(stringId.ddg.error.timeOut)
         })
+
+    return ctx.reactSuccess()
 }
