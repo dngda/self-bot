@@ -10,8 +10,8 @@ import chalk from 'chalk'
 
 export default function () {
     Object.assign(actions, {
-        pinterest: pinterestHandler,
-        download: videoDownloadHandler,
+        pint: pinterestHandler,
+        vdl: videoDownloadHandler,
     })
 
     stringId.pinterest = {
@@ -36,15 +36,15 @@ export default function () {
 
     menu.push(
         {
-            command: 'pinterest',
+            command: 'pint',
             hint: stringId.pinterest.hint,
             alias: 'pin',
             type: 'scraper',
         },
         {
-            command: 'download',
+            command: 'vdl',
             hint: stringId.videodl.hint,
-            alias: 'vdl',
+            alias: 'v',
             type: 'scraper',
         }
     )

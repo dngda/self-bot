@@ -7,7 +7,7 @@ import { browser } from '../..'
 
 export default function () {
     Object.assign(actions, {
-        crjogja: crjogjaHandler,
+        cuaca: crjogjaHandler,
         ddg: ddgSearchHandler,
         gs: googleSearchHandler,
     })
@@ -39,7 +39,7 @@ export default function () {
 
     menu.push(
         {
-            command: 'crjogja',
+            command: 'cuaca',
             hint: stringId.crjogja.hint,
             alias: 'cj',
             type: 'browser',
