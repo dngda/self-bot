@@ -96,7 +96,7 @@ const ddgSearchHandler = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (ctx.args[0] == '') return ctx.reply(stringId.gs.usage(ctx))
+    if (ctx.args[0] == '') return ctx.reply(stringId.ddg.usage(ctx))
     ctx.reactWait()
     const query = ctx.args.join(' ')
     const url = `https://duckduckgo.com/?q=${encodeURIComponent(
@@ -107,7 +107,7 @@ const ddgSearchHandler = async (
         .then((r) => {
             if (!r) {
                 ctx.reactError()
-                return ctx.reply(stringId.gs.error.timeOut)
+                return ctx.reply(stringId.ddg.error.timeOut)
             }
 
             return waSocket.sendMessage(
@@ -119,7 +119,7 @@ const ddgSearchHandler = async (
         .catch((e) => {
             console.log(e)
             ctx.reactError()
-            return ctx.reply(stringId.gs.error.timeOut)
+            return ctx.reply(stringId.ddg.error.timeOut)
         })
     return ctx.reactSuccess()
 }
@@ -129,7 +129,7 @@ const googleSearchHandler = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (ctx.args[0] == '') return ctx.reply(stringId.ddg.usage(ctx))
+    if (ctx.args[0] == '') return ctx.reply(stringId.gs.usage(ctx))
     ctx.reactWait()
     const query = ctx.args.join(' ')
     const url = `https://www.google.com/search?client=firefox-b-d&q=${encodeURIComponent(
@@ -140,7 +140,7 @@ const googleSearchHandler = async (
         .then((r) => {
             if (!r) {
                 ctx.reactError()
-                return ctx.reply(stringId.ddg.error.timeOut)
+                return ctx.reply(stringId.gs.error.timeOut)
             }
 
             return waSocket.sendMessage(
@@ -152,7 +152,7 @@ const googleSearchHandler = async (
         .catch((e) => {
             console.log(e)
             ctx.reactError()
-            return ctx.reply(stringId.ddg.error.timeOut)
+            return ctx.reply(stringId.gs.error.timeOut)
         })
 
     return ctx.reactSuccess()
