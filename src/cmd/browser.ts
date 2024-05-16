@@ -9,7 +9,7 @@ export default function () {
     Object.assign(actions, {
         cuaca: crjogjaHandler,
         ddg: ddgSearchHandler,
-        gs: googleSearchHandler,
+        gsrc: googleSearchHandler,
     })
 
     stringId.crjogja = {
@@ -51,7 +51,7 @@ export default function () {
             type: 'browser',
         },
         {
-            command: 'gs',
+            command: 'gsrc',
             hint: stringId.gs.hint,
             alias: 'g',
             type: 'browser',
