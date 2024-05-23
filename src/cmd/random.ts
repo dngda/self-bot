@@ -1,10 +1,10 @@
 import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
-import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
 import crypto from 'crypto'
 import axios from 'axios'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -15,14 +15,16 @@ export default function () {
     stringId.gimme = {
         hint: '🌠 _Random reddit meme_',
         error: {
-            internal: 'Terjadi error, coba lagi.',
+            internal: () => 'Terjadi error, coba lagi.',
         },
-        usage: (p: string) =>
-            `Custom subreddit setelah cmd, contoh: _${p}meme dankmemes_`,
+        usage: (ctx: MessageContext) =>
+            `Custom subreddit setelah cmd, contoh: _${ctx.prefix}${ctx.cmd} dankmemes_`,
     }
 
     stringId.roll = {
         hint: '🎲 _Roll a dice_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
 
     menu.push({
@@ -50,7 +52,7 @@ const gimmeHandler = async (
         param = ctx.args[0].toLowerCase()
     }
     if (ctx.cmd == 'ri' && ctx.arg == '') {
-        throw new Error(stringId.gimme.usage(ctx.prefix))
+        throw new Error(stringId.gimme.usage(ctx))
     }
 
     await ctx.reactWait()
@@ -67,7 +69,7 @@ const gimmeHandler = async (
         })
         return ctx.reactSuccess()
     } else {
-        throw new Error(stringId.gimme.error.internal)
+        throw new Error(stringId.gimme.error.internal())
     }
 }
 

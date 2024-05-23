@@ -1,9 +1,9 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
-import { MessageContext } from '../utils'
-import { browser } from '../..'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -15,14 +15,16 @@ export default function () {
     stringId.crjogja = {
         hint: '🌐 _Citra radar cuaca di Jogja_',
         error: {
-            timeOut: '‼️ Gagal mendapatkan citra radar!',
+            timeOut: () => '‼️ Gagal mendapatkan citra radar!',
         },
+        usage: (ctx: MessageContext) =>
+            `🌐 Lihat radar cuaca Jogja ➡️ ${ctx.prefix}${ctx.cmd}`,
     }
 
     stringId.ddg = {
         hint: '🔍 _DuckDuckGo search_',
         error: {
-            timeOut: '‼️ Gagal mendapatkan hasil pencarian!',
+            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
         },
         usage: (ctx: MessageContext) =>
             `🔍 Cari dengan DuckDuckGo ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
@@ -31,7 +33,7 @@ export default function () {
     stringId.gs = {
         hint: '🔍 _Google search_',
         error: {
-            timeOut: '‼️ Gagal mendapatkan hasil pencarian!',
+            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
         },
         usage: (ctx: MessageContext) =>
             `🔍 Cari dengan Google ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
@@ -74,7 +76,7 @@ const crjogjaHandler = async (
         .then((r) => {
             if (!r) {
                 ctx.reactError()
-                return ctx.reply(stringId.crjogja.error.timeOut)
+                return ctx.reply(stringId.crjogja.error.timeOut())
             }
 
             waSocket.sendMessage(
@@ -87,7 +89,7 @@ const crjogjaHandler = async (
         .catch((e) => {
             console.log(e)
             ctx.reactError()
-            return ctx.reply(stringId.crjogja.error.timeOut)
+            return ctx.reply(stringId.crjogja.error.timeOut())
         })
 }
 
@@ -107,7 +109,7 @@ const ddgSearchHandler = async (
         .then((r) => {
             if (!r) {
                 ctx.reactError()
-                return ctx.reply(stringId.ddg.error.timeOut)
+                return ctx.reply(stringId.ddg.error.timeOut())
             }
 
             return waSocket.sendMessage(
@@ -119,7 +121,7 @@ const ddgSearchHandler = async (
         .catch((e) => {
             console.log(e)
             ctx.reactError()
-            return ctx.reply(stringId.ddg.error.timeOut)
+            return ctx.reply(stringId.ddg.error.timeOut())
         })
     return ctx.reactSuccess()
 }
@@ -140,7 +142,7 @@ const googleSearchHandler = async (
         .then((r) => {
             if (!r) {
                 ctx.reactError()
-                return ctx.reply(stringId.gs.error.timeOut)
+                return ctx.reply(stringId.gs.error.timeOut())
             }
 
             return waSocket.sendMessage(
@@ -152,7 +154,7 @@ const googleSearchHandler = async (
         .catch((e) => {
             console.log(e)
             ctx.reactError()
-            return ctx.reply(stringId.gs.error.timeOut)
+            return ctx.reply(stringId.gs.error.timeOut())
         })
 
     return ctx.reactSuccess()

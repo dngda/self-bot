@@ -1,38 +1,30 @@
 import {
-    WASocket,
-    WAMessage,
     MessageUpsertType,
+    WAMessage,
+    WASocket,
     proto,
 } from '@whiskeysockets/baileys'
+import chalk from 'chalk'
+import fs from 'fs'
+import util from 'util'
+import initCmds from './cmd'
+import { storeMessage, storeStatus } from './lib'
+import { getCommand } from './menu'
+import { BotConfig, MessageContext } from './types'
 import {
-    logCmd,
     getPrefix,
-    MessageContext,
-    serializeMessage,
+    handleMathEquation,
     handleNoteCommand,
     handleRepeatCommand,
-    handleMathEquation,
+    handleReplyToContactStatusList,
+    handleReplyToStatusList,
     handleStickerCommand,
     listenDeletedMessage,
     listenOneViewMessage,
-    handleReplyToStatusList,
-    handleReplyToContactStatusList,
+    logCmd,
+    serializeMessage,
 } from './utils'
-import { storeMessage, storeStatus } from './lib'
-import { getCommand } from './menu'
-import initCmds from './cmd'
-import chalk from 'chalk'
-import util from 'util'
-import fs from 'fs'
-
-export interface BotConfig {
-    [index: string]: any
-    allowedChats: string[]
-    stickerCommands: { [index: string]: { cmd: string; arg: string } }
-    norevoke: boolean
-    oneview: boolean
-    public: boolean
-}
+import { HandlerFunction } from './raw/surah'
 
 export let config: BotConfig = {
     allowedChats: [],
@@ -57,7 +49,7 @@ export const updateConfig = () => {
 }
 
 // every handler must have 3 parameters:
-export const actions: { [index: string]: any } = {}
+export const actions: { [index: string]: HandlerFunction } = {}
 initCmds()
 
 export const messageHandler = async (
@@ -89,7 +81,7 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
     try {
         await handleCommands(waSocket, msg, ctx)
-    } catch (error: any) {
+    } catch (error: unknown) {
         handleError(ctx, error)
     }
 
@@ -129,7 +121,7 @@ const handleCommands = async (
     }
 }
 
-const handleError = (ctx: MessageContext, error: any) => {
+const handleError = (ctx: MessageContext, error: unknown) => {
     console.log(error)
     ctx.reply(`${error}`)
     ctx.reactError()

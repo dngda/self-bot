@@ -1,14 +1,14 @@
-import { textToPicture, uploadImage, memegen, gifToMp4 } from '../lib'
 import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
-import { Sticker, StickerTypes } from 'wa-sticker-formatter'
+import fs from 'fs'
+import lodash from 'lodash'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
-import { MessageContext } from '../utils'
+import sharp from 'sharp'
+import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { actions } from '../handler'
 import stringId from '../language'
+import { gifToMp4, memegen, textToPicture, uploadImage } from '../lib'
 import { menu } from '../menu'
-import lodash from 'lodash'
-import sharp from 'sharp'
-import fs from 'fs'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -26,7 +26,8 @@ export default function () {
             quality: (q: number) =>
                 `⚠️ Result exceeded 1 MB with Q: ${q}%\n⏳ Hold on, decreasing quality...`,
             q: (q: number) => `⏳ Q: ${q}% still not yet...`,
-            fail: `‼️ Gagal mengubah video ke sticker, coba kurangi durasi.`,
+            fail: () =>
+                `‼️ Gagal mengubah video ke sticker, coba kurangi durasi.`,
         },
         usage: (ctx: MessageContext) =>
             `Kirim gambar/video atau balas gambar/video dengan caption ${ctx.prefix}${ctx.cmd}
@@ -62,7 +63,7 @@ export default function () {
     stringId.dls = {
         hint: '💾 _Download sticker_',
         error: {
-            notSticker: `‼️ Ini bukan sticker`,
+            notSticker: () => `‼️ Ini bukan sticker`,
         },
         usage: (ctx: MessageContext) =>
             `Balas sticker dengan ${ctx.prefix}${ctx.cmd}`,
@@ -202,7 +203,7 @@ const processVideo = async (
             })
         }
 
-        if (quality == 5) throw new Error(stringId.sticker.error.fail)
+        if (quality == 5) throw new Error(stringId.sticker.error.fail())
         if (quality == 10) quality = 5
         else quality -= 10
         resultBuffer = await doConvert(quality)
@@ -211,9 +212,10 @@ const processVideo = async (
     if (isSendNotif) {
         wa.sendMessage(ctx.from, {
             edit: msgKey,
-            text: stringId.sticker.success(quality),
+            text: stringId.sticker.success?.(quality) || '',
         })
     }
+
     ctx.reactSuccess()
     await ctx.replySticker(resultBuffer)
 }

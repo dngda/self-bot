@@ -1,11 +1,11 @@
 import { getNoteContent, getNotesNames, getStatus, getStatusList } from '../lib'
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageContext } from '../utils'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'
 import { browser } from '../..'
 import chalk from 'chalk'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -18,26 +18,34 @@ export default function () {
 
     stringId.eval = {
         hint: '_Evaluate JS code_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
     stringId.return = {
         hint: '_Evaluate variable at runtime dan return hasilnya_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
     stringId.offline = {
         hint: '_Mark bot as offline_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
 
     stringId.refreshBrowser = {
         hint: '_Refresh playwright browser context._',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
 
     stringId.getStatus = {
         hint: '_Get status from contact._',
-        usage: (prefix: string) =>
-            `📑 Get list status: ${prefix}gls
-      \n📑 Get status: ${prefix}gs <number> atau reply contact`,
+        usage: (ctx: MessageContext) =>
+            `📑 Get list status: ${ctx.prefix}gls
+      \n📑 Get status: ${ctx.prefix}gs <number> atau reply contact`,
         error: {
-            notFound: '🫙 Status update not found',
-            invalidJId: '🫙 Invalid JID',
+            notFound: () => '🫙 Status update not found',
+            invalidJId: () => '🫙 Invalid JID',
         },
     }
 
@@ -153,7 +161,7 @@ const getStatusHandler = async (
     }
 
     if (ctx.args[0] == '' && !ctx.contextInfo?.quotedMessage?.contactMessage) {
-        return ctx.reply(stringId.getStatus.usage(ctx.prefix))
+        return ctx.reply(stringId.getStatus.usage(ctx))
     }
 
     let jid = ctx.arg
@@ -162,7 +170,7 @@ const getStatusHandler = async (
     const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
     if (vcard) {
         const _jid = vcard.match(/waid=(\d+)/)?.[1]
-        if (!_jid) return ctx.reply(stringId.getStatus.error.invalidJId)
+        if (!_jid) return ctx.reply(stringId.getStatus.error.invalidJId())
         jid = _jid
     }
 
@@ -176,7 +184,7 @@ const getStatusHandler = async (
 
 export const getStatusListMessage = async (jid: string): Promise<string> => {
     const status = await getStatus(jid)
-    if (!status) return Promise.reject(stringId.getStatus.error.notFound)
+    if (!status) return Promise.reject(stringId.getStatus.error.notFound())
 
     let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
     let i = 1

@@ -1,12 +1,13 @@
 import stringId from '../language'
 import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
-import { MessageContext } from '../utils'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
 import { mp3ToOpus } from '../lib'
 import { menu } from '../menu'
-import axios from 'axios'
+import axios, { AxiosError } from 'axios'
 import fs from 'fs'
+import { Surah, SurahRepo } from '../raw/surah'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -17,7 +18,7 @@ export default function () {
     stringId.jsholat = {
         hint: '🕌 _Jadwal sholat_',
         error: {
-            noArgs: '‼️ Tidak ada argumen yang diberikan!',
+            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
             notFound: (
                 ctx: MessageContext
             ) => `‼️ Daerah "${ctx.args[0]}" tidak ditemukan!
@@ -32,14 +33,14 @@ export default function () {
     stringId.surah = {
         hint: "📖 _Baca surah Al-Qur'an_",
         error: {
-            noArgs: '‼️ Tidak ada argumen yang diberikan!',
+            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
             notFound: (
                 ctx: MessageContext
             ) => `‼️ Surah '${ctx.args[0]}' tidak ditemukan atau ayat ${ctx.args[1]} tidak ada!
 Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
             invalidAyat: (ctx: MessageContext) =>
                 `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
-            tooManyAyat:
+            tooManyAyat: () =>
                 '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
             invalidMaxAyat: (total: number) =>
                 `‼️ Melebihi total ayat dalam surah tersebut (max ${total})`,
@@ -120,7 +121,9 @@ const jadwalSholatHandler = async (
     return ctx.reactSuccess()
 }
 
-const SurahDatas = JSON.parse(fs.readFileSync('./src/raw/surah.json', 'utf-8'))
+const surahRepo = JSON.parse(
+    fs.readFileSync('./src/raw/surah.json', 'utf-8')
+) as SurahRepo
 
 const surahHandler = async (
     _wa: WASocket,
@@ -158,7 +161,7 @@ const surahHandler = async (
 
 const handleDaftar = async (ctx: MessageContext) => {
     let list = '╔══✪〘 Daftar Surah 〙✪\n'
-    SurahDatas.data.forEach((surah: any) => {
+    surahRepo.data.forEach((surah) => {
         list += `${
             surah.number
         }. ${surah.name.transliteration.id.toLowerCase()}\n`
@@ -169,8 +172,8 @@ const handleDaftar = async (ctx: MessageContext) => {
 }
 
 const getSurahNumberByName = (name: string) => {
-    const sdatas = SurahDatas.data
-    const index = sdatas.findIndex((surah: any) => {
+    const sdatas = surahRepo.data
+    const index = sdatas.findIndex((surah) => {
         return (
             surah.name.transliteration.id
                 .toLowerCase()
@@ -184,8 +187,8 @@ const getSurahNumberByName = (name: string) => {
 }
 
 const getTotalVerses = (surahNumber: number): number => {
-    const sdatas = SurahDatas.data
-    const index = sdatas.findIndex((surah: any) => {
+    const sdatas = surahRepo.data
+    const index = sdatas.findIndex((surah) => {
         return surah.number == surahNumber
     })
 
@@ -215,7 +218,7 @@ const processMultipleAyat = async (
     }
 
     if (ayatTo - ayatFrom >= 10) {
-        throw stringId.surah.error.tooManyAyat
+        throw stringId.surah.error.tooManyAyat()
     }
 
     const totalAyat = getTotalVerses(surahNumber)
@@ -238,6 +241,34 @@ const processSingleAyat = async (
     await getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
 }
 
+interface SurahResponse {
+    code: number
+    status: string
+    message: string
+    data: {
+        number: {
+            inQuran: number
+            inSurah: number
+        }
+        text: {
+            arab: string
+            transliteration: string
+        }
+        translation: {
+            id: string
+            en: string
+        }
+        audio: {
+            primary: string
+            secondary: {
+                0: string
+                1: string
+            }
+        }
+        surah: Surah
+    }
+}
+
 const getAyatSurahDataAndSend = async (
     ctx: MessageContext,
     surahNumber: number,
@@ -245,9 +276,9 @@ const getAyatSurahDataAndSend = async (
     cmd: string
 ) => {
     try {
-        const result = await get(
+        const result = (await get(
             `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
-        )
+        )) as { data: SurahResponse }
         const sdata = result.data.data
 
         if (cmd === 'recite') {
@@ -272,8 +303,11 @@ const getAyatSurahDataAndSend = async (
         await ctx.send(message)
 
         return true
-    } catch (err: any) {
+    } catch (err: unknown) {
         ctx.reactError()
-        return ctx.reply(err.response.data.message)
+        if ((err as AxiosError).response?.status == 404) {
+            throw stringId.surah.error.notFound(ctx)
+        }
+        throw ((err as AxiosError).response?.data as SurahResponse).message
     }
 }

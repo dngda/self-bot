@@ -1,9 +1,10 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageContext, getPrefix } from '../utils'
+import { getPrefix } from '../utils'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
 import lodash from 'lodash'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -14,22 +15,29 @@ export default function () {
 
     stringId.ping = {
         hint: '➡️ _Balas dengan pong!_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
     stringId.menu = {
         hint: '📜 _Menampilkan pesan ini_',
+        error: {},
+        usage: (_: MessageContext) => '',
     }
     stringId.math = {
         hint: '🧮 _Hitung rumus matematika_',
         error: {
-            noArgs: '‼️ Tidak ada argumen yang diberikan!',
+            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
         },
+        usage: (_: MessageContext) => '',
     }
     stringId.tag = {
         hint: '🏷️ _Mention semua member group_',
         error: {
-            noArgs: '‼️ Tidak ada isi pesan yang diberikan!',
-            nonGroup: '‼️ Perintah ini hanya bisa digunakan di dalam grup!',
+            noArgs: () => '‼️ Tidak ada isi pesan yang diberikan!',
+            nonGroup: () =>
+                '‼️ Perintah ini hanya bisa digunakan di dalam grup!',
         },
+        usage: (_: MessageContext) => '',
     }
 
     menu.push(
@@ -120,8 +128,8 @@ const hideTagHandler = async (
     ctx: MessageContext
 ) => {
     const { arg, from, isGroup, expiration, isQuoted } = ctx
-    if (!isGroup) throw new Error(stringId.tag.error.nonGroup)
-    if (!arg && !isQuoted) throw new Error(stringId.tag.error.noArgs)
+    if (!isGroup) throw new Error(stringId.tag.error.nonGroup())
+    if (!arg && !isQuoted) throw new Error(stringId.tag.error.noArgs())
 
     await ctx.reactWait()
     const groupMetadata = await wa.groupMetadata(from)

@@ -1,8 +1,9 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { MessageContext, resetPrefix, setPrefix } from '../utils'
-import stringId from '../language'
 import { actions, config, updateConfig } from '../handler'
+import stringId from '../language'
 import { menu } from '../menu'
+import { resetPrefix, setPrefix } from '../utils'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -14,6 +15,10 @@ export default function () {
 
     stringId.public = {
         hint: '⚙️ _Toggle public mode pada chat ini_',
+        error: {
+            notSelf: () => '‼️ Self only command',
+        },
+        usage: (_: MessageContext) => '',
         info: (isPublic: boolean, prefix: string) =>
             isPublic
                 ? `🍻 Chat public-mode aktif, semua partisipan akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
@@ -27,7 +32,7 @@ export default function () {
                 `‼️ Sticker sudah terdaftar sebagai command: ${scmd.cmd} ${
                     scmd.arg ? scmd.arg : ''
                 }`,
-            notExist: '‼️ Sticker tidak terdaftar',
+            notExist: () => '‼️ Sticker tidak terdaftar',
         },
         usage: (ctx: MessageContext) =>
             `Reply sticker dengan: ${ctx.prefix}scmd <cmd> <arg>
@@ -35,12 +40,15 @@ export default function () {
    atau hapus scmd dengan: ${ctx.prefix}dscmd <cmd>`,
         success: (cmd: string) =>
             `✅ Sticker dengan cmd "${cmd}" berhasil ditambahkan`,
-        deleted: (cmd: string) =>
+        info: (cmd: string) =>
             `✅ Sticker dengan cmd "${cmd}" berhasil dihapus`,
     }
 
     stringId.setPrefix = {
         hint: '⚙️ _Set prefix_',
+        error: {
+            notSelf: () => '‼️ Self only command',
+        },
         usage: (ctx: MessageContext) =>
             `Set prefix dengan: ${ctx.prefix}setp <prefix>
 ➡️ Contoh: ${ctx.prefix}setp !`,
@@ -49,11 +57,12 @@ export default function () {
 ➡️ Coba kirimkan: *${prefix}help*
 ➡️ Reset prefix dengan: *${prefix}resetprefix*
 Cek prefix aktif dengan: *cekprefix*`,
-        reseted: '✅ Prefix berhasil direset',
+        info: () => '✅ Prefix berhasil direset',
     }
 
     stringId.toggleConfig = {
         hint: '⚙️ _Toggle config_',
+        error: {},
         usage: (ctx: MessageContext) =>
             `Toggle config dengan: ${ctx.prefix}con <config> / coff <config>
 Config:
@@ -98,7 +107,7 @@ const togglePublicHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return
+    if (!ctx.fromMe) throw stringId.public.error.notSelf()
     let isPublic = config.allowedChats.includes(ctx.from)
     if (isPublic) {
         config.allowedChats = config.allowedChats.filter(
@@ -110,7 +119,7 @@ const togglePublicHandler = async (
         isPublic = true
     }
     updateConfig()
-    return ctx.reply(stringId.public.info(isPublic, ctx.prefix))
+    return ctx.reply(stringId.public.info?.(isPublic, ctx.prefix) || '')
 }
 
 const stickerCmdHandler = async (
@@ -136,10 +145,10 @@ const stickerCmdHandler = async (
             delete config.stickerCommands[stickerSha]
             updateConfig()
             await ctx.reactSuccess()
-            return ctx.reply(stringId.stickerCmd.deleted(`${cmd} ${arg}`))
+            return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) || '')
         } else {
             await ctx.reactError()
-            return ctx.reply(stringId.stickerCmd.error.notExist)
+            return ctx.reply(stringId.stickerCmd.error.notExist())
         }
     } else {
         const cmd = ctx.args[0]
@@ -159,7 +168,7 @@ const stickerCmdHandler = async (
         config.stickerCommands[stickerSha] = { cmd, arg }
         updateConfig()
         await ctx.reactSuccess()
-        return ctx.reply(stringId.stickerCmd.success(`${cmd} ${arg}`))
+        return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) || '')
     }
 }
 
@@ -171,7 +180,7 @@ const setPrefixHandler = async (
     if (!ctx.fromMe) return
     if (ctx.cmd === 'resetprefix') {
         resetPrefix()
-        return ctx.reply(stringId.setPrefix.reseted)
+        return ctx.reply(stringId.setPrefix.info?.() || '')
     } else {
         const prefix = ctx.arg
         if (!prefix) {
@@ -179,11 +188,11 @@ const setPrefixHandler = async (
             return
         }
         if (prefix.length > 1) {
-            setPrefix(`${prefix} `)
-            ctx.reply(stringId.setPrefix.success(`${prefix} `))
+            setPrefix(prefix + ' ')
+            ctx.reply(stringId.setPrefix.success?.(prefix + ' ') || '')
         } else {
             setPrefix(prefix)
-            ctx.reply(stringId.setPrefix.success(prefix))
+            ctx.reply(stringId.setPrefix.success?.(prefix) || '')
         }
     }
 
@@ -211,5 +220,5 @@ const toggleConfigHandler = async (
     }
 
     updateConfig()
-    return ctx.reply(stringId.toggleConfig.success(configName, status))
+    return ctx.reply(stringId.toggleConfig.success?.(configName, status) || '')
 }

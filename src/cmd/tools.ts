@@ -4,29 +4,29 @@ import {
     downloadMediaMessage,
     proto,
 } from '@whiskeysockets/baileys'
-import { getVideoDurationInSeconds } from 'get-video-duration'
-import ocrApi from 'ocr-space-api-wrapper'
 import { unlink, writeFileSync } from 'fs'
-import { MessageContext } from '../utils'
+import { getVideoDurationInSeconds } from 'get-video-duration'
+import { delay } from 'lodash'
+import ocrApi from 'ocr-space-api-wrapper'
+import sharp from 'sharp'
+import { Readable } from 'stream'
 import { actions } from '../handler'
 import stringId from '../language'
-import { Readable } from 'stream'
-import { menu } from '../menu'
-import sharp from 'sharp'
 import {
+    LANGUAGES,
     createNote,
     deleteNote,
     getNotesNames,
     initNoteDatabase,
-    saveTextToSpeech,
-    updateNoteContent,
-    splitVideo,
-    videoToMp3,
-    LANGUAGES,
     mp3ToOpus,
     ocr,
+    saveTextToSpeech,
+    splitVideo,
+    updateNoteContent,
+    videoToMp3,
 } from '../lib'
-import { delay } from 'lodash'
+import { menu } from '../menu'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -42,22 +42,27 @@ export default function () {
     stringId.flip = {
         hint: '🖼️ _flip = vertikal, flop = horizontal_',
         error: {
-            noImage: '‼️ Gambar tidak ditemukan!',
+            noImage: () => '‼️ Gambar tidak ditemukan!',
         },
+        usage: (ctx: MessageContext) =>
+            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}flip atau ${ctx.prefix}flop`,
     }
 
     stringId.onev = {
         hint: '👁️‍🗨️ _Get pesan view once_',
         error: {
-            noOneView: '‼️ Pesan view once tidak ditemukan!',
+            noOneView: () => '‼️ Pesan view once tidak ditemukan!',
         },
+        usage: (ctx: MessageContext) =>
+            `👁️‍🗨️ Reply pesan oneView dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
     }
 
     stringId.note = {
         hint: '📝 _Database catatan_',
         error: {
-            noNote: '‼️ Catatan tidak ditemukan!',
-            duplicate: '‼️ Error atau Catatan dengan nama tersebut sudah ada!',
+            noNote: () => '‼️ Catatan tidak ditemukan!',
+            duplicate: () =>
+                '‼️ Error atau Catatan dengan nama tersebut sudah ada!',
         },
         usage: (ctx: MessageContext) =>
             `📝 Simpan catatan dengan cara ➡️ ${ctx.prefix}addnote #nama <catatan>`,
@@ -66,35 +71,37 @@ export default function () {
     stringId.tomp3 = {
         hint: '🎵 _Convert video to mp3_',
         error: {
-            noVideo: '‼️ Video tidak ditemukan!',
+            noVideo: () => '‼️ Video tidak ditemukan!',
         },
+        usage: (ctx: MessageContext) =>
+            `🎵 Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
     }
 
     stringId.vsplit = {
         hint: '🎞️ _Split video by 30 seconds_',
         error: {
-            duration: '‼️ Durasi video terlalu pendek!',
+            duration: () => '‼️ Durasi video terlalu pendek!',
         },
         usage: (ctx: MessageContext) =>
-            `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}vsplit`,
+            `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
     }
 
     stringId.ocr = {
         hint: '📖 _Optical character recognition_',
         error: {
-            noImage: '‼️ Gambar tidak ditemukan!',
+            noImage: () => '‼️ Gambar tidak ditemukan!',
         },
         usage: (ctx: MessageContext) =>
-            `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${ctx.prefix}ocr <language>`,
+            `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${ctx.prefix}${ctx.cmd} <language>`,
     }
 
     stringId.say = {
         hint: '🗣️ _Google text to speech_',
         error: {
-            lang: '‼️ Bahasa tidak disupport.',
+            lang: () => '‼️ Bahasa tidak disupport.',
         },
         usage: (ctx: MessageContext) =>
-            `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}say <text>`,
+            `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}${ctx.cmd} <text>`,
     }
 
     menu.push(
@@ -151,7 +158,8 @@ const flipHandler = async (
     ctx: MessageContext
 ) => {
     const { isQuotedImage, isImage, cmd, download, downloadQuoted } = ctx
-    if (!isImage && !isQuotedImage) throw new Error(stringId.flip.error.noImage)
+    if (!isImage && !isQuotedImage)
+        throw new Error(stringId.flip.error.noImage())
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await sharp(mediaData)
@@ -180,7 +188,7 @@ const oneViewHandler = async (
         ctx.quotedMsg?.viewOnceMessage ||
         ctx.quotedMsg?.viewOnceMessageV2Extension
     const isQuotedOneView = viewOnce != null
-    if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView)
+    if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView())
     ctx.reactWait()
     const { message } = viewOnce
     const { imageMessage, videoMessage } = message as proto.IMessage
@@ -252,7 +260,7 @@ const noteHandler = async (
 
 async function handleNoteCommand(id: string, ctx: MessageContext) {
     const note = await getNotesNames(id)
-    if (note.length == 0) throw stringId.note.error.noNote
+    if (note.length == 0) throw stringId.note.error.noNote()
     let noteList = '📝 Note List:\n'
     note.forEach((n) => {
         noteList += `· ${n}\n`
@@ -290,10 +298,10 @@ async function handleAddNoteCommand(
         ))
 
         const res = await createNote(id, noteName, note, path)
-        if (!res) return ctx.reply(stringId.note.error.duplicate)
+        if (!res) return ctx.reply(stringId.note.error.duplicate())
     } else {
         const res = await createNote(id, noteName, note)
-        if (!res) return ctx.reply(stringId.note.error.duplicate)
+        if (!res) return ctx.reply(stringId.note.error.duplicate())
     }
 
     return ctx.reply('📝 Note saved!')
@@ -361,10 +369,10 @@ async function handleEditNoteCommand(
         ))
 
         const res = await updateNoteContent(id, noteName, note, path)
-        if (!res) return ctx.reply(stringId.note.error.noNote)
+        if (!res) return ctx.reply(stringId.note.error.noNote())
     } else {
         const res = await updateNoteContent(id, noteName, note)
-        if (!res) return ctx.reply(stringId.note.error.noNote)
+        if (!res) return ctx.reply(stringId.note.error.noNote())
     }
     return ctx.reply('✏️ Note edited!')
 }
@@ -376,7 +384,7 @@ const toMp3Handler = async (
 ) => {
     const { isQuotedVideo, isVideo, download, downloadQuoted } = ctx
     if (!isVideo && !isQuotedVideo)
-        throw new Error(stringId.tomp3.error.noVideo)
+        throw new Error(stringId.tomp3.error.noVideo())
     ctx.reactWait()
     const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
     const audio = await videoToMp3(mediaData)
@@ -402,7 +410,7 @@ const videoSplitHandler = async (
         0
 
     if (seconds < 30 && seconds != 0)
-        throw new Error(stringId.vsplit.error.duration)
+        throw new Error(stringId.vsplit.error.duration())
 
     ctx.reactWait()
     const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
@@ -411,7 +419,7 @@ const videoSplitHandler = async (
         seconds = await getVideoDurationInSeconds(Readable.from(mediaData))
     }
 
-    if (seconds < 30) throw new Error(stringId.vsplit.error.duration)
+    if (seconds < 30) throw new Error(stringId.vsplit.error.duration())
 
     const id = ctx.participant ?? ctx.from
     const video = await splitVideo(id, mediaData)
@@ -441,7 +449,8 @@ const ocrHandler = async (
     ctx: MessageContext
 ) => {
     const { isQuotedImage, isImage, download, downloadQuoted, args } = ctx
-    if (!isImage && !isQuotedImage) throw new Error(stringId.ocr.error.noImage)
+    if (!isImage && !isQuotedImage)
+        throw new Error(stringId.ocr.error.noImage())
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
 
@@ -470,7 +479,7 @@ const gttsHandler = async (
         text = args.slice(1).join(' ')
     }
 
-    if (!LANGUAGES[lang]) throw stringId.say.error.lang
+    if (!LANGUAGES[lang]) throw stringId.say.error.lang()
 
     await reactWait()
     const filepath = `tmp/gtts_${_msg.key.id!}.mp3`

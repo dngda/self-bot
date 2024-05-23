@@ -1,12 +1,12 @@
-import { VideoData, pinterest, tinyUrl } from '../lib'
+import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import chalk from 'chalk'
 import { sample, sampleSize } from 'lodash'
-import { MessageContext } from '../utils'
-import { WASocket, WAMessage } from '@whiskeysockets/baileys'
+import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
+import { VideoData, pinterest, tinyUrl } from '../lib'
 import { menu } from '../menu'
-import { browser } from '../..'
-import chalk from 'chalk'
+import { MessageContext } from '../types'
 
 export default function () {
     Object.assign(actions, {
@@ -16,6 +16,9 @@ export default function () {
 
     stringId.pinterest = {
         hint: '🔍 _Search gambar di pinterest_',
+        error: {
+            noResult: () => '‼️ Tidak ada hasil.',
+        },
         usage: (ctx: MessageContext) =>
             `🔍 Search gambar di pinterest dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
     }
@@ -23,13 +26,13 @@ export default function () {
     stringId.videodl = {
         hint: '📩 _Download video tiktok/reel/twitter/yt_',
         error: {
-            invalidUrl: '‼️ URL tidak valid!',
-            internalError: '‼️ Terjadi kesalahan! Coba refresh browser.',
-            maxDuration: '‼️ Durasi video melebihi 10 menit!',
+            invalidUrl: () => '‼️ URL tidak valid!',
+            internalError: () => '‼️ Terjadi kesalahan! Coba refresh browser.',
+            maxDuration: () => '‼️ Durasi video melebihi 10 menit!',
         },
         usage: (ctx: MessageContext) =>
             `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <url>`,
-        getAudio: (ctx: MessageContext) =>
+        info: (ctx: MessageContext) =>
             `🎶 Convert to Audio by reply this with *${ctx.prefix}mp3*`,
         sent: (q: string) => `✅ Sent ${q}p\n\nother format:\n`,
     }
@@ -147,7 +150,7 @@ export const videoDownloadHandler = async (
     ) {
         await youtube(url, ctx)
     } else {
-        throw stringId.videodl.error.invalidUrl
+        throw stringId.videodl.error.invalidUrl()
     }
 
     return ctx.reactSuccess()
@@ -187,7 +190,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
             await ctx.replyContent({
                 video: { url: result.url[0].url },
                 seconds: duration,
-                caption: stringId.videodl.getAudio(ctx),
+                caption: stringId.videodl.info?.(ctx),
             })
         }
     }
@@ -204,12 +207,12 @@ async function twitter(url: string, ctx: MessageContext) {
     let captions = ''
     for (const video of resultUrls) {
         if (video?.url == selectedUrl) {
-            captions += stringId.videodl.sent(video?.quality)
+            captions += stringId.videodl.sent?.(video?.quality)
             continue
         }
         captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
     }
-    captions += stringId.videodl.getAudio(ctx)
+    captions += stringId.videodl.info?.(ctx)
 
     await ctx.replyContent({
         video: { url: selectedUrl },
@@ -227,7 +230,7 @@ async function youtube(url: string, ctx: MessageContext) {
     if (result.message) throw `‼️ ${result.message}`
     const duration = getDuration(result)
 
-    if (duration / 60 > 10) throw stringId.videodl.error.maxDuration
+    if (duration / 60 > 10) throw stringId.videodl.error.maxDuration()
 
     let selectedUrl: string | URL
     let selectedQuality: string
@@ -241,12 +244,12 @@ async function youtube(url: string, ctx: MessageContext) {
             selectedUrl = result.url[0].url
             selectedQuality = result.url[0].quality
         }
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.log(chalk.blue('[RES]'), result)
         console.error(chalk.red('[ERR]'), error)
-        throw stringId.videodl.error.internalError
+        throw stringId.videodl.error.internalError()
     }
-    captions += stringId.videodl.sent(selectedQuality)
+    captions += stringId.videodl.sent?.(selectedQuality)
 
     for (const video of result.url) {
         if (video?.no_audio) continue
@@ -258,7 +261,7 @@ async function youtube(url: string, ctx: MessageContext) {
         }
         captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
     }
-    captions += stringId.videodl.getAudio(ctx)
+    captions += stringId.videodl.info?.(ctx)
 
     await ctx.replyContent({
         video: { url: selectedUrl },

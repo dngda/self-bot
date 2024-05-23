@@ -3,16 +3,15 @@ import {
     WASocket,
     WAMessage,
     WAMediaUpload,
-    WAMessageContent,
     AnyMessageContent,
     downloadMediaMessage,
     downloadContentFromMessage,
 } from '@whiskeysockets/baileys'
 import dotenv from 'dotenv'
-import { BotConfig, config } from '../handler'
+import { config } from '../handler'
+import { MessageContext } from '../types'
 dotenv.config()
 
-type snu = string | null | undefined
 let prefix = process.env.PREFIX!
 
 export const setPrefix = (newPrefix: string) => {
@@ -25,53 +24,6 @@ export const resetPrefix = () => {
 
 export const getPrefix = () => {
     return prefix
-}
-
-export interface MessageContext {
-    from: string
-    fromMe: boolean | null | undefined
-    name: snu
-    participant: snu
-    body: snu
-    prefix: string
-    isCmd: boolean
-    cmd: string
-    arg: string
-    args: string[]
-    groupName: string | null
-    quotedMsg: WAMessageContent | null | undefined
-    contextInfo: proto.IContextInfo | null | undefined
-    expiration: number | null | undefined
-
-    isGroup: boolean
-    isQuotedImage: boolean | null
-    isQuotedVideo: boolean | null
-    isQuotedSticker: boolean | null
-    isQuotedDocument: boolean | null
-    isQuoted: boolean | null
-    isImage: boolean | null
-    isVideo: boolean | null
-    isMedia: boolean | null
-    isEphemeral: boolean | null
-    isStatusMessage: boolean | null
-
-    config: BotConfig
-    download: () => Promise<Buffer>
-    downloadQuoted: () => Promise<Buffer>
-    downloadSticker: () => Promise<Buffer>
-    reply: (text: string) => Promise<proto.WebMessageInfo | undefined>
-    send: (text: string) => Promise<proto.WebMessageInfo | undefined>
-    replySticker: (
-        inputMedia: WAMediaUpload
-    ) => Promise<proto.WebMessageInfo | undefined>
-    replyContent: (
-        content: AnyMessageContent
-    ) => Promise<proto.WebMessageInfo | undefined>
-    replyVoiceNote: (path: string) => Promise<proto.WebMessageInfo | undefined>
-
-    reactWait: () => Promise<proto.WebMessageInfo | undefined>
-    reactSuccess: () => Promise<proto.WebMessageInfo | undefined>
-    reactError: () => Promise<proto.WebMessageInfo | undefined>
 }
 
 export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {

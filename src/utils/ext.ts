@@ -1,14 +1,15 @@
 import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
-import { MessageContext, serializeMessage } from './serializer'
-import { actions, config } from '../handler'
-import { getNoteContent, getStatus } from '../lib'
-import { getCommand } from '../menu'
-import stringId from '../language'
-import * as math from 'mathjs'
-import { logCmd } from '.'
 import chalk from 'chalk'
 import fs from 'fs'
+import * as math from 'mathjs'
+import { logCmd } from '.'
 import { getStatusListMessage } from '../cmd/owner'
+import { actions, config } from '../handler'
+import stringId from '../language'
+import { getNoteContent, getStatus } from '../lib'
+import { getCommand } from '../menu'
+import { MessageContext } from '../types'
+import { serializeMessage } from './serializer'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body, reply } = ctx
@@ -48,7 +49,7 @@ export const handleRepeatCommand = async (
             if (cmd in actions) {
                 console.log(chalk.green('[LOG]'), 'Serialized cmd msg:', ctx)
                 logCmd(msg, quotedData)
-                await actions[cmd](_wa, quoted, quotedData)
+                await actions[cmd](_wa, msg, quotedData)
             }
         }
     }
