@@ -16,7 +16,6 @@ import chalk from 'chalk'
 import { PlaywrightBrowser, getMessage } from './src/lib'
 import { executeSavedScriptInNote } from './src/cmd/owner'
 export const browser = new PlaywrightBrowser()
-browser.init()
 
 dotenv.config()
 const logger = MAIN_LOGGER.child({})
@@ -52,7 +51,12 @@ const startSock = async () => {
         markOnlineOnConnect: false,
         getMessage: async (key) => {
             const msg = await getMessage(key.id!)
-            return msg?.message || proto.Message.fromObject({message: {text: '_Failed to fetch message_'}})
+            return (
+                msg?.message ||
+                proto.Message.fromObject({
+                    message: { text: '_Failed to fetch message_' },
+                })
+            )
         },
     })
 

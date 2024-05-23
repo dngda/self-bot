@@ -34,11 +34,11 @@ export class PlaywrightBrowser {
     private ctx: BrowserContext
     private browser: Browser
 
-    constructor() {
-        this.ctx = {} as any
+    constructor(headless = true) {
+        this.init(headless)
     }
 
-    async init(headless = true) {
+    async init(headless: boolean) {
         chromium.use(stealthPlugin())
         const browser = await chromium.launch({ headless })
         const context = await browser.newContext({
