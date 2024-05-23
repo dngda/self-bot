@@ -167,7 +167,7 @@ const getStatusHandler = async (
     let jid = ctx.arg
     jid = jid.replace(' ', '').replace(/-/g, '')
 
-    const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard || ''
+    const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard ?? ''
     if (vcard) {
         const _jid = vcard.match(/waid=(\d+)/)?.[1]
         if (!_jid) return ctx.reply(stringId.getStatus.error.invalidJId())

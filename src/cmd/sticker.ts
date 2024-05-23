@@ -212,7 +212,7 @@ const processVideo = async (
     if (isSendNotif) {
         wa.sendMessage(ctx.from, {
             edit: msgKey,
-            text: stringId.sticker.success?.(quality) || '',
+            text: stringId.sticker.success?.(quality) as string,
         })
     }
 

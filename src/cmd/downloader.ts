@@ -128,7 +128,7 @@ export const videoDownloadHandler = async (
 ) => {
     const { arg, isQuoted, quotedMsg } = ctx
     const quotedMsgText =
-        quotedMsg?.extendedTextMessage?.text || quotedMsg?.conversation || ''
+        quotedMsg?.extendedTextMessage?.text ?? quotedMsg?.conversation ?? ''
     const url = isQuoted ? quotedMsgText : arg
     if (arg == '' && !isQuoted) throw new Error(stringId.videodl.usage(ctx))
 
@@ -165,7 +165,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
         []
 
     const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw `‼️ ${result.message}`
+    if (result.message) throw new Error(`‼️ ${result.message}`)
     const duration = getDuration(result)
     const resultArray = result as unknown as VideoData[]
 
@@ -199,7 +199,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
 async function twitter(url: string, ctx: MessageContext) {
     const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
     const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw `‼️ ${result.message}`
+    if (result.message) throw new Error(`‼️ ${result.message}`)
     const resultUrls = [...result.url].sort((a, b) => {
         return Number(a.quality) - Number(b.quality)
     })
@@ -227,7 +227,7 @@ async function youtube(url: string, ctx: MessageContext) {
         youtubeShortsPattern.exec(url) ??
         []
     const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw `‼️ ${result.message}`
+    if (result.message) throw new Error(`‼️ ${result.message}`)
     const duration = getDuration(result)
 
     if (duration / 60 > 10) throw stringId.videodl.error.maxDuration()

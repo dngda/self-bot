@@ -82,7 +82,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
 
     const { message } = viewOnce
     const { imageMessage, videoMessage } = message as proto.IMessage
-    const caption = imageMessage?.caption || videoMessage?.caption || ''
+    const caption = imageMessage?.caption ?? videoMessage?.caption ?? ''
     if (imageMessage) {
         const mediaData = await downloadMediaMessage(
             { key: msg.key, message: message },

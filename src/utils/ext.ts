@@ -147,7 +147,7 @@ export const handleReplyToStatusList = async (
     const jid =
         ctx.quotedMsg.extendedTextMessage.contextInfo?.mentionedJid?.[
             parseInt(ctx.body as string) - 1
-        ] || ''
+        ] ?? ''
 
     const message = await getStatusListMessage(jid)
 

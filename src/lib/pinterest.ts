@@ -27,7 +27,7 @@ export const pinterest = (query: string) =>
                                 .find('div > div > div > div > a')
                                 .find('img')
                                 .attr('src')
-                            hasil.push(Link || '')
+                            hasil.push(Link ?? '')
                         })
                 })
                 const Data = new Set()

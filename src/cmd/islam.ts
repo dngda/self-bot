@@ -105,7 +105,7 @@ const jadwalSholatHandler = async (
         const { data: jadwalData } = await get(
             `https://api.myquran.com/v2/sholat/jadwal/${kodek}/${tgl}`
         )
-        if (jadwalData.status === 'false') throw 'Internal server error'
+        if (jadwalData.status === 'false') throw new Error('Internal server error')
         const jadwal = jadwalData.data.jadwal
         let jadwalMsg = `╔══✪〘 Jadwal Sholat di ${jadwalData.data.lokasi} 〙✪\n`
         jadwalMsg += `╠> ${jadwal.tanggal}\n`

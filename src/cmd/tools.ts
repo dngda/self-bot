@@ -320,10 +320,10 @@ async function handleMediaNotes(
     let ext
     if (ctx.isVideo) {
         ext = 'mp4'
-        note = quotedMsg?.videoMessage?.caption || args.slice(1).join(' ') || ''
+        note = quotedMsg?.videoMessage?.caption ?? args.slice(1).join(' ') ?? ''
     } else {
         ext = 'jpg'
-        note = quotedMsg?.imageMessage?.caption || args.slice(1).join(' ') || ''
+        note = quotedMsg?.imageMessage?.caption ?? args.slice(1).join(' ') ?? ''
     }
     const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
     writeFileSync(path, mediaData)

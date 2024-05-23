@@ -119,7 +119,7 @@ const togglePublicHandler = async (
         isPublic = true
     }
     updateConfig()
-    return ctx.reply(stringId.public.info?.(isPublic, ctx.prefix) || '')
+    return ctx.reply(stringId.public.info?.(isPublic, ctx.prefix) ?? '')
 }
 
 const stickerCmdHandler = async (
@@ -145,7 +145,7 @@ const stickerCmdHandler = async (
             delete config.stickerCommands[stickerSha]
             updateConfig()
             await ctx.reactSuccess()
-            return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) || '')
+            return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) ?? '')
         } else {
             await ctx.reactError()
             return ctx.reply(stringId.stickerCmd.error.notExist())
@@ -168,7 +168,7 @@ const stickerCmdHandler = async (
         config.stickerCommands[stickerSha] = { cmd, arg }
         updateConfig()
         await ctx.reactSuccess()
-        return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) || '')
+        return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) ?? '')
     }
 }
 
@@ -180,7 +180,7 @@ const setPrefixHandler = async (
     if (!ctx.fromMe) return
     if (ctx.cmd === 'resetprefix') {
         resetPrefix()
-        return ctx.reply(stringId.setPrefix.info?.() || '')
+        return ctx.reply(stringId.setPrefix.info?.() ?? '')
     } else {
         const prefix = ctx.arg
         if (!prefix) {
@@ -189,10 +189,10 @@ const setPrefixHandler = async (
         }
         if (prefix.length > 1) {
             setPrefix(prefix + ' ')
-            ctx.reply(stringId.setPrefix.success?.(prefix + ' ') || '')
+            ctx.reply(stringId.setPrefix.success?.(prefix + ' ') ?? '')
         } else {
             setPrefix(prefix)
-            ctx.reply(stringId.setPrefix.success?.(prefix) || '')
+            ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
         }
     }
 
@@ -220,5 +220,5 @@ const toggleConfigHandler = async (
     }
 
     updateConfig()
-    return ctx.reply(stringId.toggleConfig.success?.(configName, status) || '')
+    return ctx.reply(stringId.toggleConfig.success?.(configName, status) ?? '')
 }
