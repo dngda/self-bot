@@ -67,6 +67,7 @@ export interface MessageContext {
     reactError: () => Promise<proto.WebMessageInfo | undefined>
 }
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
 export interface LanguageString {
     hint: string
     error: { [key: string]: (...args: any[]) => string }
@@ -75,3 +76,4 @@ export interface LanguageString {
     success?: (...args: any[]) => string
     sent?: (...args: any[]) => string
 }
+/* eslint-enable @typescript-eslint/no-explicit-any */

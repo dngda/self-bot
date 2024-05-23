@@ -84,7 +84,7 @@ export class PlaywrightBrowser {
         const page = await this.openPage('https://ssyoutube.com/')
 
         // Handle the response separately
-        const handleResponse = (page: Page): Promise<any> => {
+        const handleResponse = (page: Page): Promise<VideoData> => {
             return new Promise((resolve, reject) => {
                 page.on('response', async (response: Response) => {
                     if (
@@ -94,7 +94,7 @@ export class PlaywrightBrowser {
                         try {
                             const data = await response.json()
                             resolve(data)
-                        } catch (error: any) {
+                        } catch (error: unknown) {
                             reject(error)
                         }
                     }

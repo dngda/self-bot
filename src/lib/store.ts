@@ -63,11 +63,12 @@ export const getStatusList = () => {
     return data
 }
 
-// for debugging
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const printStatusStore = (...txt: any[]) => {
     console.log(...txt, util.inspect(StatusStore, false, null, true))
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const printMessageStore = (...txt: any[]) => {
     console.log(...txt, util.inspect(MessageStore, false, null, true))
 }
