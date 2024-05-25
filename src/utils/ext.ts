@@ -143,7 +143,7 @@ export const handleReplyToStatusList = async (
     const listJid = quoted?.split('\n').slice(1)
     const jid =
         listJid[parseInt(ctx.body as string) - 1]
-            .split(' ')[0]
+            .split(' ')[1]
             .replace('@', '') + '@s.whatsapp.net'
     const message = await getStatusListMessage(jid)
 
