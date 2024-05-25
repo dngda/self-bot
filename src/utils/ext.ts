@@ -138,9 +138,9 @@ export const handleReplyToStatusList = async (
 ) => {
     if (!msg.key.fromMe) return null
     const quoted = ctx.quotedMsg?.extendedTextMessage?.text
-    if (!quoted.includes('List Status Update')) return null
+    if (!quoted?.includes('List Status Update')) return null
 
-    const listJid = quoted.split('\n').slice(1)
+    const listJid = quoted?.split('\n').slice(1)
     const jid =
         listJid[parseInt(ctx.body as string) - 1]
             .split(' ')[0]
