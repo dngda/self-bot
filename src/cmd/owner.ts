@@ -213,7 +213,7 @@ const getStatusHandler = async (
 
 export const getStatusListMessage = async (jid: string): Promise<string> => {
     const status = await getStatus(jid)
-    if (!status) return Promise.reject(stringId.getStatus.error.notFound())
+    if (!status) throw new Error(stringId.getStatus.error.notFound())
 
     let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
     let i = 1
