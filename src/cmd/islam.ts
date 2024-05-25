@@ -2,19 +2,14 @@ import stringId from '../language'
 import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
-import { mp3ToOpus } from '../lib'
+import { mp3ToOpus } from '../lib/_index'
 import { menu } from '../menu'
 import axios, { AxiosError } from 'axios'
 import fs from 'fs'
 import { Surah, SurahRepo } from '../raw/surah'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        jsholat: jadwalSholatHandler,
-        surah: surahHandler,
-    })
-
+const jadwalSholatCmd = () => {
     stringId.jsholat = {
         hint: '🕌 _Jadwal sholat_',
         error: {
@@ -30,41 +25,16 @@ export default function () {
 ⚠️ Contoh: ${ctx.prefix}${ctx.cmd} sleman`,
     }
 
-    stringId.surah = {
-        hint: "📖 _Baca surah Al-Qur'an_",
-        error: {
-            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
-            notFound: (
-                ctx: MessageContext
-            ) => `‼️ Surah '${ctx.args[0]}' tidak ditemukan atau ayat ${ctx.args[1]} tidak ada!
-Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
-            invalidAyat: (ctx: MessageContext) =>
-                `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
-            tooManyAyat: () =>
-                '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
-            invalidMaxAyat: (total: number) =>
-                `‼️ Melebihi total ayat dalam surah tersebut (max ${total})`,
-        },
-        usage: (ctx: MessageContext) =>
-            `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
-⚠️ Nama surah harus berupa nama surah atau nomor surah
-⚠️ Contoh: ${ctx.prefix}${ctx.cmd} al-fatihah 1 atau ${ctx.prefix}${ctx.cmd} 1 1-5`,
-    }
+    menu.push({
+        command: 'jsholat',
+        hint: stringId.jsholat.hint,
+        alias: 'jsh',
+        type: 'islam',
+    })
 
-    menu.push(
-        {
-            command: 'jsholat',
-            hint: stringId.jsholat.hint,
-            alias: 'jsh, jadwalsholat',
-            type: 'islam',
-        },
-        {
-            command: 'surah',
-            hint: stringId.surah.hint,
-            alias: 'quran, recite',
-            type: 'islam',
-        }
-    )
+    Object.assign(actions, {
+        jsholat: jadwalSholatHandler,
+    })
 }
 
 const q3 = '```'
@@ -105,7 +75,8 @@ const jadwalSholatHandler = async (
         const { data: jadwalData } = await get(
             `https://api.myquran.com/v2/sholat/jadwal/${kodek}/${tgl}`
         )
-        if (jadwalData.status === 'false') throw new Error('Internal server error')
+        if (jadwalData.status === 'false')
+            throw new Error('Internal server error')
         const jadwal = jadwalData.data.jadwal
         let jadwalMsg = `╔══✪〘 Jadwal Sholat di ${jadwalData.data.lokasi} 〙✪\n`
         jadwalMsg += `╠> ${jadwal.tanggal}\n`
@@ -119,6 +90,40 @@ const jadwalSholatHandler = async (
         ctx.reply(jadwalMsg)
     }
     return ctx.reactSuccess()
+}
+
+const surahCmd = () => {
+    stringId.surah = {
+        hint: "📖 _Baca surah Al-Qur'an_",
+        error: {
+            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
+            notFound: (
+                ctx: MessageContext
+            ) => `‼️ Surah '${ctx.args[0]}' tidak ditemukan atau ayat ${ctx.args[1]} tidak ada!
+Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
+            invalidAyat: (ctx: MessageContext) =>
+                `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
+            tooManyAyat: () =>
+                '‼️ Ayat yang diminta terlalu banyak! Maksimal 10 ayat',
+            invalidMaxAyat: (total: number) =>
+                `‼️ Melebihi total ayat dalam surah tersebut (max ${total})`,
+        },
+        usage: (ctx: MessageContext) =>
+            `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
+⚠️ Nama surah harus berupa nama surah atau nomor surah
+⚠️ Contoh: ${ctx.prefix}${ctx.cmd} al-fatihah 1 atau ${ctx.prefix}${ctx.cmd} 1 1-5`,
+    }
+
+    menu.push({
+        command: 'surah',
+        hint: stringId.surah.hint,
+        alias: 'quran, recite',
+        type: 'islam',
+    })
+
+    Object.assign(actions, {
+        surah: surahHandler,
+    })
 }
 
 const surahRepo = JSON.parse(
@@ -310,4 +315,9 @@ const getAyatSurahDataAndSend = async (
         }
         throw ((err as AxiosError).response?.data as SurahResponse).message
     }
+}
+
+export default () => {
+    jadwalSholatCmd()
+    surahCmd()
 }

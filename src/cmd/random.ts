@@ -6,12 +6,7 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        meme: gimmeHandler,
-        roll: rollHandler,
-    })
-
+const getMemeCmd = () => {
     stringId.gimme = {
         hint: '🌠 _Random reddit meme_',
         error: {
@@ -21,24 +16,15 @@ export default function () {
             `Custom subreddit setelah cmd, contoh: _${ctx.prefix}${ctx.cmd} dankmemes_`,
     }
 
-    stringId.roll = {
-        hint: '🎲 _Roll a dice_',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-
-    menu.push({
-        command: 'roll',
-        hint: stringId.roll.hint,
-        alias: 'r',
-        type: 'random',
-    })
-
     menu.push({
         command: 'meme',
         hint: stringId.gimme.hint,
         alias: 'reddit, ri',
         type: 'random',
+    })
+
+    Object.assign(actions, {
+        meme: gimmeHandler,
     })
 }
 
@@ -73,6 +59,25 @@ const gimmeHandler = async (
     }
 }
 
+const rollCmd = () => {
+    stringId.roll = {
+        hint: '🎲 _Roll a dice_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'roll',
+        hint: stringId.roll.hint,
+        alias: 'r',
+        type: 'random',
+    })
+
+    Object.assign(actions, {
+        roll: rollHandler,
+    })
+}
+
 const rollHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -104,4 +109,9 @@ const rollHandler = async (
         { edit: m_id?.key, text: `🎲 ${roll} 🎲 ${roll2}` },
         { ephemeralExpiration: ctx.expiration! }
     )
+}
+
+export default () => {
+    getMemeCmd()
+    rollCmd()
 }

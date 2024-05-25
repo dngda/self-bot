@@ -8,6 +8,7 @@ import sticker from './sticker'
 import tools from './tools'
 import config from './config'
 
+// Urutan pemanggilan akan menentukan urutan menu
 export default () => {
     general()
     sticker()

@@ -13,7 +13,7 @@ import { textSync } from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser, getMessage } from './src/lib'
+import { PlaywrightBrowser, getMessage } from './src/lib/_index'
 import { executeSavedScriptInNote } from './src/cmd/owner'
 export const browser = new PlaywrightBrowser()
 

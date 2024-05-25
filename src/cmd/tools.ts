@@ -24,21 +24,11 @@ import {
     splitVideo,
     updateNoteContent,
     videoToMp3,
-} from '../lib'
+} from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        flip: flipHandler,
-        onev: oneViewHandler,
-        notes: noteHandler,
-        tomp3: toMp3Handler,
-        vsplit: videoSplitHandler,
-        ocr: ocrHandler,
-        say: gttsHandler,
-    })
-
+const flipImageCmd = () => {
     stringId.flip = {
         hint: '🖼️ _flip = vertikal, flop = horizontal_',
         error: {
@@ -48,108 +38,16 @@ export default function () {
             `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}flip atau ${ctx.prefix}flop`,
     }
 
-    stringId.onev = {
-        hint: '👁️‍🗨️ _Get pesan view once_',
-        error: {
-            noOneView: () => '‼️ Pesan view once tidak ditemukan!',
-        },
-        usage: (ctx: MessageContext) =>
-            `👁️‍🗨️ Reply pesan oneView dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
-    }
+    menu.push({
+        command: 'flip',
+        hint: stringId.flip.hint,
+        alias: 'flop',
+        type: 'tools',
+    })
 
-    stringId.note = {
-        hint: '📝 _Database catatan_',
-        error: {
-            noNote: () => '‼️ Catatan tidak ditemukan!',
-            duplicate: () =>
-                '‼️ Error atau Catatan dengan nama tersebut sudah ada!',
-        },
-        usage: (ctx: MessageContext) =>
-            `📝 Simpan catatan dengan cara ➡️ ${ctx.prefix}addnote #nama <catatan>`,
-    }
-
-    stringId.tomp3 = {
-        hint: '🎵 _Convert video to mp3_',
-        error: {
-            noVideo: () => '‼️ Video tidak ditemukan!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🎵 Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
-    }
-
-    stringId.vsplit = {
-        hint: '🎞️ _Split video by 30 seconds_',
-        error: {
-            duration: () => '‼️ Durasi video terlalu pendek!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
-    }
-
-    stringId.ocr = {
-        hint: '📖 _Optical character recognition_',
-        error: {
-            noImage: () => '‼️ Gambar tidak ditemukan!',
-        },
-        usage: (ctx: MessageContext) =>
-            `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${ctx.prefix}${ctx.cmd} <language>`,
-    }
-
-    stringId.say = {
-        hint: '🗣️ _Google text to speech_',
-        error: {
-            lang: () => '‼️ Bahasa tidak disupport.',
-        },
-        usage: (ctx: MessageContext) =>
-            `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}${ctx.cmd} <text>`,
-    }
-
-    menu.push(
-        {
-            command: 'flip',
-            hint: stringId.flip.hint,
-            alias: 'flop',
-            type: 'tools',
-        },
-        {
-            command: 'onev',
-            hint: stringId.onev.hint,
-            alias: '1v',
-            type: 'tools',
-        },
-        {
-            command: 'notes',
-            hint: stringId.note.hint,
-            alias: 'addnote, delnote, editnote',
-            type: 'tools',
-        },
-        {
-            command: 'tomp3',
-            hint: stringId.tomp3.hint,
-            alias: 'mp3',
-            type: 'tools',
-        },
-        {
-            command: 'vsplit',
-            hint: stringId.vsplit.hint,
-            alias: 'vs',
-            type: 'tools',
-        },
-        {
-            command: 'ocr',
-            hint: stringId.ocr.hint,
-            alias: 'itt',
-            type: 'tools',
-        },
-        {
-            command: 'say',
-            hint: stringId.say.hint,
-            alias: 'tts',
-            type: 'tools',
-        }
-    )
-
-    initNoteDatabase()
+    Object.assign(actions, {
+        flip: flipHandler,
+    })
 }
 
 const flipHandler = async (
@@ -176,6 +74,28 @@ const flipHandler = async (
             { quoted: msg }
         )
     ctx.reactSuccess()
+}
+
+const getOneViewCmd = () => {
+    stringId.onev = {
+        hint: '👁️‍🗨️ _Get pesan view once_',
+        error: {
+            noOneView: () => '‼️ Pesan view once tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `👁️‍🗨️ Reply pesan oneView dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'onev',
+        hint: stringId.onev.hint,
+        alias: '1v',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        onev: oneViewHandler,
+    })
 }
 
 const oneViewHandler = async (
@@ -217,6 +137,30 @@ const oneViewHandler = async (
         )
     }
     ctx.reactSuccess()
+}
+
+const noteCreatorCmd = () => {
+    stringId.note = {
+        hint: '📝 _Database catatan_',
+        error: {
+            noNote: () => '‼️ Catatan tidak ditemukan!',
+            duplicate: () =>
+                '‼️ Error atau Catatan dengan nama tersebut sudah ada!',
+        },
+        usage: (ctx: MessageContext) =>
+            `📝 Simpan catatan dengan cara ➡️ ${ctx.prefix}addnote #nama <catatan>`,
+    }
+
+    menu.push({
+        command: 'notes',
+        hint: stringId.note.hint,
+        alias: 'addnote, delnote, editnote',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        notes: noteHandler,
+    })
 }
 
 const noteHandler = async (
@@ -377,6 +321,28 @@ async function handleEditNoteCommand(
     return ctx.reply('✏️ Note edited!')
 }
 
+const videoToMp3Cmd = () => {
+    stringId.tomp3 = {
+        hint: '🎵 _Convert video to mp3_',
+        error: {
+            noVideo: () => '‼️ Video tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🎵 Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'tomp3',
+        hint: stringId.tomp3.hint,
+        alias: 'mp3',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        tomp3: toMp3Handler,
+    })
+}
+
 const toMp3Handler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -395,6 +361,28 @@ const toMp3Handler = async (
     })
     await ctx.reactSuccess()
     unlink(audio, (_) => _)
+}
+
+const videoSplitCmd = () => {
+    stringId.vsplit = {
+        hint: '🎞️ _Split video to 30s parts_',
+        error: {
+            duration: () => '‼️ Video harus lebih dari 30 detik!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🎞️ Kirim video dengan caption atau reply video dengan ➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'vsplit',
+        hint: stringId.vsplit.hint,
+        alias: 'split',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        vsplit: videoSplitHandler,
+    })
 }
 
 const videoSplitHandler = async (
@@ -443,6 +431,28 @@ const videoSplitHandler = async (
     delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
 }
 
+const ocrCmd = () => {
+    stringId.ocr = {
+        hint: '📖 _Optical character recognition_',
+        error: {
+            noImage: () => '‼️ Gambar tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `📖 Kirim gambar dengan caption atau reply gambar dengan ➡️ ${ctx.prefix}${ctx.cmd} <language>`,
+    }
+
+    menu.push({
+        command: 'ocr',
+        hint: stringId.ocr.hint,
+        alias: 'itt',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        ocr: ocrHandler,
+    })
+}
+
 const ocrHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -461,6 +471,28 @@ const ocrHandler = async (
 
     await ctx.reply(text)
     ctx.reactSuccess()
+}
+
+const gttsCmd = () => {
+    stringId.say = {
+        hint: '🗣️ _Google text to speech_',
+        error: {
+            lang: () => '‼️ Bahasa tidak disupport.',
+        },
+        usage: (ctx: MessageContext) =>
+            `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}${ctx.cmd} <text>`,
+    }
+
+    menu.push({
+        command: 'say',
+        hint: stringId.say.hint,
+        alias: 'tts',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        say: gttsHandler,
+    })
 }
 
 const gttsHandler = async (
@@ -491,4 +523,16 @@ const gttsHandler = async (
 
     unlink(filepath, (_) => _)
     unlink(opus, (_) => _)
+}
+
+export default () => {
+    initNoteDatabase()
+
+    flipImageCmd()
+    getOneViewCmd()
+    noteCreatorCmd()
+    videoToMp3Cmd()
+    videoSplitCmd()
+    gttsCmd()
+    ocrCmd()
 }

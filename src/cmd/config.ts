@@ -2,17 +2,10 @@ import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { actions, config, updateConfig } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
-import { resetPrefix, setPrefix } from '../utils'
+import { resetPrefix, setPrefix } from '../utils/_index'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        public: togglePublicHandler,
-        scmd: stickerCmdHandler,
-        setp: setPrefixHandler,
-        con: toggleConfigHandler,
-    })
-
+const togglePublicChatCmd = () => {
     stringId.public = {
         hint: '⚙️ _Toggle public mode pada chat ini_',
         error: {
@@ -25,81 +18,16 @@ export default function () {
                 : `🤳🏼 Self-mode aktif`,
     }
 
-    stringId.stickerCmd = {
-        hint: '⚙️ _Set sticker command_',
-        error: {
-            exist: (scmd: { cmd: string; arg: string }) =>
-                `‼️ Sticker sudah terdaftar sebagai command: ${scmd.cmd} ${
-                    scmd.arg ? scmd.arg : ''
-                }`,
-            notExist: () => '‼️ Sticker tidak terdaftar',
-        },
-        usage: (ctx: MessageContext) =>
-            `Reply sticker dengan: ${ctx.prefix}scmd <cmd> <arg>
-➡️ Contoh: ${ctx.prefix}scmd sticker -r -nobg
-   atau hapus scmd dengan: ${ctx.prefix}dscmd <cmd>`,
-        success: (cmd: string) =>
-            `✅ Sticker dengan cmd "${cmd}" berhasil ditambahkan`,
-        info: (cmd: string) =>
-            `✅ Sticker dengan cmd "${cmd}" berhasil dihapus`,
-    }
+    menu.push({
+        command: 'public',
+        hint: stringId.public.hint,
+        alias: 'mode',
+        type: 'config',
+    })
 
-    stringId.setPrefix = {
-        hint: '⚙️ _Set prefix_',
-        error: {
-            notSelf: () => '‼️ Self only command',
-        },
-        usage: (ctx: MessageContext) =>
-            `Set prefix dengan: ${ctx.prefix}setp <prefix>
-➡️ Contoh: ${ctx.prefix}setp !`,
-        success: (prefix: string) =>
-            `✅ Prefix berhasil diubah menjadi "${prefix}"
-➡️ Coba kirimkan: *${prefix}help*
-➡️ Reset prefix dengan: *${prefix}resetprefix*
-Cek prefix aktif dengan: *cekprefix*`,
-        info: () => '✅ Prefix berhasil direset',
-    }
-
-    stringId.toggleConfig = {
-        hint: '⚙️ _Toggle config_',
-        error: {},
-        usage: (ctx: MessageContext) =>
-            `Toggle config dengan: ${ctx.prefix}con <config> / coff <config>
-Config:
-- public: allow global chat to use bot
-- norevoke: The revoked message will be forwarded to the owner.
-- oneview: The OneView message will be forwarded and showed to the owner.
-➡️ Contoh: ${ctx.prefix}con norevoke`,
-        success: (config: string, status: boolean) =>
-            `✅ Config "${config}" berhasil diubah menjadi "${status}"`,
-    }
-
-    menu.push(
-        {
-            command: 'public',
-            hint: stringId.public.hint,
-            alias: 'mode',
-            type: 'config',
-        },
-        {
-            command: 'scmd',
-            hint: stringId.stickerCmd.hint,
-            alias: 'dscmd',
-            type: 'config',
-        },
-        {
-            command: 'setp',
-            hint: stringId.setPrefix.hint,
-            alias: 'setprefix, resetprefix',
-            type: 'config',
-        },
-        {
-            command: 'con',
-            hint: stringId.toggleConfig.hint,
-            alias: 'coff',
-            type: 'config',
-        }
-    )
+    Object.assign(actions, {
+        public: togglePublicHandler,
+    })
 }
 
 const togglePublicHandler = async (
@@ -122,7 +50,39 @@ const togglePublicHandler = async (
     return ctx.reply(stringId.public.info?.(isPublic, ctx.prefix) ?? '')
 }
 
-const stickerCmdHandler = async (
+const stickerAsCommandCmd = () => {
+    stringId.stickerCmd = {
+        hint: '⚙️ _Set sticker command_',
+        error: {
+            exist: (scmd: { cmd: string; arg: string }) =>
+                `‼️ Sticker sudah terdaftar sebagai command: ${scmd.cmd} ${
+                    scmd.arg ? scmd.arg : ''
+                }`,
+            notExist: () => '‼️ Sticker tidak terdaftar',
+        },
+        usage: (ctx: MessageContext) =>
+            `Reply sticker dengan: ${ctx.prefix}scmd <cmd> <arg>
+➡️ Contoh: ${ctx.prefix}scmd sticker -r -nobg
+    atau hapus scmd dengan: ${ctx.prefix}dscmd <cmd>`,
+        success: (cmd: string) =>
+            `✅ Sticker dengan cmd "${cmd}" berhasil ditambahkan`,
+        info: (cmd: string) =>
+            `✅ Sticker dengan cmd "${cmd}" berhasil dihapus`,
+    }
+
+    menu.push({
+        command: 'scmd',
+        hint: stringId.stickerCmd.hint,
+        alias: 'dscmd',
+        type: 'config',
+    })
+
+    Object.assign(actions, {
+        scmd: stickerAsCmdHandler,
+    })
+}
+
+const stickerAsCmdHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -172,6 +132,35 @@ const stickerCmdHandler = async (
     }
 }
 
+const setPrefixCmd = () => {
+    stringId.setPrefix = {
+        hint: '⚙️ _Set prefix_',
+        error: {
+            notSelf: () => '‼️ Self only command',
+        },
+        usage: (ctx: MessageContext) =>
+            `Set prefix dengan: ${ctx.prefix}setp <prefix>
+➡️ Contoh: ${ctx.prefix}setp !`,
+        success: (prefix: string) =>
+            `✅ Prefix berhasil diubah menjadi "${prefix}"
+➡️ Coba kirimkan: *${prefix}help*
+➡️ Reset prefix dengan: *${prefix}resetprefix*
+Cek prefix aktif dengan: *cekprefix*`,
+        info: () => '✅ Prefix berhasil direset',
+    }
+
+    menu.push({
+        command: 'setp',
+        hint: stringId.setPrefix.hint,
+        alias: 'setprefix, resetprefix',
+        type: 'config',
+    })
+
+    Object.assign(actions, {
+        setp: setPrefixHandler,
+    })
+}
+
 const setPrefixHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -199,7 +188,34 @@ const setPrefixHandler = async (
     return ctx.reactSuccess()
 }
 
-const toggleConfigHandler = async (
+const toggleConfigCmd = () => {
+    stringId.toggleConfig = {
+        hint: '⚙️ _Toggle config_',
+        error: {},
+        usage: (ctx: MessageContext) =>
+            `Toggle config dengan: ${ctx.prefix}con <config> / coff <config>
+Config:
+- public: allow global chat to use bot
+- norevoke: The revoked message will be forwarded to the owner.
+- oneview: The OneView message will be forwarded and showed to the owner.
+➡️ Contoh: ${ctx.prefix}con norevoke`,
+        success: (config: string, status: boolean) =>
+            `✅ Config "${config}" berhasil diubah menjadi "${status}"`,
+    }
+
+    menu.push({
+        command: 'con',
+        hint: stringId.toggleConfig.hint,
+        alias: 'coff',
+        type: 'config',
+    })
+
+    Object.assign(actions, {
+        con: configHandler,
+    })
+}
+
+const configHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -221,4 +237,11 @@ const toggleConfigHandler = async (
 
     updateConfig()
     return ctx.reply(stringId.toggleConfig.success?.(configName, status) ?? '')
+}
+
+export default () => {
+    togglePublicChatCmd()
+    stickerAsCommandCmd()
+    setPrefixCmd()
+    toggleConfigCmd()
 }

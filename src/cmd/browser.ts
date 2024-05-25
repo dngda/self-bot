@@ -5,13 +5,7 @@ import stringId from '../language'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        cuaca: crjogjaHandler,
-        ddg: ddgSearchHandler,
-        gsrc: googleSearchHandler,
-    })
-
+const citraRadarJogjaCmd = () => {
     stringId.crjogja = {
         hint: '🌐 _Citra radar cuaca di Jogja_',
         error: {
@@ -21,47 +15,20 @@ export default function () {
             `🌐 Lihat radar cuaca Jogja ➡️ ${ctx.prefix}${ctx.cmd}`,
     }
 
-    stringId.ddg = {
-        hint: '🔍 _DuckDuckGo search_',
-        error: {
-            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🔍 Cari dengan DuckDuckGo ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
-    }
+    menu.push({
+        command: 'cuaca',
+        hint: stringId.crjogja.hint,
+        alias: 'cj',
+        type: 'browser',
+    })
 
-    stringId.gs = {
-        hint: '🔍 _Google search_',
-        error: {
-            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🔍 Cari dengan Google ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
-    }
-
-    menu.push(
-        {
-            command: 'cuaca',
-            hint: stringId.crjogja.hint,
-            alias: 'cj',
-            type: 'browser',
-        },
-        {
-            command: 'ddg',
-            hint: stringId.ddg.hint,
-            alias: 'q',
-            type: 'browser',
-        },
-        {
-            command: 'gsrc',
-            hint: stringId.gs.hint,
-            alias: 'g',
-            type: 'browser',
-        }
-    )
+    // property must be the same as the command name above
+    Object.assign(actions, {
+        cuaca: citraRadarHandler,
+    })
 }
 
-const crjogjaHandler = async (
+const citraRadarHandler = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -91,6 +58,28 @@ const crjogjaHandler = async (
             ctx.reactError()
             return ctx.reply(stringId.crjogja.error.timeOut())
         })
+}
+
+const duckduckgoSearchCmd = () => {
+    stringId.ddg = {
+        hint: '🔍 _DuckDuckGo search_',
+        error: {
+            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🔍 Cari dengan DuckDuckGo ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
+    }
+
+    menu.push({
+        command: 'ddg',
+        hint: stringId.ddg.hint,
+        alias: 'q',
+        type: 'browser',
+    })
+
+    Object.assign(actions, {
+        ddg: ddgSearchHandler,
+    })
 }
 
 const ddgSearchHandler = async (
@@ -126,6 +115,28 @@ const ddgSearchHandler = async (
     return ctx.reactSuccess()
 }
 
+const googleSearchCmd = () => {
+    stringId.gs = {
+        hint: '🔍 _Google search_',
+        error: {
+            timeOut: () => '‼️ Gagal mendapatkan hasil pencarian!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🔍 Cari dengan Google ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
+    }
+
+    menu.push({
+        command: 'gsrc',
+        hint: stringId.gs.hint,
+        alias: 'g',
+        type: 'browser',
+    })
+
+    Object.assign(actions, {
+        gsrc: googleSearchHandler,
+    })
+}
+
 const googleSearchHandler = async (
     waSocket: WASocket,
     msg: WAMessage,
@@ -138,7 +149,10 @@ const googleSearchHandler = async (
         query
     )}`
     browser
-        .takeScreenshot(url, 'tmp/google.png', { width: 1300, height: 1700 })
+        .takeScreenshot(url, 'tmp/google.png', {
+            width: 1300,
+            height: 1700,
+        })
         .then((r) => {
             if (!r) {
                 ctx.reactError()
@@ -158,4 +172,10 @@ const googleSearchHandler = async (
         })
 
     return ctx.reactSuccess()
+}
+
+export default () => {
+    citraRadarJogjaCmd()
+    duckduckgoSearchCmd()
+    googleSearchCmd()
 }

@@ -1,65 +1,28 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
-import { getPrefix } from '../utils'
+import { getPrefix } from '../utils/_index'
 import { actions } from '../handler'
 import { getMenu, menu } from '../menu'
 import stringId from '../language'
 import lodash from 'lodash'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        ping: pingHandler,
-        menu: menuHandler,
-        tag: hideTagHandler,
-    })
-
+const pingCmd = () => {
     stringId.ping = {
         hint: '➡️ _Balas dengan pong!_',
         error: {},
         usage: (_: MessageContext) => '',
     }
-    stringId.menu = {
-        hint: '📜 _Menampilkan pesan ini_',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-    stringId.math = {
-        hint: '🧮 _Hitung rumus matematika_',
-        error: {
-            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
-        },
-        usage: (_: MessageContext) => '',
-    }
-    stringId.tag = {
-        hint: '🏷️ _Mention semua member group_',
-        error: {
-            noArgs: () => '‼️ Tidak ada isi pesan yang diberikan!',
-            nonGroup: () =>
-                '‼️ Perintah ini hanya bisa digunakan di dalam grup!',
-        },
-        usage: (_: MessageContext) => '',
-    }
 
-    menu.push(
-        {
-            command: 'ping',
-            hint: stringId.ping.hint,
-            alias: 'p',
-            type: 'general',
-        },
-        {
-            command: 'menu',
-            hint: stringId.menu.hint,
-            alias: 'm, start, help, ?',
-            type: 'general',
-        },
-        {
-            command: 'tag',
-            hint: stringId.tag.hint,
-            alias: 'all',
-            type: 'general',
-        }
-    )
+    menu.push({
+        command: 'ping',
+        hint: stringId.ping.hint,
+        alias: 'p',
+        type: 'general',
+    })
+
+    Object.assign(actions, {
+        ping: pingHandler,
+    })
 }
 
 const pingHandler = async (
@@ -69,6 +32,25 @@ const pingHandler = async (
 ) => {
     const processTime = Date.now() - (msg.messageTimestamp as number) * 1000
     await ctx.reply(`Pong _${processTime} ms!_`)
+}
+
+const menuCmd = () => {
+    stringId.menu = {
+        hint: '📜 _Menampilkan pesan ini_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'menu',
+        hint: stringId.menu.hint,
+        alias: 'm, start, help, ?',
+        type: 'general',
+    })
+
+    Object.assign(actions, {
+        menu: menuHandler,
+    })
 }
 
 const q3 = '```'
@@ -120,6 +102,29 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
         menuMsg += `\nThanks for using this bot! 🙏`
     }
     ctx.send(menuMsg)
+}
+
+const hideTagCmd = () => {
+    stringId.tag = {
+        hint: '🏷️ _Mention semua member group_',
+        error: {
+            noArgs: () => '‼️ Tidak ada isi pesan yang diberikan!',
+            nonGroup: () =>
+                '‼️ Perintah ini hanya bisa digunakan di dalam grup!',
+        },
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'tag',
+        hint: stringId.tag.hint,
+        alias: 'all',
+        type: 'general',
+    })
+
+    Object.assign(actions, {
+        tag: hideTagHandler,
+    })
 }
 
 const hideTagHandler = async (
@@ -174,4 +179,10 @@ const hideTagHandler = async (
     }
 
     await ctx.reactSuccess()
+}
+
+export default () => {
+    pingCmd()
+    menuCmd()
+    hideTagCmd()
 }

@@ -6,95 +6,40 @@ import sharp from 'sharp'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { actions } from '../handler'
 import stringId from '../language'
-import { gifToMp4, memegen, textToPicture, uploadImage } from '../lib'
+import { gifToMp4, memegen, textToPicture, uploadImage } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        sticker: stickerHandler,
-        ttpc: ttpHandler,
-        memefy: memefyHandler,
-        sdl: downloadStickerHandler,
-    })
-
+const stickerCreatorCmd = () => {
     stringId.sticker = {
-        hint: '🖼️ _Convert media ke sticker_',
+        hint: '🖼️ _Convert media to sticker_',
         error: {
             videoLimit: (s: number) =>
-                `‼️ Video terlalu panjang, maksimal ${s} detik`,
+                `‼️ Video is too long, maximum ${s} seconds`,
             quality: (q: number) =>
                 `⚠️ Result exceeded 1 MB with Q: ${q}%\n⏳ Hold on, decreasing quality...`,
             q: (q: number) => `⏳ Q: ${q}% still not yet...`,
             fail: () =>
-                `‼️ Gagal mengubah video ke sticker, coba kurangi durasi.`,
+                `‼️ Failed to convert video to sticker, try reducing the duration.`,
         },
         usage: (ctx: MessageContext) =>
-            `Kirim gambar/video atau balas gambar/video dengan caption ${ctx.prefix}${ctx.cmd}
-⚙️ Gunakan: '-r' rounded corner, '-c' square cropped, '-nobg' hapus bg,
-⚙️ Custom packname/author dengan args 'packname|author',
-➡️ Contoh: ${ctx.prefix}${ctx.cmd} -r -nobg created with|serobot✨`,
+            `Send image/video or reply image/video with caption ${ctx.prefix}${ctx.cmd}
+⚙️ Use: '-r' rounded corner, '-c' square cropped, '-nobg' remove bg,
+⚙️ Custom packname/author with args 'packname|author',
+➡️ Example: ${ctx.prefix}${ctx.cmd} -r -nobg created with|serobot✨`,
         success: (q: number) => `✅ Success with Quality: ${q}%`,
     }
 
-    stringId.ttp = {
-        hint: '🖼️ _Convert teks ke sticker_',
-        error: {
-            textLimit: (s: number) =>
-                `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
-        },
-        usage: (ctx: MessageContext) =>
-            `Tambahkan teks atau balas teks dengan ${ctx.prefix}${ctx.cmd} <teks>\n` +
-            `➡️ Contoh: ${ctx.prefix}ttp Serobot\n` +
-            `Custom color dengan args 'color1|color2|strokecolor'\n` +
-            `➡️ Contoh: ${ctx.prefix}ttpc red|blue|white Serobot`,
-    }
+    menu.push({
+        command: 'sticker',
+        hint: stringId.sticker.hint,
+        alias: 's, stiker',
+        type: 'sticker',
+    })
 
-    stringId.memefy = {
-        hint: '🖼️ _Tambah tulisan di gambar/sticker_',
-        error: {
-            textLimit: (s: number) =>
-                `‼️ Teks terlalu panjang, maksimal ${s} karakter`,
-        },
-        usage: (ctx: MessageContext) =>
-            `Tambahkan teks atau balas gambar/sticker dengan ${ctx.prefix}${ctx.cmd} <atas|bawah>\n⚙️ Gunakan: '-c' square cropped`,
-    }
-
-    stringId.dls = {
-        hint: '💾 _Download sticker_',
-        error: {
-            notSticker: () => `‼️ Ini bukan sticker`,
-        },
-        usage: (ctx: MessageContext) =>
-            `Balas sticker dengan ${ctx.prefix}${ctx.cmd}`,
-    }
-
-    menu.push(
-        {
-            command: 'sticker',
-            hint: stringId.sticker.hint,
-            alias: 's, stiker',
-            type: 'sticker',
-        },
-        {
-            command: 'ttpc',
-            hint: stringId.ttp.hint,
-            alias: 'ttp',
-            type: 'sticker',
-        },
-        {
-            command: 'memefy',
-            hint: stringId.memefy.hint,
-            alias: 'sm',
-            type: 'sticker',
-        },
-        {
-            command: 'sdl',
-            hint: stringId.dls.hint,
-            alias: 'toimg, tomedia',
-            type: 'sticker',
-        }
-    )
+    Object.assign(actions, {
+        sticker: stickerHandler,
+    })
 }
 
 const stickerHandler = async (
@@ -220,13 +165,39 @@ const processVideo = async (
     await ctx.replySticker(resultBuffer)
 }
 
+const textToStickerCmd = () => {
+    stringId.tts = {
+        hint: '🖼️ _Convert text to sticker_',
+        error: {
+            textLimit: (s: number) =>
+                `‼️ Text is too long, maximum ${s} characters`,
+        },
+        usage: (ctx: MessageContext) =>
+            `Add text or reply text with ${ctx.prefix}${ctx.cmd} <text>\n` +
+            `➡️ Example: ${ctx.prefix}make Serobot\n` +
+            `Custom color with args 'color1|color2|strokecolor'\n` +
+            `➡️ Example: ${ctx.prefix}makec red|blue|white Serobot`,
+    }
+
+    menu.push({
+        command: 'makec',
+        hint: stringId.tts.hint,
+        alias: 'make',
+        type: 'sticker',
+    })
+
+    Object.assign(actions, {
+        makec: ttpHandler,
+    })
+}
+
 const ttpHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { arg, args, cmd, isQuoted, isMedia, replySticker } = ctx
-    if ((!arg && !isQuoted) || isMedia) throw new Error(stringId.ttp.usage(ctx))
+    if ((!arg && !isQuoted) || isMedia) throw new Error(stringId.tts.usage(ctx))
     ctx.reactWait()
     const text =
         arg ||
@@ -235,7 +206,7 @@ const ttpHandler = async (
         ''
     const textLimit = 100
     if (text.length > textLimit)
-        throw new Error(stringId.ttp.error.textLimit(textLimit))
+        throw new Error(stringId.tts.error.textLimit(textLimit))
 
     let image: Buffer
     if (cmd === 'ttpc') {
@@ -254,6 +225,30 @@ const ttpHandler = async (
     }).toFile('tmp/sticker-ttp.webp')
     ctx.reactSuccess()
     await replySticker({ url: sticker })
+}
+
+const addTextToImageCmd = () => {
+    stringId.memefy = {
+        hint: '🖼️ _Add text to image/sticker_',
+        error: {
+            textLimit: (s: number) =>
+                `‼️ Text is too long, maximum ${s} characters`,
+        },
+        usage: (ctx: MessageContext) =>
+            `Add text or reply image/sticker with ${ctx.prefix}${ctx.cmd} <top|bottom>\n` +
+            `⚙️ Use: '-c' square cropped`,
+    }
+
+    menu.push({
+        command: 'memefy',
+        hint: stringId.memefy.hint,
+        alias: 'sm',
+        type: 'sticker',
+    })
+
+    Object.assign(actions, {
+        memefy: memefyHandler,
+    })
 }
 
 const memefyHandler = async (
@@ -303,6 +298,28 @@ const memefyHandler = async (
     }
 }
 
+const downloadStickerCmd = () => {
+    stringId.dls = {
+        hint: '💾 _Download sticker_',
+        error: {
+            notSticker: () => `‼️ This is not a sticker`,
+        },
+        usage: (ctx: MessageContext) =>
+            `Reply sticker with ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'sdl',
+        hint: stringId.dls.hint,
+        alias: 'toimg, tomedia',
+        type: 'sticker',
+    })
+
+    Object.assign(actions, {
+        sdl: downloadStickerHandler,
+    })
+}
+
 const downloadStickerHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -324,4 +341,11 @@ const downloadStickerHandler = async (
         await replyContent({ image: sticker })
     }
     ctx.reactSuccess()
+}
+
+export default () => {
+    stickerCreatorCmd()
+    textToStickerCmd()
+    addTextToImageCmd()
+    downloadStickerCmd()
 }

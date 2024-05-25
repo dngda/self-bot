@@ -7,8 +7,8 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'
-import initCmds from './cmd'
-import { storeMessage, storeStatus } from './lib'
+import loadCommands from './cmd/_index'
+import { storeMessage, storeStatus } from './lib/_index'
 import { getCommand } from './menu'
 import { BotConfig, MessageContext } from './types'
 import {
@@ -23,7 +23,7 @@ import {
     listenOneViewMessage,
     logCmd,
     serializeMessage,
-} from './utils'
+} from './utils/_index'
 import { HandlerFunction } from './raw/surah'
 
 export let config: BotConfig = {
@@ -50,7 +50,7 @@ export const updateConfig = () => {
 
 // every handler must have 3 parameters:
 export const actions: { [index: string]: HandlerFunction } = {}
-initCmds()
+loadCommands()
 
 export const messageHandler = async (
     waSocket: WASocket,

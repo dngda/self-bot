@@ -1,4 +1,9 @@
-import { getNoteContent, getNotesNames, getStatus, getStatusList } from '../lib'
+import {
+    getNoteContent,
+    getNotesNames,
+    getStatus,
+    getStatusList,
+} from '../lib/_index'
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import stringId from '../language'
 import { actions } from '../handler'
@@ -7,86 +12,48 @@ import { browser } from '../..'
 import chalk from 'chalk'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        eval: evalJS,
-        return: evalJSON,
-        gs: getStatusHandler,
-        offline: offlineHandler,
-        rbrowser: refreshBrowserHandler,
+const evalJSON_Cmd = () => {
+    stringId.evalJSON = {
+        hint: '_Evaluate JSON code_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'return',
+        hint: stringId.evalJSON.hint,
+        alias: '=',
+        type: 'owner',
     })
 
-    stringId.eval = {
-        hint: '_Evaluate JS code_',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-    stringId.return = {
-        hint: '_Evaluate variable at runtime dan return hasilnya_',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-    stringId.offline = {
-        hint: '_Mark bot as offline_',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-
-    stringId.refreshBrowser = {
-        hint: '_Refresh playwright browser context._',
-        error: {},
-        usage: (_: MessageContext) => '',
-    }
-
-    stringId.getStatus = {
-        hint: '_Get status from contact._',
-        usage: (ctx: MessageContext) =>
-            `📑 Get list status: ${ctx.prefix}gls
-      \n📑 Get status: ${ctx.prefix}gs <number> atau reply contact`,
-        error: {
-            notFound: () => '🫙 Status update not found',
-            invalidJId: () => '🫙 Invalid JID',
-        },
-    }
-
-    menu.push(
-        {
-            command: 'eval',
-            hint: stringId.eval.hint,
-            alias: '>',
-            type: 'owner',
-        },
-        {
-            command: 'return',
-            hint: stringId.return.hint,
-            alias: '=',
-            type: 'owner',
-        },
-        {
-            command: 'offline',
-            hint: stringId.offline.hint,
-            alias: 'off',
-            type: 'owner',
-        },
-        {
-            command: 'rbrowser',
-            hint: stringId.refreshBrowser.hint,
-            alias: 'rb',
-            type: 'owner',
-        },
-        {
-            command: 'gs',
-            hint: stringId.getStatus.hint,
-            alias: 'gls',
-            type: 'owner',
-        }
-    )
+    Object.assign(actions, {
+        return: evalJSON,
+    })
 }
 
 const evalJSON = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
     if (!_c.fromMe) return null
     _c.reactSuccess()
     return await _c.reply(JSON.stringify(eval(_c.arg), null, 2))
+}
+
+const evalJS_Cmd = () => {
+    stringId.eval = {
+        hint: '_Evaluate JS code_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'eval',
+        hint: stringId.eval.hint,
+        alias: '>',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        eval: evalJS,
+    })
 }
 
 /* @ts-expect-error : reserved variables for eval */
@@ -112,6 +79,25 @@ export const executeSavedScriptInNote = async (_w: WASocket) => {
     }
 }
 
+const offline_Cmd = () => {
+    stringId.offline = {
+        hint: '_Mark bot as offline_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'offline',
+        hint: stringId.offline.hint,
+        alias: 'off',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        offline: offlineHandler,
+    })
+}
+
 const offlineHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -122,6 +108,25 @@ const offlineHandler = async (
     return ctx.reactSuccess()
 }
 
+const refreshBrowser_Cmd = () => {
+    stringId.refreshBrowser = {
+        hint: '_Refresh playwright browser context._',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'rbrowser',
+        hint: stringId.refreshBrowser.hint,
+        alias: 'rb',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        rbrowser: refreshBrowserHandler,
+    })
+}
+
 const refreshBrowserHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -130,6 +135,30 @@ const refreshBrowserHandler = async (
     if (!ctx.fromMe) return null
     await browser.refreshContext()
     return ctx.reactSuccess()
+}
+
+const getStatus_Cmd = () => {
+    stringId.getStatus = {
+        hint: '_Get status from contact._',
+        usage: (ctx: MessageContext) =>
+            `📑 Get list status: ${ctx.prefix}gls
+      \n📑 Get status: ${ctx.prefix}gs <number> atau reply contact`,
+        error: {
+            notFound: () => '🫙 Status update not found',
+            invalidJId: () => '🫙 Invalid JID',
+        },
+    }
+
+    menu.push({
+        command: 'gs',
+        hint: stringId.getStatus.hint,
+        alias: 'gls',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        gs: getStatusHandler,
+    })
 }
 
 const getStatusHandler = async (
@@ -207,4 +236,12 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
     }
     message += `\nReply this message with number to download status`
     return message
+}
+
+export default () => {
+    evalJS_Cmd()
+    evalJSON_Cmd()
+    offline_Cmd()
+    refreshBrowser_Cmd()
+    getStatus_Cmd()
 }

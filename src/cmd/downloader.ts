@@ -4,16 +4,11 @@ import { sample, sampleSize } from 'lodash'
 import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
-import { VideoData, pinterest, tinyUrl } from '../lib'
+import { VideoData, pinterest, tinyUrl } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
-export default function () {
-    Object.assign(actions, {
-        pint: pinterestHandler,
-        vdl: videoDownloadHandler,
-    })
-
+const searchPinterestCmd = () => {
     stringId.pinterest = {
         hint: '🔍 _Search gambar di pinterest_',
         error: {
@@ -23,34 +18,16 @@ export default function () {
             `🔍 Search gambar di pinterest dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
     }
 
-    stringId.videodl = {
-        hint: '📩 _Download video tiktok/reel/twitter/yt_',
-        error: {
-            invalidUrl: () => '‼️ URL tidak valid!',
-            internalError: () => '‼️ Terjadi kesalahan! Coba refresh browser.',
-            maxDuration: () => '‼️ Durasi video melebihi 10 menit!',
-        },
-        usage: (ctx: MessageContext) =>
-            `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <url>`,
-        info: (ctx: MessageContext) =>
-            `🎶 Convert to Audio by reply this with *${ctx.prefix}mp3*`,
-        sent: (q: string) => `✅ Sent ${q}p\n\nother format:\n`,
-    }
+    menu.push({
+        command: 'pint',
+        hint: stringId.pinterest.hint,
+        alias: 'pin',
+        type: 'scraper',
+    })
 
-    menu.push(
-        {
-            command: 'pint',
-            hint: stringId.pinterest.hint,
-            alias: 'pin',
-            type: 'scraper',
-        },
-        {
-            command: 'vdl',
-            hint: stringId.videodl.hint,
-            alias: 'v',
-            type: 'scraper',
-        }
-    )
+    Object.assign(actions, {
+        pint: pinterestHandler,
+    })
 }
 
 const pinterestHandler = async (
@@ -119,6 +96,33 @@ const getDuration = (result: VideoData) => {
         }
     }
     return 0
+}
+
+const downloadSocialVideoCmd = () => {
+    stringId.videodl = {
+        hint: '📩 _Download video tiktok/reel/twitter/yt_',
+        error: {
+            invalidUrl: () => '‼️ URL tidak valid!',
+            internalError: () => '‼️ Terjadi kesalahan! Coba refresh browser.',
+            maxDuration: () => '‼️ Durasi video melebihi 10 menit!',
+        },
+        usage: (ctx: MessageContext) =>
+            `📩 Download video tiktok/reel/twitter/yt dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <url>`,
+        info: (ctx: MessageContext) =>
+            `🎶 Convert to Audio by reply this with *${ctx.prefix}mp3*`,
+        sent: (q: string) => `✅ Sent ${q}p\n\nother format:\n`,
+    }
+
+    menu.push({
+        command: 'vdl',
+        hint: stringId.videodl.hint,
+        alias: 'v',
+        type: 'scraper',
+    })
+
+    Object.assign(actions, {
+        vdl: videoDownloadHandler,
+    })
 }
 
 export const videoDownloadHandler = async (
@@ -268,4 +272,9 @@ async function youtube(url: string, ctx: MessageContext) {
         seconds: duration,
         caption: captions.trim(),
     })
+}
+
+export default () => {
+    searchPinterestCmd()
+    downloadSocialVideoCmd()
 }
