@@ -177,8 +177,8 @@ const handleDaftar = async (ctx: MessageContext) => {
 }
 
 const getSurahNumberByName = (name: string) => {
-    const sdatas = surahRepo.data
-    const index = sdatas.findIndex((surah) => {
+    const surahArr = surahRepo.data
+    const index = surahArr.findIndex((surah) => {
         return (
             surah.name.transliteration.id
                 .toLowerCase()
@@ -188,16 +188,16 @@ const getSurahNumberByName = (name: string) => {
                 .includes(name.toLowerCase())
         )
     })
-    return index != -1 ? sdatas[index].number : null
+    return index != -1 ? surahArr[index].number : null
 }
 
 const getTotalVerses = (surahNumber: number): number => {
-    const sdatas = surahRepo.data
-    const index = sdatas.findIndex((surah) => {
+    const surahArr = surahRepo.data
+    const index = surahArr.findIndex((surah) => {
         return surah.number == surahNumber
     })
 
-    return sdatas[index].numberOfVerses
+    return surahArr[index].numberOfVerses
 }
 
 const processMultipleAyat = async (
