@@ -78,7 +78,7 @@ const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
 const xPattern = /(?:https?):\/\/x\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/[\w-]+/
 const instagramPattern = /(?:https?):\/\/www\.instagram\.com\/p\/[\w-]+/
-const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
+const youtubePattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)(?:&[\w=&]*)?/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/(\w+)(?:\?[\w=&]*)?/
 
