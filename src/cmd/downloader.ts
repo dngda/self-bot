@@ -80,7 +80,7 @@ const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/[\w-]+/
 const instagramPattern = /(?:https?):\/\/www\.instagram\.com\/p\/[\w-]+/
 const youtubePattern = /(?:https?):\/\/www\.youtube\.com\/watch\?v=(\w+)/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
-const youtubeShortsPattern = /(?:https?):\/\/www\.youtube\.com\/shorts\/(\w+)/
+const youtubeShortsPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/(\w+)(?:\?[\w=&]*)?/
 
 const getDuration = (result: VideoData) => {
     if (result.meta?.duration) {
@@ -154,7 +154,7 @@ export const videoDownloadHandler = async (
     ) {
         await youtube(url, ctx)
     } else {
-        throw stringId.videodl.error.invalidUrl()
+        throw new Error(stringId.videodl.error.invalidUrl())
     }
 
     return ctx.reactSuccess()
