@@ -83,7 +83,6 @@ export class PlaywrightBrowser {
     async getSocialVideo(url: string): Promise<VideoData> {
         const page = await this.openPage('https://ssyoutube.com/')
 
-        // Handle the response separately
         const handleResponse = (page: Page): Promise<VideoData> => {
             return new Promise((resolve, reject) => {
                 page.on('response', async (response: Response) => {
@@ -106,7 +105,6 @@ export class PlaywrightBrowser {
             await page.type('#id_url', url)
             await page.click('#search')
 
-            // Wait for the response
             const result = await handleResponse(page)
             await page.close()
             return result

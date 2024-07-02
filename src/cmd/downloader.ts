@@ -78,9 +78,11 @@ const twitterPattern = /(?:https?):\/\/twitter\.com\/(\w+)\/status\/(\d+)/
 const xPattern = /(?:https?):\/\/x\.com\/(\w+)\/status\/(\d+)/
 const reelsPattern = /(?:https?):\/\/www\.instagram\.com\/reels?\/[\w-]+/
 const instagramPattern = /(?:https?):\/\/www\.instagram\.com\/p\/[\w-]+/
-const youtubePattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)(?:&[\w=&]*)?/
+const youtubePattern =
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([\w-]+)(?:&[\w=&]*)?/
 const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
-const youtubeShortsPattern = /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/(\w+)(?:\?[\w=&]*)?/
+const youtubeShortsPattern =
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/(\w+)(?:\?[\w=&]*)?/
 
 const getDuration = (result: VideoData) => {
     if (result.meta?.duration) {
@@ -191,8 +193,14 @@ async function tiktokReels(url: string, ctx: MessageContext) {
                 caption: `Origin: ${await tinyUrl(result.url[0].url)}`,
             })
         } else {
+            let videoUrl
+            result.url.forEach((element) => {
+                if (element.type == 'mp4') {
+                    videoUrl = element.url
+                }
+            })
             await ctx.replyContent({
-                video: { url: result.url[0].url },
+                video: { url: videoUrl },
                 seconds: duration,
                 caption: stringId.videodl.info?.(ctx),
             })
