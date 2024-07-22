@@ -63,6 +63,8 @@ Setup your `.env` files
 
 or copy paste `.env.sample` and rename to `.env`
 and fill it with your related data!
+- get remove.bg apikey - [here](https://www.remove.bg/tools-api/api-commandline)
+- get ocr.space apikey - [here](https://ocr.space/ocrapi)
 
 ### Usage
 
