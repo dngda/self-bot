@@ -45,7 +45,7 @@ const gimmeHandler = async (
     const { data: result } = await axios
         .get(`https://meme-api.com/gimme/${param}`)
         .catch((err) => {
-            throw new Error(err.response.ctx.message)
+            throw new Error(err)
         })
 
     if (result?.url) {
