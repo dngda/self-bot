@@ -53,12 +53,20 @@ export interface MessageContext {
     downloadQuoted: () => Promise<Buffer>
     downloadSticker: () => Promise<Buffer>
     reply: (text: string) => Promise<proto.WebMessageInfo | undefined>
+    quoteReply: (
+        text: string,
+        quoted: proto.IWebMessageInfo
+    ) => Promise<proto.WebMessageInfo | undefined>
     send: (text: string) => Promise<proto.WebMessageInfo | undefined>
     replySticker: (
         inputMedia: WAMediaUpload
     ) => Promise<proto.WebMessageInfo | undefined>
     replyContent: (
         content: AnyMessageContent
+    ) => Promise<proto.WebMessageInfo | undefined>
+    quoteReplyContent: (
+        content: AnyMessageContent,
+        quoted: proto.IWebMessageInfo
     ) => Promise<proto.WebMessageInfo | undefined>
     replyVoiceNote: (path: string) => Promise<proto.WebMessageInfo | undefined>
 

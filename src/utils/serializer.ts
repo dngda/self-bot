@@ -198,6 +198,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         )
     }
 
+    ctx.quoteReply = async (text: string, quoted: proto.IWebMessageInfo) => {
+        return waSocket.sendMessage(
+            ctx.from,
+            { text: text },
+            { quoted: quoted, ephemeralExpiration: ctx.expiration! }
+        )
+    }
+
     ctx.send = async (text: string) => {
         return waSocket.sendMessage(
             ctx.from,
@@ -217,6 +225,16 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     ctx.replyContent = async (content: AnyMessageContent) => {
         return waSocket.sendMessage(ctx.from, content, {
             quoted: msg,
+            ephemeralExpiration: ctx.expiration!,
+        })
+    }
+
+    ctx.quoteReplyContent = async (
+        content: AnyMessageContent,
+        quoted: proto.IWebMessageInfo
+    ) => {
+        return waSocket.sendMessage(ctx.from, content, {
+            quoted: quoted,
             ephemeralExpiration: ctx.expiration!,
         })
     }
