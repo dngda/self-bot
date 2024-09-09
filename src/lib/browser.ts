@@ -73,6 +73,38 @@ export class PlaywrightBrowser {
         }
     }
 
+    async takeElementScreenshot(
+        url: string,
+        selector: string,
+        filePath: string,
+        viewPort = { width: 1920, height: 1080 },
+        delay = 0
+    ) {
+        const page = await this.ctx.newPage()
+        await page.setViewportSize(viewPort)
+
+        try {
+            await page.goto(url)
+            await page.waitForLoadState('domcontentloaded')
+            await page.waitForTimeout(delay)
+            const element = await page.$(selector)
+            if (element) {
+                await element.screenshot({
+                    path: filePath,
+                    animations: 'disabled',
+                })
+                await page.close()
+                return true
+            }
+            await page.close()
+            return false
+        } catch (e) {
+            console.log(e)
+            await page.close()
+            return false
+        }
+    }
+
     async openPage(url: string) {
         const page = await this.ctx.newPage()
         await page.goto(url)

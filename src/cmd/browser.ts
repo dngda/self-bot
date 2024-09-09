@@ -35,10 +35,12 @@ const citraRadarHandler = async (
 ) => {
     ctx.reactWait()
     browser
-        .takeScreenshot(
-            'http://sipora.staklimyogyakarta.com/radar/',
+        .takeElementScreenshot(
+            'https://stamet-yogya.bmkg.go.id/area-hujan/',
+            '#map',
             'tmp/radar.png',
-            { width: 600, height: 600 }
+            { width: 1200, height: 1000 },
+            7000
         )
         .then((r) => {
             if (!r) {
