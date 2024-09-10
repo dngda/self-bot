@@ -17,6 +17,8 @@ import { PlaywrightBrowser, getMessage } from './src/lib/_index'
 import { executeSavedScriptInNote } from './src/cmd/owner'
 export const browser = new PlaywrightBrowser()
 
+let lastDisconnectReason = ''
+
 dotenv.config()
 const logger = MAIN_LOGGER.child({})
 logger.level = 'error'
@@ -69,6 +71,8 @@ const startSock = async () => {
                     (lastDisconnect?.error as Boom)?.output?.statusCode !==
                     DisconnectReason.loggedOut
                 ) {
+                    lastDisconnectReason =
+                        lastDisconnect?.error?.message || lastDisconnectReason
                     startSock()
                 } else {
                     console.log('Connection closed. You are logged out.')
@@ -80,6 +84,11 @@ const startSock = async () => {
                 console.log(
                     chalk.yellow('!---------------BOT IS READY---------------!')
                 )
+                if (lastDisconnectReason) {
+                    waSocket.sendMessage(process.env.OWNER_NUMBER!, {
+                        text: `❌ Last disconnect reason: ${lastDisconnectReason}`,
+                    })
+                }
                 waSocket.sendMessage(process.env.OWNER_NUMBER!, {
                     text: '✅ Bot is ready!',
                 })
