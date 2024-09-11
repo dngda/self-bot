@@ -15,63 +15,34 @@ export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
     const id = fromMe ? 'me' : participant ?? from
     const note = await getNoteContent(id, body as string)
-    if (note) {
-        if (note.media) {
-            const media = fs.readFileSync(note.media)
-            if (ctx.isQuoted) {
-                if (note.media.endsWith('.mp4')) {
-                    await ctx.quoteReplyContent(
-                        { image: media, caption: note.content },
-                        {
-                            key: {
-                                fromMe: ctx.fromMe,
-                                id: ctx.contextInfo?.stanzaId,
-                                remoteJid: ctx.contextInfo?.participant,
-                            },
-                            message: ctx.quotedMsg,
-                        }
-                    )
-                }
-                if (note.media.endsWith('.jpg')) {
-                    await ctx.quoteReplyContent(
-                        { video: media, caption: note.content },
-                        {
-                            key: {
-                                fromMe: ctx.fromMe,
-                                id: ctx.contextInfo?.stanzaId,
-                                remoteJid: ctx.contextInfo?.participant,
-                            },
-                            message: ctx.quotedMsg,
-                        }
-                    )
-                }
-            } else {
-                if (note.media.endsWith('.mp4')) {
-                    await ctx.replyContent({
-                        video: media,
-                        caption: note.content,
-                    })
-                }
-                if (note.media.endsWith('.jpg')) {
-                    await ctx.replyContent({
-                        image: media,
-                        caption: note.content,
-                    })
-                }
-            }
+    if (note?.media) {
+        const media = fs.readFileSync(note.media)
+        const contentType = note.media.endsWith('.mp4') ? 'video' : 'image'
+        const content = { [contentType]: media, caption: note.content }
+        if (ctx.isQuoted) {
+            await ctx.quoteReplyContent(content, {
+                key: {
+                    fromMe: ctx.fromMe,
+                    id: ctx.contextInfo?.stanzaId,
+                    remoteJid: ctx.contextInfo?.participant,
+                },
+                message: ctx.quotedMsg,
+            })
         } else {
-            if (ctx.isQuoted) {
-                await ctx.quoteReply(note.content, {
-                    key: {
-                        fromMe: ctx.fromMe,
-                        id: ctx.contextInfo?.stanzaId,
-                        remoteJid: ctx.contextInfo?.participant,
-                    },
-                    message: ctx.quotedMsg,
-                })
-            } else {
-                await ctx.reply(note.content)
-            }
+            await ctx.replyContent(content)
+        }
+    } else if (note) {
+        if (ctx.isQuoted) {
+            await ctx.quoteReply(note.content, {
+                key: {
+                    fromMe: ctx.fromMe,
+                    id: ctx.contextInfo?.stanzaId,
+                    remoteJid: ctx.contextInfo?.participant,
+                },
+                message: ctx.quotedMsg,
+            })
+        } else {
+            await ctx.reply(note.content)
         }
     }
 }

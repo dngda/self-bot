@@ -62,55 +62,42 @@ const startSock = async () => {
         },
     })
 
-    waSocket.ev.process(async (events) => {
-        if (events['connection.update']) {
-            const update = events['connection.update']
-            const { connection, lastDisconnect } = update
-            if (connection === 'close') {
-                if (
-                    (lastDisconnect?.error as Boom)?.output?.statusCode !==
-                    DisconnectReason.loggedOut
-                ) {
-                    lastDisconnectReason =
-                        lastDisconnect?.error?.message || lastDisconnectReason
-                    startSock()
-                } else {
-                    console.log('Connection closed. You are logged out.')
-                }
+    waSocket.ev.on('connection.update', (update) => {
+        const { connection, lastDisconnect } = update
+        if (connection === 'close') {
+            if (
+                (lastDisconnect?.error as Boom)?.output?.statusCode !==
+                DisconnectReason.loggedOut
+            ) {
+                lastDisconnectReason =
+                    lastDisconnect?.error?.message || lastDisconnectReason
+                startSock()
+            } else {
+                console.log('Connection closed. You are logged out.')
             }
-            console.log('Connection update:', update)
+        }
+        console.log('Connection update:', update)
 
-            if (connection === 'open') {
-                console.log(
-                    chalk.yellow('!---------------BOT IS READY---------------!')
-                )
-                if (lastDisconnectReason) {
-                    waSocket.sendMessage(process.env.OWNER_NUMBER!, {
-                        text: `❌ Last disconnect reason: ${lastDisconnectReason}`,
-                    })
-                }
-                waSocket.sendMessage(process.env.OWNER_NUMBER!, {
-                    text: '✅ Bot is ready!',
+        if (connection === 'open') {
+            console.log(
+                chalk.yellow('!---------------BOT IS READY---------------!')
+            )
+            if (lastDisconnectReason) {
+                waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
+                    text: ` Last disconnect reason: ${lastDisconnectReason}`,
                 })
-
-                executeSavedScriptInNote(waSocket)
             }
-        }
+            waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
+                text: ' Bot is ready!',
+            })
 
-        if (events['creds.update']) {
-            await saveCreds()
-        }
-
-        if (events.call) {
-            console.log('recv call event', events.call)
-        }
-
-        // received a new message
-        if (events['messages.upsert']) {
-            const upsert = events['messages.upsert']
-            messageHandler(waSocket, upsert)
+            executeSavedScriptInNote(waSocket)
         }
     })
+
+    waSocket.ev.on('creds.update', saveCreds)
+
+    waSocket.ev.on('messages.upsert', messageHandler.bind(null, waSocket))
 }
 
 startSock()
