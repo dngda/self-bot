@@ -274,45 +274,28 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
     ctx.config = config
 
-    Object.defineProperty(ctx, 'quotedMsg', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'download', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'downloadQuoted', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'downloadSticker', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'reply', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'send', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'replySticker', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'replyContent', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'replyVoiceNote', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'reactWait', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'reactSuccess', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'reactError', {
-        enumerable: false,
-    })
-    Object.defineProperty(ctx, 'config', {
-        enumerable: false,
-    })
+    const hiddenProps = [
+        'quotedMsg',
+        'download',
+        'downloadQuoted',
+        'downloadSticker',
+        'reply',
+        'send',
+        'replySticker',
+        'replyContent',
+        'replyVoiceNote',
+        'reactWait',
+        'reactSuccess',
+        'reactError',
+        'quoteReply',
+        'quoteReplyContent',
+        'config',
+    ]
+    for (const prop of hiddenProps) {
+        Object.defineProperty(ctx, prop, {
+            enumerable: false,
+        })
+    }
 
     return ctx
 }
