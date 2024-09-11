@@ -56,8 +56,11 @@ const evalJS_Cmd = () => {
     })
 }
 
-/* @ts-expect-error : reserved variables for eval */
-let var1, var2, var3, var4, var5, var6, var7, var8, var9, var10
+declare global {
+    /* @ts-expect-error : reserved variables for eval */
+    // eslint-disable-next-line no-var
+    var var1, var2, var3, var4, var5, var6, var7, var8, var9, var10
+}
 
 const evalJS = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
     if (!_c.fromMe) return null
