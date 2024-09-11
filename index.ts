@@ -80,15 +80,15 @@ const startSock = async () => {
 
         if (connection === 'open') {
             console.log(
-                chalk.yellow('!---------------BOT IS READY---------------!')
+                chalk.yellow('!---------------BOT IS ONLINE---------------!')
             )
             if (lastDisconnectReason) {
                 waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
-                    text: ` Last disconnect reason: ${lastDisconnectReason}`,
+                    text: `Last disconnect reason: ${lastDisconnectReason}`,
                 })
             }
             waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
-                text: ' Bot is ready!',
+                text: '🔰Bot is online!',
             })
 
             executeSavedScriptInNote(waSocket)
