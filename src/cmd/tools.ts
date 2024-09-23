@@ -178,25 +178,18 @@ const noteHandler = async (
         case 'notes':
             return handleNoteCommand(id, ctx)
         case 'addnote':
-            return handleAddNoteCommand(
+        case 'editnote':
+            return handleAddEditNoteCommand(
                 id,
                 noteName,
                 args,
                 isQuoted ?? false,
                 quotedMsg,
-                ctx
+                ctx,
+                cmd === 'editnote'
             )
         case 'delnote':
             return handleDeleteNoteCommand(id, noteName, ctx)
-        case 'editnote':
-            return handleEditNoteCommand(
-                id,
-                noteName,
-                args,
-                isQuoted ?? false,
-                quotedMsg,
-                ctx
-            )
         default:
             return
     }
@@ -213,13 +206,14 @@ async function handleNoteCommand(id: string, ctx: MessageContext) {
     return ctx.reply(noteList.replace(/\n$/, ''))
 }
 
-async function handleAddNoteCommand(
+async function handleAddEditNoteCommand(
     id: string,
     noteName: string,
     args: string[],
     isQuoted: boolean,
     quotedMsg: proto.IMessage | null | undefined,
-    ctx: MessageContext
+    ctx: MessageContext,
+    isEdit: boolean
 ) {
     let note: string
     if (isQuoted) {
@@ -241,14 +235,33 @@ async function handleAddNoteCommand(
             noteName
         ))
 
-        const res = await createNote(id, noteName, note, path)
-        if (!res) return ctx.reply(stringId.note.error.duplicate())
+        const res = await (isEdit ? updateNoteContent : createNote)(
+            id,
+            noteName,
+            note,
+            path
+        )
+        if (!res)
+            return ctx.reply(
+                isEdit
+                    ? stringId.note.error.noNote()
+                    : stringId.note.error.duplicate()
+            )
     } else {
-        const res = await createNote(id, noteName, note)
-        if (!res) return ctx.reply(stringId.note.error.duplicate())
+        const res = await (isEdit ? updateNoteContent : createNote)(
+            id,
+            noteName,
+            note
+        )
+        if (!res)
+            return ctx.reply(
+                isEdit
+                    ? stringId.note.error.noNote()
+                    : stringId.note.error.duplicate()
+            )
     }
 
-    return ctx.reply('📝 Note saved!')
+    return ctx.reply(isEdit ? '✏️ Note edited!' : '📝 Note saved!')
 }
 
 async function handleMediaNotes(
@@ -282,43 +295,6 @@ async function handleDeleteNoteCommand(
     const mediaPath = await deleteNote(id, noteName)
     if (mediaPath) unlink(mediaPath, (_) => _)
     return ctx.reply('🗑️ Note deleted!')
-}
-
-async function handleEditNoteCommand(
-    id: string,
-    noteName: string,
-    args: string[],
-    isQuoted: boolean,
-    quotedMsg: proto.IMessage | null | undefined,
-    ctx: MessageContext
-) {
-    let note: string
-    if (isQuoted) {
-        note =
-            quotedMsg?.conversation ||
-            quotedMsg?.extendedTextMessage?.text ||
-            ''
-    } else {
-        if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
-        note = args.slice(1).join(' ')
-    }
-    if (ctx.isMedia) {
-        let path
-        ;({ path, note } = await handleMediaNotes(
-            ctx,
-            note,
-            quotedMsg,
-            args,
-            noteName
-        ))
-
-        const res = await updateNoteContent(id, noteName, note, path)
-        if (!res) return ctx.reply(stringId.note.error.noNote())
-    } else {
-        const res = await updateNoteContent(id, noteName, note)
-        if (!res) return ctx.reply(stringId.note.error.noNote())
-    }
-    return ctx.reply('✏️ Note edited!')
 }
 
 const videoToMp3Cmd = () => {
