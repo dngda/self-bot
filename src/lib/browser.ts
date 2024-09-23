@@ -78,7 +78,7 @@ export class PlaywrightBrowser {
         selector: string,
         filePath: string,
         viewPort = { width: 1920, height: 1080 },
-        extraStep?: (page: Page) => void
+        extraStep?: (page: Page) => Promise<void>
     ) {
         const page = await this.ctx.newPage()
         await page.setViewportSize(viewPort)
