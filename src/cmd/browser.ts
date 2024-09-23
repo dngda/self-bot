@@ -40,7 +40,13 @@ const citraRadarHandler = async (
             '#map',
             'tmp/radar.png',
             { width: 1200, height: 1000 },
-            7000
+            async (page) => {
+                await page.waitForTimeout(3000)
+                await page.click('a.leaflet-control-zoom-in')
+                await page.waitForTimeout(1000)
+                await page.click('a.leaflet-control-zoom-in')
+                await page.waitForTimeout(3000)
+            }
         )
         .then((r) => {
             if (!r) {

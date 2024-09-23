@@ -78,7 +78,7 @@ export class PlaywrightBrowser {
         selector: string,
         filePath: string,
         viewPort = { width: 1920, height: 1080 },
-        delay = 0
+        extraStep?: (page: Page) => void
     ) {
         const page = await this.ctx.newPage()
         await page.setViewportSize(viewPort)
@@ -86,17 +86,15 @@ export class PlaywrightBrowser {
         try {
             await page.goto(url)
             await page.waitForLoadState('domcontentloaded')
-            await page.waitForTimeout(delay)
+            extraStep && await extraStep(page)
             const element = await page.$(selector)
             if (element) {
                 await element.screenshot({
                     path: filePath,
                     animations: 'disabled',
                 })
-                // await page.close()
                 return true
             }
-            // await page.close()
             return false
         } catch (e) {
             console.log(e)
