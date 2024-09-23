@@ -225,40 +225,28 @@ async function handleAddEditNoteCommand(
         if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
         note = args.slice(1).join(' ')
     }
-    if (ctx.isMedia) {
-        let path
-        ;({ path, note } = await handleMediaNotes(
-            ctx,
-            note,
-            quotedMsg,
-            args,
-            noteName
-        ))
 
-        const res = await (isEdit ? updateNoteContent : createNote)(
-            id,
-            noteName,
-            note,
-            path
+    const { path, note: _note } = await handleMediaNotes(
+        ctx,
+        note,
+        quotedMsg,
+        args,
+        noteName
+    )
+
+    const res = await (isEdit ? updateNoteContent : createNote)(
+        id,
+        noteName,
+        _note,
+        path
+    )
+
+    if (!res) {
+        return ctx.reply(
+            isEdit
+                ? stringId.note.error.noNote()
+                : stringId.note.error.duplicate()
         )
-        if (!res)
-            return ctx.reply(
-                isEdit
-                    ? stringId.note.error.noNote()
-                    : stringId.note.error.duplicate()
-            )
-    } else {
-        const res = await (isEdit ? updateNoteContent : createNote)(
-            id,
-            noteName,
-            note
-        )
-        if (!res)
-            return ctx.reply(
-                isEdit
-                    ? stringId.note.error.noNote()
-                    : stringId.note.error.duplicate()
-            )
     }
 
     return ctx.reply(isEdit ? '✏️ Note edited!' : '📝 Note saved!')
