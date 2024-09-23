@@ -260,6 +260,7 @@ async function handleMediaNotes(
     args: string[],
     noteName: string
 ) {
+    if (!ctx.isMedia) return { path: '', note }
     const mediaData = ctx.isQuoted
         ? await ctx.downloadQuoted()
         : await ctx.download()
