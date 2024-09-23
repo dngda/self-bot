@@ -93,8 +93,12 @@ export class PlaywrightBrowser {
                     path: filePath,
                     animations: 'disabled',
                 })
+                
+                await page.close()
                 return true
             }
+
+            await page.close()
             return false
         } catch (e) {
             console.log(e)
