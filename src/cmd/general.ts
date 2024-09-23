@@ -31,7 +31,23 @@ const pingHandler = async (
     ctx: MessageContext
 ) => {
     const processTime = Date.now() - (msg.messageTimestamp as number) * 1000
-    await ctx.reply(`Pong _${processTime} ms!_`)
+    const sent = await ctx.reply(`Pong _${processTime} ms!_`)
+    if (sent && ctx.fromMe) {
+        await _wa.chatModify(
+            {
+                clear: {
+                    messages: [
+                        {
+                            id: msg.key.id as string,
+                            fromMe: msg.key.fromMe as boolean,
+                            timestamp: msg.messageTimestamp as number,
+                        },
+                    ],
+                },
+            },
+            ctx.from
+        )
+    }
 }
 
 const menuCmd = () => {
