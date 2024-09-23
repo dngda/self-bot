@@ -154,7 +154,7 @@ const noteCreatorCmd = () => {
     menu.push({
         command: 'notes',
         hint: stringId.note.hint,
-        alias: 'addnote, delnote, editnote',
+        alias: 'note, addnote, delnote, editnote',
         type: 'tools',
     })
 
@@ -175,6 +175,7 @@ const noteHandler = async (
     const id = fromMe ? 'me' : participant ?? from
 
     switch (cmd) {
+        case 'note':
         case 'notes':
             return handleNoteCommand(id, ctx)
         case 'addnote':
