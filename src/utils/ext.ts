@@ -100,7 +100,8 @@ export const handleMathEquation = async (ctx: MessageContext) => {
     if (!body?.startsWith('=')) return null
     const args = body.slice(1)
     if (!args || args == '') return null
-    if (/[()$&_`~'":\\,|;\][?><!%]/g.test(args) && !/\([^()]+\)/g.test(args))
+    if (args.length < 2) return null
+    if (/[()$&_`~'":\\,|;\][?]/g.test(args) && !/\([^()]+\)/g.test(args))
         return null
     console.log(chalk.blue('[MATH]'), 'Doing =', args)
     const result = math.evaluate(
@@ -108,7 +109,6 @@ export const handleMathEquation = async (ctx: MessageContext) => {
             .replace(/x/gi, '*')
             .replace(/×/g, '*')
             .replace(/÷/g, '/')
-            .replace(/%/g, '/100')
             .replace('**', '^')
     )
     return await ctx.reply(`${result}`)
