@@ -97,9 +97,9 @@ const surahCmd = () => {
         hint: "📖 _Baca surah Al-Qur'an_",
         error: {
             noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
-            notFound: (
-                ctx: MessageContext
-            ) => `‼️ Surah '${ctx.args[0]}' tidak ditemukan atau ayat ${ctx.args[1]} tidak ada!
+            notFound: (ctx: MessageContext) => `‼️ Surah '${
+                ctx.args[0]
+            }' tidak ditemukan atau ayat ${ctx.args[1] ?? 0} tidak ada!
 Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
             invalidAyat: (ctx: MessageContext) =>
                 `‼️ Ayat '${ctx.args[1]}' tidak valid!`,
@@ -111,7 +111,8 @@ Cek daftar surah dengan cara ➡️ ${ctx.prefix}surah daftar`,
         usage: (ctx: MessageContext) =>
             `📖 Baca surah Al-Qur'an dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <nama surah> <ayat/ayat from-to>
 ⚠️ Nama surah harus berupa nama surah atau nomor surah
-⚠️ Contoh: ${ctx.prefix}${ctx.cmd} al-fatihah 1 atau ${ctx.prefix}${ctx.cmd} 1 1-5`,
+⚠️ Contoh: ${ctx.prefix}${ctx.cmd} al-fatihah 1 atau ${ctx.prefix}${ctx.cmd} 1 1-5
+⚠️ Daftar surah: ${ctx.prefix}surah daftar`,
     }
 
     menu.push({
@@ -313,7 +314,10 @@ const getAyatSurahDataAndSend = async (
         if ((err as AxiosError).response?.status == 404) {
             throw stringId.surah.error.notFound(ctx)
         }
-        throw ((err as AxiosError).response?.data as SurahResponse).message
+        throw (
+            ((err as AxiosError).response?.data as SurahResponse)?.message ??
+            'Unknown error'
+        )
     }
 }
 
