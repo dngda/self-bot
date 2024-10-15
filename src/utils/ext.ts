@@ -173,12 +173,16 @@ export const handleAddList = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (ListMemory.has(ctx.from)) return null
+    if (!ListMemory.has(ctx.from)) return null
     if (!ctx.body?.startsWith('>')) return null
 
     const list = ListMemory.get(ctx.from) || []
     // add body to list
     list.push(ctx.body.slice(1).trim())
     ListMemory.set(ctx.from, list)
+
+    console.log(chalk.green('[LIST]'), 'Added to list', ctx.body)
+    console.log(ListMemory);
+    
     return await ctx.reactSuccess()
 }

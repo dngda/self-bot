@@ -521,27 +521,27 @@ const collectListHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { arg, reply, reactWait, reactSuccess } = ctx
+    const { arg, reply, send, reactWait, reactSuccess } = ctx
     const list = ListMemory.get(ctx.from) || []
     if (list.length == 0 && arg == '') throw stringId.collect_list.usage(ctx)
 
     async function print() {
-        let listText = `📝 List ${list[0]}: \n`
-        list.shift()
+        let listText = `📝 List "${list[0]}" : \n`
         list.forEach((l, i) => {
-            listText += `${i + 1}. ${l}\n`
+            if (i == 0) return
+            listText += `${i}. ${l}\n`
         })
         return await reply(listText.replace(/\n$/, ''))
     }
 
     if (arg == '') {
-        await print()
+        return await print()
     }
 
     if (arg == 'end') {
         await print()
         ListMemory.delete(ctx.from)
-        return await reply('List selesai...')
+        return await send(`List ${list[0]} selesai...`)
     }
 
     await reactWait()
@@ -549,7 +549,7 @@ const collectListHandler = async (
     list.push(listName)
     ListMemory.set(ctx.from, list)
     await reply(
-        `List ${listName} dimulai...\nKirim > (isi) untuk menambahkan ke list.`
+        `List "${listName}" dimulai...\nKirim \`> (isi)\` untuk menambahkan ke list`
     )
 
     return await reactSuccess()
