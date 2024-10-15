@@ -491,6 +491,70 @@ const gttsHandler = async (
     unlink(opus, (_) => _)
 }
 
+const collectListCmd = () => {
+    stringId.collect_list = {
+        hint: '📝 _Collect list_',
+        error: {
+            textOnly: () => '‼️ Hanya support text!',
+        },
+        usage: (ctx: MessageContext) => `📝 Collect percakapan kedalam list.
+➡️ ${ctx.prefix}${ctx.cmd} <nama list>`,
+    }
+
+    menu.push({
+        command: 'list',
+        hint: stringId.collect_list.hint,
+        type: 'tools',
+        alias: 'cl',
+    })
+
+    Object.assign(actions, {
+        list: collectListHandler,
+    })
+}
+
+// [jid][title][content]
+export const ListMemory = new Map<string, string[]>()
+
+const collectListHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { arg, reply, reactWait, reactSuccess } = ctx
+    const list = ListMemory.get(ctx.from) || []
+    if (list.length == 0 && arg == '') throw stringId.collect_list.usage(ctx)
+
+    async function print() {
+        let listText = `📝 List ${list[0]}: \n`
+        list.shift()
+        list.forEach((l, i) => {
+            listText += `${i + 1}. ${l}\n`
+        })
+        return await reply(listText.replace(/\n$/, ''))
+    }
+
+    if (arg == '') {
+        await print()
+    }
+
+    if (arg == 'end') {
+        await print()
+        ListMemory.delete(ctx.from)
+        return await reply('List selesai...')
+    }
+
+    await reactWait()
+    const listName = arg
+    list.push(listName)
+    ListMemory.set(ctx.from, list)
+    await reply(
+        `List ${listName} dimulai...\nKirim > (isi) untuk menambahkan ke list.`
+    )
+
+    return await reactSuccess()
+}
+
 export default () => {
     initNoteDatabase()
 
@@ -501,4 +565,5 @@ export default () => {
     videoSplitCmd()
     gttsCmd()
     ocrCmd()
+    collectListCmd()
 }

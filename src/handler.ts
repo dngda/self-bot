@@ -13,6 +13,7 @@ import { getCommand } from './menu'
 import { BotConfig, MessageContext } from './types'
 import {
     getPrefix,
+    handleAddList,
     handleMathEquation,
     handleNoteCommand,
     handleRepeatCommand,
@@ -119,6 +120,8 @@ const handleCommands = async (
             await actions[cmd](waSocket, msg, ctx)
         }
     }
+
+    universalHandler(waSocket, msg, ctx)
 }
 
 const handleError = (ctx: MessageContext, error: unknown) => {
@@ -153,6 +156,17 @@ const noPrefixHandler = async (
     } else {
         await handleMathEquation(ctx)
         await handleStickerCommand(_wa, _msg, ctx)
+    }
+}
+
+const universalHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { body } = ctx
+    if (/^>.+/.test(body as string)) {
+        await handleAddList(_wa, _msg, ctx)
     }
 }
 

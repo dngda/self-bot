@@ -10,6 +10,7 @@ import { getNoteContent, getStatus } from '../lib/_index'
 import { getCommand } from '../menu'
 import { MessageContext } from '../types'
 import { serializeMessage } from './serializer'
+import { ListMemory } from '../cmd/tools'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
@@ -165,4 +166,19 @@ export const handleReplyToStatusList = async (
     const message = await getStatusListMessage(jid)
 
     return wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
+}
+
+export const handleAddList = async (
+    _: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (ListMemory.has(ctx.from)) return null
+    if (!ctx.body?.startsWith('>')) return null
+
+    const list = ListMemory.get(ctx.from) || []
+    // add body to list
+    list.push(ctx.body.slice(1).trim())
+    ListMemory.set(ctx.from, list)
+    return await ctx.reactSuccess()
 }
