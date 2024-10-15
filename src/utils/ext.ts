@@ -180,9 +180,6 @@ export const handleAddList = async (
     // add body to list
     list.push(ctx.body.slice(1).trim())
     ListMemory.set(ctx.from, list)
-
-    console.log(chalk.green('[LIST]'), 'Added to list', ctx.body)
-    console.log(ListMemory);
     
     return await ctx.reactSuccess()
 }
