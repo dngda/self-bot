@@ -10,7 +10,7 @@ import { getNoteContent, getStatus } from '../lib/_index'
 import { getCommand } from '../menu'
 import { MessageContext } from '../types'
 import { serializeMessage } from './serializer'
-import { ListMemory } from '../cmd/tools'
+import { ListMemory, renderList } from '../cmd/tools'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
@@ -168,18 +168,70 @@ export const handleReplyToStatusList = async (
     return wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
 }
 
+// msg key and timestamp
+type MsgKeyForListType = Map<
+    string,
+    { key: proto.IMessageKey; timestamp: number }
+>
+const MsgKeyForList: MsgKeyForListType = new Map()
+
 export const handleAddList = async (
-    _: WASocket,
+    wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
     if (!ListMemory.has(ctx.from)) return null
-    if (!ctx.body?.startsWith('>')) return null
+    if (!ctx.body?.startsWith('+')) return null
 
     const list = ListMemory.get(ctx.from) || []
     // add body to list
     list.push(ctx.body.slice(1).trim())
     ListMemory.set(ctx.from, list)
-    
-    return await ctx.reactSuccess()
+
+    await ctx.reactSuccess()
+
+    return sendList(ctx, wa)
+}
+
+async function sendList(ctx: MessageContext, wa: WASocket) {
+    const existing = MsgKeyForList.get(ctx.from)
+    if (existing) {
+        const timeDiff = Date.now() - existing.timestamp
+        if (timeDiff < 10 * 60 * 1000) {
+            return wa.sendMessage(ctx.from, {
+                edit: existing.key,
+                text: renderList(ctx),
+            })
+        }
+    }
+
+    const sent = await ctx.send(renderList(ctx))
+    MsgKeyForList.set(ctx.from, {
+        key: sent?.key as proto.IMessageKey,
+        timestamp: sent?.messageTimestamp as number,
+    })
+    return sent
+}
+
+export const handleDeleteList = async (
+    wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.body?.startsWith('-')) return null
+
+    const list = ListMemory.get(ctx.from)
+    if (!list) return null
+
+    const index = parseInt(ctx.body as string)
+    if (index > list.length || index < 1) {
+        return await ctx.reply('Index out of range')
+    }
+
+    list.splice(index - 1, 1)
+    ListMemory.set(ctx.from, list)
+    await ctx.reactSuccess()
+
+    return sendList(ctx, wa)
 }

@@ -516,6 +516,18 @@ const collectListCmd = () => {
 // [jid][title][content]
 export const ListMemory = new Map<string, string[]>()
 
+export const renderList = (ctx: MessageContext) => {
+    const list = ListMemory.get(ctx.from) || []
+    let listText = `📝 List "${list[0]}" : \n`
+    list.forEach((l, i) => {
+        if (i == 0) return
+        listText += `${i}. ${l}\n`
+    })
+    listText +=
+        '\nKirim `+ (isi)` untuk menambahkan ke list\n Kirim `- (index)` untuk menghapus dari list.'
+    return listText.replace(/\n$/, '')
+}
+
 const collectListHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -525,21 +537,12 @@ const collectListHandler = async (
     const list = ListMemory.get(ctx.from) || []
     if (list.length == 0 && arg == '') throw stringId.collect_list.usage(ctx)
 
-    async function print() {
-        let listText = `📝 List "${list[0]}" : \n`
-        list.forEach((l, i) => {
-            if (i == 0) return
-            listText += `${i}. ${l}\n`
-        })
-        return await reply(listText.replace(/\n$/, ''))
-    }
-
     if (arg == '') {
-        return await print()
+        return await send(renderList(ctx))
     }
 
     if (arg == 'end') {
-        await print()
+        await send(renderList(ctx))
         ListMemory.delete(ctx.from)
         return await send(`List ${list[0]} selesai...`)
     }
@@ -549,7 +552,7 @@ const collectListHandler = async (
     list.push(listName)
     ListMemory.set(ctx.from, list)
     await reply(
-        `List "${listName}" dimulai...\nKirim \`> (isi)\` untuk menambahkan ke list`
+        `List "${listName}" dimulai...\nKirim \`+ (isi)\` untuk menambahkan ke list`
     )
 
     return await reactSuccess()
