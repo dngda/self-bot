@@ -181,11 +181,10 @@ export const handleAddList = async (
     ctx: MessageContext
 ) => {
     if (!ListMemory.has(ctx.from)) return null
-    if (!ctx.body?.startsWith('+')) return null
 
     const list = ListMemory.get(ctx.from) || []
     // add body to list
-    list.push(ctx.body.slice(1).trim())
+    list.push(ctx.body!.slice(1).trim())
     ListMemory.set(ctx.from, list)
 
     await ctx.reactSuccess()
@@ -196,7 +195,9 @@ export const handleAddList = async (
 async function sendList(ctx: MessageContext, wa: WASocket) {
     const existing = MsgKeyForList.get(ctx.from)
     if (existing) {
-        const timeDiff = Date.now() - existing.timestamp
+        const timeDiff = Date.now() - existing.timestamp * 1000
+
+        // 10 menit
         if (timeDiff < 10 * 60 * 1000) {
             return wa.sendMessage(ctx.from, {
                 edit: existing.key,
@@ -219,17 +220,17 @@ export const handleDeleteList = async (
     ctx: MessageContext
 ) => {
     if (!ListMemory.has(ctx.from)) return null
-    if (!ctx.body?.startsWith('-')) return null
 
     const list = ListMemory.get(ctx.from)
     if (!list) return null
 
-    const index = parseInt(ctx.body as string)
+    const index = parseInt(ctx.body?.slice(1) || '1')
+
     if (index > list.length || index < 1) {
         return await ctx.reply('Index out of range')
     }
 
-    list.splice(index - 1, 1)
+    list.splice(index, 1)
     ListMemory.set(ctx.from, list)
     await ctx.reactSuccess()
 

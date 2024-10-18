@@ -14,6 +14,7 @@ import { BotConfig, MessageContext } from './types'
 import {
     getPrefix,
     handleAddList,
+    handleDeleteList,
     handleMathEquation,
     handleNoteCommand,
     handleRepeatCommand,
@@ -165,8 +166,10 @@ const universalHandler = async (
     ctx: MessageContext
 ) => {
     const { body } = ctx
-    if (/^>.+/.test(body as string)) {
+    if (/^\+.+/.test(body as string)) {
         await handleAddList(_wa, _msg, ctx)
+    } else if (/^-.+/.test(body as string)) {
+        await handleDeleteList(_wa, _msg, ctx)
     }
 }
 

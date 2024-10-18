@@ -524,7 +524,7 @@ export const renderList = (ctx: MessageContext) => {
         listText += `${i}. ${l}\n`
     })
     listText +=
-        '\nKirim `+ (isi)` untuk menambahkan ke list\n Kirim `- (index)` untuk menghapus dari list.'
+        '\nKirim `+(isi)` untuk menambahkan ke list\nKirim `-(index)` untuk menghapus dari list.'
     return listText.replace(/\n$/, '')
 }
 
@@ -542,9 +542,9 @@ const collectListHandler = async (
     }
 
     if (arg == 'end') {
-        await send(renderList(ctx))
         ListMemory.delete(ctx.from)
-        return await send(`List ${list[0]} selesai...`)
+        ctx.reactSuccess()
+        return await send(`✅ List ${list[0]} selesai!`)
     }
 
     await reactWait()
