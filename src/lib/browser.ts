@@ -54,15 +54,17 @@ export class PlaywrightBrowser {
         url: string,
         filePath: string,
         viewPort = { width: 1920, height: 1080 },
-        delay = 0
+        delay = 0,
+        extraStep?: (page: Page) => Promise<void>
     ) {
         const page = await this.ctx.newPage()
         await page.setViewportSize(viewPort)
 
         try {
             await page.goto(url)
-            await page.waitForLoadState('networkidle')
+            await page.waitForLoadState('domcontentloaded')
             await page.waitForTimeout(delay)
+            await extraStep?.(page)
             await page.screenshot({ path: filePath })
             await page.close()
             return true
@@ -86,14 +88,14 @@ export class PlaywrightBrowser {
         try {
             await page.goto(url)
             await page.waitForLoadState('domcontentloaded')
-            extraStep && await extraStep(page)
+            await extraStep?.(page)
             const element = await page.$(selector)
             if (element) {
                 await element.screenshot({
                     path: filePath,
                     animations: 'disabled',
                 })
-                
+
                 await page.close()
                 return true
             }

@@ -35,13 +35,12 @@ const citraRadarHandler = async (
 ) => {
     ctx.reactWait()
     browser
-        .takeElementScreenshot(
-            'https://stamet-yogya.bmkg.go.id/area-hujan/',
-            '#map',
+        .takeScreenshot(
+            'http://sipora-yogya.bmkg.go.id/radar/',
             'tmp/radar.png',
             { width: 1200, height: 1000 },
+            0,
             async (page) => {
-                await page.waitForTimeout(3000)
                 await page.click('a.leaflet-control-zoom-in')
                 await page.waitForTimeout(1000)
                 await page.click('a.leaflet-control-zoom-in')
