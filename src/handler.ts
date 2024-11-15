@@ -168,7 +168,7 @@ const universalHandler = async (
     const { body } = ctx
     if (/^\+.+/.test(body as string)) {
         await handleAddList(_wa, _msg, ctx)
-    } else if (/^-.+/.test(body as string)) {
+    } else if (/^-[0-9]+/.test(body as string)) {
         await handleDeleteList(_wa, _msg, ctx)
     }
 }
