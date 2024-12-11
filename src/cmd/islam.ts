@@ -16,7 +16,7 @@ const jadwalSholatCmd = () => {
             noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
             notFound: (
                 ctx: MessageContext
-            ) => `‼️ Daerah "${ctx.args[0]}" tidak ditemukan!
+            ) => `‼️ Daerah "${ctx.arg}" tidak ditemukan!
       cek daerah dengan cara ➡️ ${ctx.prefix}jsh daerah`,
         },
         usage: (ctx: MessageContext) =>
