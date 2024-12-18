@@ -3,17 +3,19 @@ import FormData from 'form-data'
 import ocrApi from 'ocr-space-api-wrapper'
 import fs from 'fs'
 
-export async function uploadImage(image: Buffer): Promise<string> {
-    const form = new FormData()
-    form.append('file', image, 'tmp.jpg')
-    const res = await axios.post('https://telegra.ph/upload', form, {
-        headers: {
-            ...form.getHeaders(),
-        },
+export async function uploadImage(imageBuffer: Buffer): Promise<string> {
+    const formData = new FormData()
+    formData.append('file', imageBuffer, 'tmp.jpg')
+
+    const response = await axios.post('https://tmpfiles.org/api/v1/upload', formData, {
+        headers: formData.getHeaders(),
     })
-    const resJson = await res.data
-    if (resJson.error) throw new Error(resJson.error)
-    return `https://telegra.ph${resJson[0].src}`
+
+    const {
+        data: { url: fileUrl },
+    } = response.data
+
+    return fileUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
 }
 
 export async function memegen(
