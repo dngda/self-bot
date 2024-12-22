@@ -257,22 +257,22 @@ const memefyHandler = async (
     ctx: MessageContext
 ) => {
     const { arg, cmd, isQuoted, isQuotedSticker, isMedia, replySticker } = ctx
-    let _arg = arg
-    if (!_arg && !isQuoted && !isQuotedSticker && !isMedia)
+    if (!arg && !isQuoted && !isQuotedSticker && !isMedia)
         throw new Error(stringId.memefy.usage(ctx))
     ctx.reactWait()
 
     const textLimit = 30
-    if (_arg.length > textLimit)
+    if (arg.length > textLimit)
         throw new Error(stringId.memefy.error.textLimit(textLimit))
 
     let image: Buffer
     if (isQuotedSticker) image = await ctx.downloadSticker()
     else image = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
 
+    let _arg = arg
     const simage = await sharp(image).png()
-    if (_arg.includes('-c')) simage.resize(512, 512)
-    _arg = _arg.replace('-c', '')
+    if (arg.includes('-c') || arg.includes('-r')) simage.resize(512, 512)
+    _arg = _arg.replace('-c', '').replace('-r', '')
     image = await simage.toBuffer()
 
     const top = _arg.trim().split('|')[0] || '_'
@@ -287,10 +287,12 @@ const memefyHandler = async (
     }
 
     if (cmd === 'sm') {
+        let type = StickerTypes.FULL
+        if (arg.includes('-r')) type = StickerTypes.ROUNDED
         const sticker = await new Sticker(memeBuffer, {
             pack: process.env.PACKNAME!,
             author: process.env.AUTHOR!,
-            type: StickerTypes.FULL,
+            type,
             quality: 100,
         }).toBuffer()
         ctx.reactSuccess()
