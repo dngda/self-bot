@@ -468,7 +468,7 @@ const gttsHandler = async (
 ) => {
     const { args, arg, replyVoiceNote, reactWait, reactSuccess, quotedMsg } =
         ctx
-    if (arg == '' || quotedMsg == null) throw new Error(stringId.say.usage(ctx))
+    if (arg == '' && quotedMsg == null) throw new Error(stringId.say.usage(ctx))
 
     let lang = 'id'
     let text = arg
