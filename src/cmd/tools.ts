@@ -466,18 +466,19 @@ const gttsHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { args, arg, replyVoiceNote, reactWait, reactSuccess } = ctx
-    if (arg == '') throw stringId.say.usage(ctx)
+    const { args, arg, replyVoiceNote, reactWait, reactSuccess, quotedMsg } =
+        ctx
+    if (arg == '' || quotedMsg == null) throw new Error(stringId.say.usage(ctx))
 
     let lang = 'id'
     let text = arg
-    if (ctx.quotedMsg?.conversation) text = ctx.quotedMsg.conversation
+    if (quotedMsg?.conversation) text = quotedMsg.conversation
     if (ctx.cmd == 'tts') {
         lang = args[0]
         text = args.slice(1).join(' ')
     }
 
-    if (!LANGUAGES[lang]) throw stringId.say.error.lang()
+    if (!LANGUAGES[lang]) throw new Error(stringId.say.error.lang())
 
     await reactWait()
     const filepath = `tmp/gtts_${_msg.key.id!}.mp3`
