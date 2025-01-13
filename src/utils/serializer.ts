@@ -40,7 +40,11 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
             msg.message?.ephemeralMessage?.message?.imageMessage?.caption ||
             msg.message?.ephemeralMessage?.message?.videoMessage?.caption ||
             msg.message?.ephemeralMessage?.message?.documentWithCaptionMessage
-                ?.message?.documentMessage?.caption
+                ?.message?.documentMessage?.caption ||
+            msg.message?.editedMessage?.message?.protocolMessage?.editedMessage
+                ?.conversation ||
+            msg.message?.editedMessage?.message?.protocolMessage?.editedMessage
+                ?.extendedTextMessage?.text
         )
     }
 

@@ -54,6 +54,7 @@ export const updateConfig = () => {
 export const actions: { [index: string]: HandlerFunction } = {}
 loadCommands()
 
+// Main Handler
 export const messageHandler = async (
     waSocket: WASocket,
     event: {
