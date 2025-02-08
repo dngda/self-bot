@@ -5,6 +5,7 @@ import makeWASocket, {
     useMultiFileAuthState,
     DisconnectReason,
     proto,
+    Browsers,
 } from '@whiskeysockets/baileys'
 import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'
@@ -42,6 +43,7 @@ const startSock = async () => {
     console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
     const waSocket = makeWASocket({
+        browser: Browsers.ubuntu("Sero Selfbot"),
         version,
         logger,
         printQRInTerminal: true,
