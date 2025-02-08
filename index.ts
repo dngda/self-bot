@@ -105,13 +105,13 @@ const startSock = async () => {
     waSocket.ev.on('messages.upsert', messageHandler.bind(null, waSocket))
 
     waSocket.ev.on('groups.update', async ([event]) => {
-        const metadata = await waSocket.groupMetadata(event.id)
-        groupCache.set(event.id, metadata)
+        const metadata = await waSocket.groupMetadata(event.id!)
+        groupCache.set(event.id!, metadata)
     })
 
     waSocket.ev.on('group-participants.update', async (event) => {
-        const metadata = await waSocket.groupMetadata(event.id)
-        groupCache.set(event.id, metadata)
+        const metadata = await waSocket.groupMetadata(event.id!)
+        groupCache.set(event.id!, metadata)
     })
 }
 
