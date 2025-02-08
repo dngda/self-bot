@@ -24,6 +24,7 @@ const logger = MAIN_LOGGER.child({})
 logger.level = 'error'
 
 const msgRetryCounterCache = new NodeCache()
+const groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false })
 
 const startSock = async () => {
     const { state, saveCreds } = await useMultiFileAuthState(
@@ -60,9 +61,8 @@ const startSock = async () => {
                 })
             )
         },
-        shouldIgnoreJid: (jid) => {
-            return jid.endsWith('bot')
-        },
+        shouldIgnoreJid: (jid) => jid?.endsWith('bot'),
+        cachedGroupMetadata: async (jid) => groupCache.get(jid),
     })
 
     waSocket.ev.on('connection.update', (update) => {
@@ -103,6 +103,16 @@ const startSock = async () => {
     waSocket.ev.on('creds.update', saveCreds)
 
     waSocket.ev.on('messages.upsert', messageHandler.bind(null, waSocket))
+
+    waSocket.ev.on('groups.update', async ([event]) => {
+        const metadata = await waSocket.groupMetadata(event.id)
+        groupCache.set(event.id, metadata)
+    })
+
+    waSocket.ev.on('group-participants.update', async (event) => {
+        const metadata = await waSocket.groupMetadata(event.id)
+        groupCache.set(event.id, metadata)
+    })
 }
 
 startSock()
