@@ -61,7 +61,7 @@ const startSock = async () => {
             )
         },
         shouldIgnoreJid: (jid) => {
-            return jid.endsWith('@bot')
+            return jid.endsWith('bot')
         },
     })
 
