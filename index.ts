@@ -60,6 +60,9 @@ const startSock = async () => {
                 })
             )
         },
+        shouldIgnoreJid: (jid) => {
+            return jid.endsWith('@bot')
+        },
     })
 
     waSocket.ev.on('connection.update', (update) => {
