@@ -78,6 +78,11 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
         return
     }
 
+    if (isAppStateSync(msg)) {
+        console.log(chalk.green('[LOG]'), 'Syncing app state key...')
+        return
+    }
+
     logRawMessage(msg)
 
     const ctx = await serializeMessage(waSocket, msg)
@@ -137,6 +142,9 @@ const isAllowedChat = (ctx: MessageContext) =>
 const isHistorySync = (msg: WAMessage) =>
     msg.message?.protocolMessage?.type ==
     proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
+const isAppStateSync = (msg: WAMessage) =>
+    msg.message?.protocolMessage?.type ==
+    proto.Message.ProtocolMessage.Type.APP_STATE_SYNC_KEY_SHARE
 
 // --------------------------------------------------------- //
 const noPrefixHandler = async (
