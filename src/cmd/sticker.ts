@@ -10,6 +10,13 @@ import { gifToMp4, memegen, textToPicture, uploadImage } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
+export default () => {
+    textToStickerCmd()
+    stickerCreatorCmd()
+    addTextToImageCmd()
+    downloadStickerCmd()
+}
+
 const stickerCreatorCmd = () => {
     stringId.sticker = {
         hint: '🖼️ _Convert media to sticker_',
@@ -343,11 +350,4 @@ const downloadStickerHandler = async (
         await replyContent({ image: sticker })
     }
     ctx.reactSuccess()
-}
-
-export default () => {
-    stickerCreatorCmd()
-    textToStickerCmd()
-    addTextToImageCmd()
-    downloadStickerCmd()
 }

@@ -12,6 +12,14 @@ import { browser } from '../..'
 import chalk from 'chalk'
 import { MessageContext } from '../types'
 
+export default () => {
+    evalJS_Cmd()
+    offline_Cmd()
+    evalJSON_Cmd()
+    getStatus_Cmd()
+    refreshBrowser_Cmd()
+}
+
 const evalJSON_Cmd = () => {
     stringId.evalJSON = {
         hint: '_Evaluate JSON code_',
@@ -233,12 +241,4 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
     }
     message += `\nReply this message with number to download status`
     return message
-}
-
-export default () => {
-    evalJS_Cmd()
-    evalJSON_Cmd()
-    offline_Cmd()
-    refreshBrowser_Cmd()
-    getStatus_Cmd()
 }

@@ -6,6 +6,11 @@ import crypto from 'crypto'
 import axios from 'axios'
 import { MessageContext } from '../types'
 
+export default () => {
+    rollCmd()
+    getMemeCmd()
+}
+
 const getMemeCmd = () => {
     stringId.gimme = {
         hint: '🌠 _Random reddit meme_',
@@ -109,9 +114,4 @@ const rollHandler = async (
         { edit: m_id?.key, text: `🎲 ${roll} 🎲 ${roll2}` },
         { ephemeralExpiration: ctx.expiration! }
     )
-}
-
-export default () => {
-    getMemeCmd()
-    rollCmd()
 }

@@ -5,6 +5,13 @@ import { menu } from '../menu'
 import { resetPrefix, setPrefix } from '../utils/_index'
 import { MessageContext } from '../types'
 
+export default () => {
+    setPrefixCmd()
+    toggleConfigCmd()
+    togglePublicChatCmd()
+    stickerAsCommandCmd()
+}
+
 const togglePublicChatCmd = () => {
     stringId.public = {
         hint: '⚙️ _Toggle public mode pada chat ini_',
@@ -237,11 +244,4 @@ const configHandler = async (
 
     updateConfig()
     return ctx.reply(stringId.toggleConfig.success?.(configName, status) ?? '')
-}
-
-export default () => {
-    togglePublicChatCmd()
-    stickerAsCommandCmd()
-    setPrefixCmd()
-    toggleConfigCmd()
 }

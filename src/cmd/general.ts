@@ -6,6 +6,12 @@ import stringId from '../language'
 import lodash from 'lodash'
 import { MessageContext } from '../types'
 
+export default () => {
+    pingCmd()
+    menuCmd()
+    hideTagCmd()
+}
+
 const pingCmd = () => {
     stringId.ping = {
         hint: '➡️ _Balas dengan pong!_',
@@ -191,10 +197,4 @@ const hideTagHandler = async (
     }
 
     await ctx.reactSuccess()
-}
-
-export default () => {
-    pingCmd()
-    menuCmd()
-    hideTagCmd()
 }

@@ -5,6 +5,13 @@ import stringId from '../language'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
+export default () => {
+    googleSearchCmd()
+    citraRadarJogjaCmd()
+    duckduckgoSearchCmd()
+}
+
+
 const citraRadarJogjaCmd = () => {
     stringId.crjogja = {
         hint: '🌐 _Citra radar cuaca di Jogja_',
@@ -179,10 +186,4 @@ const googleSearchHandler = async (
         })
 
     return ctx.reactSuccess()
-}
-
-export default () => {
-    citraRadarJogjaCmd()
-    duckduckgoSearchCmd()
-    googleSearchCmd()
 }

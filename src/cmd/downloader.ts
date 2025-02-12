@@ -8,6 +8,11 @@ import { VideoData, pinterest, tinyUrl } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
+export default () => {
+    searchPinterestCmd()
+    downloadSocialVideoCmd()
+}
+
 const searchPinterestCmd = () => {
     stringId.pinterest = {
         hint: '🔍 _Search gambar di pinterest_',
@@ -280,9 +285,4 @@ async function youtube(url: string, ctx: MessageContext) {
         seconds: duration,
         caption: captions.trim(),
     })
-}
-
-export default () => {
-    searchPinterestCmd()
-    downloadSocialVideoCmd()
 }

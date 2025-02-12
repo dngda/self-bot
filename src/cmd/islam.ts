@@ -9,6 +9,11 @@ import fs from 'fs'
 import { Surah, SurahRepo } from '../raw/surah'
 import { MessageContext } from '../types'
 
+export default () => {
+    surahCmd()
+    jadwalSholatCmd()
+}
+
 const jadwalSholatCmd = () => {
     stringId.jsholat = {
         hint: '🕌 _Jadwal sholat_',
@@ -319,9 +324,4 @@ const getAyatSurahDataAndSend = async (
             'Unknown error'
         )
     }
-}
-
-export default () => {
-    jadwalSholatCmd()
-    surahCmd()
 }

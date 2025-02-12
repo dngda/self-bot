@@ -28,6 +28,19 @@ import {
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
+export default () => {
+    initNoteDatabase()
+
+    ocrCmd()
+    gttsCmd()
+    flipImageCmd()
+    getOneViewCmd()
+    videoToMp3Cmd()
+    videoSplitCmd()
+    noteCreatorCmd()
+    collectListCmd()
+}
+
 const flipImageCmd = () => {
     stringId.flip = {
         hint: '🖼️ _flip = vertikal, flop = horizontal_',
@@ -557,17 +570,4 @@ const collectListHandler = async (
     )
 
     return await reactSuccess()
-}
-
-export default () => {
-    initNoteDatabase()
-
-    flipImageCmd()
-    getOneViewCmd()
-    noteCreatorCmd()
-    videoToMp3Cmd()
-    videoSplitCmd()
-    gttsCmd()
-    ocrCmd()
-    collectListCmd()
 }
