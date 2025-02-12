@@ -42,6 +42,7 @@ export const LANGUAGES: { [index: string]: string } = {
     id: 'Indonesian',
     it: 'Italian',
     ja: 'Japanese',
+    jw: 'Javanese',
     ko: 'Korean',
     la: 'Latin',
     lv: 'Latvian',

@@ -459,7 +459,9 @@ const gttsCmd = () => {
             lang: () => '‼️ Bahasa tidak disupport.',
         },
         usage: (ctx: MessageContext) =>
-            `🗣️ Kirim cmd dengan text ➡️ ${ctx.prefix}${ctx.cmd} <text>`,
+            `🗣️ ➡️ ${ctx.prefix}say <text>
+🗣️ ➡️ ${ctx.prefix}tts <lang> <text>
+🗣️ lang: ${ctx.prefix}tts lang`,
     }
 
     menu.push({
@@ -488,6 +490,11 @@ const gttsHandler = async (
     if (quotedMsg?.conversation) text = quotedMsg.conversation
     if (ctx.cmd == 'tts') {
         lang = args[0]
+        if (lang == 'lang') {
+            ctx.reply(`🗣️ Bahasa yang didukung: ${Object.keys(LANGUAGES)}`)
+            return
+        }
+        
         text = args.slice(1).join(' ')
     }
 
