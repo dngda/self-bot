@@ -41,14 +41,10 @@ const pingHandler = async (
     if (sent && ctx.fromMe) {
         await _wa.chatModify(
             {
-                clear: {
-                    messages: [
-                        {
-                            id: sent.key.id,
-                            fromMe: true,
-                            timestamp: sent.messageTimestamp,
-                        },
-                    ],
+                deleteForMe: {
+                    deleteMedia: true,
+                    key: msg.key,
+                    timestamp: msg.messageTimestamp as number,
                 },
             },
             ctx.from
