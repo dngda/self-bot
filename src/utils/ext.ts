@@ -224,7 +224,7 @@ export const handleDeleteList = async (
     const list = ListMemory.get(ctx.from)
     if (!list) return null
 
-    const index = parseInt(ctx.body?.slice(1) || '1')
+    const index = parseInt(ctx.body?.slice(1) ?? '1')
 
     if (index > list.length || index < 1) {
         return await ctx.reply('Index out of range')
