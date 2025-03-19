@@ -304,5 +304,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         })
     }
 
+    // if props are falsey, hide them as well
+    for (const [key, value] of Object.entries(ctx)) {
+        if (!value) {
+            Object.defineProperty(ctx, key, {
+                enumerable: false,
+            })
+        }
+    }
+
     return ctx
 }
