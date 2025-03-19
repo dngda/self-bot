@@ -41,10 +41,11 @@ const execHandler = async (
     }
 
     const scriptDir = process.env.EXT_SCRIPT_PATH
-    const script = ctx.arg
+    let script = ctx.arg
+    script = script.startsWith('php') ? script : `php ${script}`
     
-    if (!script.includes('php') && !script.includes('php')) {
-        throw new Error('Hanya script php file yang diizinkan.')
+    if (!script.includes('.php')) {
+        throw new Error('Hanya script file php yang diizinkan.')
     }
 
     const childProcess = exec(`cd ${scriptDir} && ${script}`, (err, stdout, stderr) => {
