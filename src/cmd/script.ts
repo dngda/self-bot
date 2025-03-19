@@ -11,7 +11,7 @@ export default () => {
 
 const execScriptCmd = () => {
     stringId.exec = {
-        hint: '📜 _Menjalankan script_',
+        hint: '📜 _Menjalankan script php di user/script_',
         error: {
             internal: () => 'Terjadi error, coba lagi.',
         },
