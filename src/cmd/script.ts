@@ -43,23 +43,53 @@ const execHandler = async (
     const scriptDir = process.env.EXT_SCRIPT_PATH
     let script = ctx.arg
     script = script.startsWith('php') ? script : `php ${script}`
-    
+
     if (!script.includes('.php')) {
         throw new Error('Hanya script file php yang diizinkan.')
     }
 
-    const childProcess = exec(`cd ${scriptDir} && /bin/${script}`, (err, stdout, stderr) => {
-        if (err) {
-            throw new Error(err.message)
+    if (
+        [
+            'sudo',
+            'rm',
+            'mv',
+            'cp',
+            'nano',
+            'vim',
+            'vi',
+            'chmod',
+            'chown',
+            'dd',
+            'mkfs',
+            'shutdown',
+            'reboot',
+            'kill',
+            'pkill',
+            'init',
+            'halt',
+            'poweroff',
+            'wget',
+            'curl',
+        ].some((cmd) => script.includes(cmd))
+    ) {
+        throw new Error('Tidak diizinkan menjalankan command tersebut.')
+    }
+
+    const childProcess = exec(
+        `cd ${scriptDir} && /bin/${script}`,
+        (err, stdout, stderr) => {
+            if (err) {
+                throw new Error(err.message)
+            }
+            if (stderr) {
+                throw new Error(stderr)
+            }
+            if (stdout) {
+                return stdout
+            }
+            return false
         }
-        if (stderr) {
-            throw new Error(stderr)
-        }
-        if (stdout) {
-            return stdout
-        }
-        return 'Success'
-    })
+    )
 
     childProcess.stdout?.on('data', (data) => {
         ctx.reply(data)
