@@ -48,7 +48,7 @@ const execHandler = async (
         throw new Error('Hanya script file php yang diizinkan.')
     }
 
-    const childProcess = exec(`cd ${scriptDir} && ${script}`, (err, stdout, stderr) => {
+    const childProcess = exec(`cd ${scriptDir} && /bin/${script}`, (err, stdout, stderr) => {
         if (err) {
             throw new Error(err.message)
         }
