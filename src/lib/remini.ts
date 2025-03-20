@@ -265,13 +265,13 @@ export async function Remini(
     const SETTINGS: Partial<Settings> = {
         face_enhance: {
             model:
-                settings.face_enhance?.model ||
+                settings.face_enhance?.model ??
                 DEFAULT_SETTINGS.face_enhance?.model,
             pre_blur: settings.face_enhance?.pre_blur,
         },
         background_enhance: {
             model:
-                settings.background_enhance?.model ||
+                settings.background_enhance?.model ??
                 DEFAULT_SETTINGS.background_enhance?.model,
         },
         bokeh: settings.bokeh,
@@ -281,7 +281,7 @@ export async function Remini(
         face_lifting: {
             model: settings.face_lifting?.model,
         },
-        jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
+        jpeg_quality: settings.jpeg_quality ?? DEFAULT_SETTINGS.jpeg_quality,
     }
 
     if (SETTINGS.face_enhance?.pre_blur === undefined) {
@@ -337,17 +337,14 @@ export async function Remini(
             await delay(2000)
         }
 
-        let no_wm: string
-        if (wm.task_list[0].result.outputs[0].has_watermark) {
-            const removed = await remove(wm.task_list[0].result.outputs[0].url)
-            no_wm = removed
-                ? removed.output[0]
-                : wm.task_list[0].result.outputs[0].url
-        } else {
-            no_wm = wm.task_list[0].result.outputs[0].url
-        }
+        const outputUrl = wm.task_list[0].result.outputs[0].url
+        const hasWatermark = wm.task_list[0].result.outputs[0].has_watermark
 
-        return { no_wm, wm: wm.task_list[0].result.outputs[0].url }
+        const no_wm = hasWatermark
+            ? (await remove(outputUrl))?.output[0] ?? outputUrl
+            : outputUrl
+
+        return { no_wm, wm: outputUrl }
     } catch (error) {
         throw new Error(error as string)
     }
