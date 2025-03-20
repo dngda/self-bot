@@ -144,5 +144,5 @@ const makeHdHandler = async (
         { image: { url: image.no_wm } },
         { quoted: msg }
     )
-    ctx.reactSuccess()
+    return ctx.reactSuccess()
 }
