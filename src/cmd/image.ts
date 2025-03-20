@@ -114,8 +114,7 @@ const makeHdHandler = async (
     if (args.includes('v2')) options.face_enhance = { model: 'gfpgan' }
 
     const bokehMatch = arg.match(/low|med|high/gi)
-    options.bokeh =
-        BACKGROUND_BLUR[bokehMatch ? bokehMatch[0].toUpperCase() : ''] || {}
+    if (bokehMatch) options.bokeh = BACKGROUND_BLUR[bokehMatch[0].toUpperCase()]
 
     const faceMatch = arg.match(/movie|glam|natural|cute|silk|charm/gi)
     if (faceMatch)

@@ -255,7 +255,6 @@ const DEFAULT_SETTINGS: Partial<Settings> = {
     background_enhance: {
         model: 'rhino-tensorrt',
     },
-    bokeh: BACKGROUND_BLUR.LOW,
     jpeg_quality: 90,
 }
 
@@ -275,24 +274,7 @@ export async function Remini(
                 settings.background_enhance?.model ||
                 DEFAULT_SETTINGS.background_enhance?.model,
         },
-        bokeh: {
-            aperture_radius:
-                settings.bokeh?.aperture_radius ||
-                DEFAULT_SETTINGS.bokeh?.aperture_radius,
-            highlights:
-                settings.bokeh?.highlights ||
-                DEFAULT_SETTINGS.bokeh?.highlights,
-            vivid: settings.bokeh?.vivid || DEFAULT_SETTINGS.bokeh?.vivid,
-            group_picture:
-                settings.bokeh?.group_picture ||
-                DEFAULT_SETTINGS.bokeh?.group_picture,
-            rescale_kernel_for_small_images:
-                settings.bokeh?.rescale_kernel_for_small_images ||
-                DEFAULT_SETTINGS.bokeh?.rescale_kernel_for_small_images,
-            apply_front_bokeh:
-                settings.bokeh?.apply_front_bokeh ||
-                DEFAULT_SETTINGS.bokeh?.apply_front_bokeh,
-        },
+        bokeh: settings.bokeh,
         color_enhance: {
             model: settings.color_enhance?.model,
         },
@@ -304,6 +286,10 @@ export async function Remini(
 
     if (SETTINGS.face_enhance?.pre_blur === undefined) {
         delete SETTINGS.face_enhance?.pre_blur
+    }
+
+    if (SETTINGS.bokeh === undefined) {
+        delete SETTINGS.bokeh
     }
 
     if (SETTINGS.color_enhance?.model === undefined) {
