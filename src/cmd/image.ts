@@ -24,7 +24,7 @@ const flipImageCmd = () => {
             noImage: () => '‼️ Gambar tidak ditemukan!',
         },
         usage: (ctx: MessageContext) =>
-            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}flip atau ${ctx.prefix}flop`,
+            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}flip atau ${ctx.prefix}flop`,
     }
 
     menu.push({
@@ -79,7 +79,7 @@ Face Enhance:
 Bokeh: low, med, high
 Face Lifting: movie, glam, natural, cute, silk, charm
 Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
-🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}${ctx.cmd} [options...]`,
+🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}${ctx.cmd} [options...]`,
     }
 
     menu.push({
