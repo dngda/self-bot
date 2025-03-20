@@ -12,7 +12,12 @@
 import crypto from 'crypto'
 import axios, { AxiosRequestConfig } from 'axios'
 import FormData from 'form-data'
-import { BokehSettings, ColorEnhanceModel, FaceLiftingModel, Settings } from './types'
+import {
+    BokehSettings,
+    ColorEnhanceModel,
+    FaceLiftingModel,
+    Settings,
+} from './types'
 
 const BASE_URL = 'https://app.remini.ai'
 const URL_USER = '/api/v1/web/users'
@@ -260,7 +265,9 @@ export async function Remini(
 ): Promise<{ no_wm: string; wm: string } | null> {
     const SETTINGS: Partial<Settings> = {
         face_enhance: {
-            model: DEFAULT_SETTINGS.face_enhance?.model || settings.face_enhance?.model,
+            model:
+                settings.face_enhance?.model ||
+                DEFAULT_SETTINGS.face_enhance?.model,
             pre_blur: settings.face_enhance?.pre_blur,
         },
         background_enhance: {
@@ -285,6 +292,9 @@ export async function Remini(
             apply_front_bokeh:
                 settings.bokeh?.apply_front_bokeh ||
                 DEFAULT_SETTINGS.bokeh?.apply_front_bokeh,
+        },
+        color_enhance: {
+            model: settings.color_enhance?.model,
         },
         jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
     }
