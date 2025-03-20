@@ -260,7 +260,7 @@ export async function Remini(
 ): Promise<{ no_wm: string; wm: string } | null> {
     const SETTINGS: Partial<Settings> = {
         face_enhance: {
-            model: DEFAULT_SETTINGS.face_enhance?.model,
+            model: DEFAULT_SETTINGS.face_enhance?.model || settings.face_enhance?.model,
             pre_blur: settings.face_enhance?.pre_blur,
         },
         background_enhance: {
@@ -288,6 +288,8 @@ export async function Remini(
         },
         jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
     }
+
+    console.log(SETTINGS)
 
     try {
         let buffer: Buffer
