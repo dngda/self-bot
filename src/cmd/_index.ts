@@ -8,6 +8,7 @@ import sticker from './sticker'
 import tools from './tools'
 import config from './config'
 import script from './script'
+import image from './image'
 
 // Urutan pemanggilan akan menentukan urutan menu
 export default () => {
@@ -18,6 +19,7 @@ export default () => {
     random()
     browser()
     tools()
+    image()
     script()
 
     config()

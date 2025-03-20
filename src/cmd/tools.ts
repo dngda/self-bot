@@ -8,7 +8,6 @@ import { unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import { delay } from 'lodash'
 import ocrApi from 'ocr-space-api-wrapper'
-import sharp from 'sharp'
 import { Readable } from 'stream'
 import { actions } from '../handler'
 import stringId from '../language'
@@ -30,63 +29,13 @@ import { MessageContext } from '../types'
 
 export default () => {
     initNoteDatabase()
-
     ocrCmd()
     gttsCmd()
-    flipImageCmd()
     getOneViewCmd()
     videoToMp3Cmd()
     videoSplitCmd()
     noteCreatorCmd()
     collectListCmd()
-}
-
-const flipImageCmd = () => {
-    stringId.flip = {
-        hint: '🖼️ _flip = vertikal, flop = horizontal_',
-        error: {
-            noImage: () => '‼️ Gambar tidak ditemukan!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}flip atau ${ctx.prefix}flop`,
-    }
-
-    menu.push({
-        command: 'flip',
-        hint: stringId.flip.hint,
-        alias: 'flop',
-        type: 'tools',
-    })
-
-    Object.assign(actions, {
-        flip: flipHandler,
-    })
-}
-
-const flipHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
-    ctx: MessageContext
-) => {
-    const { isQuotedImage, isImage, cmd, download, downloadQuoted } = ctx
-    if (!isImage && !isQuotedImage)
-        throw new Error(stringId.flip.error.noImage())
-    ctx.reactWait()
-    const mediaData = isQuotedImage ? await downloadQuoted() : await download()
-    const image = await sharp(mediaData)
-    if (cmd === 'flip')
-        await waSocket.sendMessage(
-            ctx.from,
-            { image: await image.flip().toBuffer() },
-            { quoted: msg }
-        )
-    if (cmd === 'flop')
-        await waSocket.sendMessage(
-            ctx.from,
-            { image: await image.flop().toBuffer() },
-            { quoted: msg }
-        )
-    ctx.reactSuccess()
 }
 
 const getOneViewCmd = () => {
