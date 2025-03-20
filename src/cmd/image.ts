@@ -8,9 +8,9 @@ import {
     FACE_LIFTING,
     Remini,
 } from '../lib/_index'
+import { Settings } from '../lib/types'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
-import { Settings } from '../lib/types'
 
 export default () => {
     flipImageCmd()
@@ -118,14 +118,18 @@ const makeHdHandler = async (
         BACKGROUND_BLUR[bokehMatch ? bokehMatch[0].toUpperCase() : ''] || {}
 
     const faceMatch = arg.match(/movie|glam|natural|cute|silk|charm/gi)
-    options.face_lifting!.model =
-        FACE_LIFTING[faceMatch ? faceMatch[0].toUpperCase() : '']
+    if (faceMatch)
+        options.face_lifting = {
+            model: FACE_LIFTING[faceMatch[0].toUpperCase()],
+        }
 
     const colorMatch = arg.match(
         /golden|steady|balanced|orange|silky|muted|teal|softwarm/gi
     )
-    options.color_enhance!.model =
-        COLOR_ENHANCE[colorMatch ? colorMatch[0].toUpperCase() : '']
+    if (colorMatch)
+        options.color_enhance = {
+            model: COLOR_ENHANCE[colorMatch[0].toUpperCase()],
+        }
 
     const image = await Remini(mediaData, options)
     if (!image) throw new Error('‼️ Gagal membuat gambar HD!')
