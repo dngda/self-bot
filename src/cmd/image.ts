@@ -71,8 +71,15 @@ const makeHdCmd = () => {
         error: {
             noImage: () => '‼️ Gambar tidak ditemukan!',
         },
-        usage: (ctx: MessageContext) =>
-            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}makehd`,
+        usage: (ctx: MessageContext) => `🖼️ Options
+Face Enhance:
+- base: Remini
+- v1: Remini + pre blur
+- v2: Gfpgan
+Bokeh: low, med, high
+Face Lifting: movie, glam, natural, cute, silk, charm
+Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
+🖼️ Kirim gambar dengan caption atau reply gambar dengan\n ➡️ ${ctx.prefix}${ctx.cmd} [options...]`,
     }
 
     menu.push({
@@ -103,7 +110,7 @@ const makeHdHandler = async (
         arg,
     } = ctx
     if (!isImage && !isQuotedImage && !isQuotedDocument)
-        throw new Error(stringId.makeHd.error.noImage())
+        return ctx.reply(stringId.makeHd.usage(ctx))
     ctx.reactWait()
     const mediaData = isQuoted ? await downloadQuoted() : await download()
 
