@@ -1,15 +1,16 @@
-import {
-    WAMessage,
-    WASocket
-} from '@whiskeysockets/baileys'
+import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import sharp from 'sharp'
 import { actions } from '../handler'
 import stringId from '../language'
 import {
-    Remini
+    BACKGROUND_BLUR,
+    COLOR_ENHANCE,
+    FACE_LIFTING,
+    Remini,
 } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
+import { Settings } from '../lib/types'
 
 export default () => {
     flipImageCmd()
@@ -98,12 +99,35 @@ const makeHdHandler = async (
         downloadQuoted,
         isQuotedDocument,
         isQuoted,
+        args,
+        arg,
     } = ctx
     if (!isImage && !isQuotedImage && !isQuotedDocument)
         throw new Error(stringId.makeHd.error.noImage())
     ctx.reactWait()
     const mediaData = isQuoted ? await downloadQuoted() : await download()
-    const image = await Remini(mediaData)
+
+    const options: Partial<Settings> = {}
+    if (args.includes('base')) options.face_enhance = { model: 'remini' }
+    if (args.includes('v1'))
+        options.face_enhance = { model: 'remini', pre_blur: 1.8 }
+    if (args.includes('v2')) options.face_enhance = { model: 'gfpgan' }
+
+    const bokehMatch = arg.match(/low|med|high/gi)
+    options.bokeh =
+        BACKGROUND_BLUR[bokehMatch ? bokehMatch[0].toUpperCase() : ''] || {}
+
+    const faceMatch = arg.match(/movie|glam|natural|cute|silk|charm/gi)
+    options.face_lifting!.model =
+        FACE_LIFTING[faceMatch ? faceMatch[0].toUpperCase() : '']
+
+    const colorMatch = arg.match(
+        /golden|steady|balanced|orange|silky|muted|teal|softwarm/gi
+    )
+    options.color_enhance!.model =
+        COLOR_ENHANCE[colorMatch ? colorMatch[0].toUpperCase() : '']
+
+    const image = await Remini(mediaData, options)
     if (!image) throw new Error('‼️ Gagal membuat gambar HD!')
     await waSocket.sendMessage(
         ctx.from,

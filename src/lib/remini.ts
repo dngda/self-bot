@@ -12,6 +12,7 @@
 import crypto from 'crypto'
 import axios, { AxiosRequestConfig } from 'axios'
 import FormData from 'form-data'
+import { BokehSettings, ColorEnhanceModel, FaceLiftingModel, Settings } from './types'
 
 const BASE_URL = 'https://app.remini.ai'
 const URL_USER = '/api/v1/web/users'
@@ -43,31 +44,54 @@ const headersList: Record<string, string> = {
     'user-agent': 'Mozilla/5.0',
 }
 
-interface FaceEnhanceSettings {
-    model: string
+export const BACKGROUND_BLUR: { [index: string]: BokehSettings } = {
+    LOW: {
+        aperture_radius: '0.30',
+        highlights: '0.25',
+        vivid: '0.75',
+        group_picture: 'true',
+        rescale_kernel_for_small_images: 'true',
+        apply_front_bokeh: 'false',
+    },
+    MED: {
+        aperture_radius: '0.65',
+        highlights: '0.50',
+        vivid: '0.40',
+        group_picture: 'true',
+        rescale_kernel_for_small_images: 'true',
+        apply_front_bokeh: 'false',
+    },
+    HIGH: {
+        aperture_radius: '0.80',
+        highlights: '0.60',
+        vivid: '0.60',
+        group_picture: 'true',
+        rescale_kernel_for_small_images: 'true',
+        apply_front_bokeh: 'false',
+    },
 }
 
-interface BackgroundEnhanceSettings {
-    model: string
+export const FACE_LIFTING: { [index: string]: FaceLiftingModel } = {
+    MOVIE: 'movie-style',
+    GLAM: 'glam-style',
+    CUTE: 'stylegan-v1',
+    NATURAL: 'bendai-style',
+    SILK: 'pinko-style',
+    CHARM: 'fa_charm_unset-style',
 }
 
-interface BokehSettings {
-    aperture_radius: string
-    highlights: string
-    vivid: string
-    group_picture: string
-    rescale_kernel_for_small_images: string
-    apply_front_bokeh: string
+export const COLOR_ENHANCE: { [index: string]: ColorEnhanceModel } = {
+    GOLDEN: 'prism-expert-c',
+    STEADY: 'prism-blend',
+    BALANCED: 'prism-expert-a',
+    ORANGE: 'orange-teal',
+    SILKY: 'silky',
+    MUTED: 'muted',
+    TEAL: 'orange-teal_v2',
+    SOFTWARM: 'lit_soft_warm',
 }
 
-interface Settings {
-    face_enhance: FaceEnhanceSettings
-    background_enhance: BackgroundEnhanceSettings
-    bokeh: BokehSettings
-    jpeg_quality: number
-}
-
-const BULK_PAYLOAD = (settings: Settings) => ({
+const BULK_PAYLOAD = (settings: Partial<Settings>) => ({
     input_task_list: [
         {
             image_content_type: 'image/jpeg',
@@ -109,7 +133,7 @@ async function init(): Promise<boolean> {
     return true
 }
 
-async function upload(settings: Settings): Promise<any> {
+async function upload(settings: Partial<Settings>): Promise<any> {
     const response = await req(
         BASE_URL + URL_BULK,
         'POST',
@@ -118,7 +142,10 @@ async function upload(settings: Settings): Promise<any> {
     return response?.data
 }
 
-async function approval(data: any, settings: Settings): Promise<number> {
+async function approval(
+    data: any,
+    settings: Partial<Settings>
+): Promise<number> {
     const response = await req(
         BASE_URL + URL_APPROVAL.replace('BULK_UPLOAD_ID', data.bulk_upload_id),
         'POST',
@@ -178,8 +205,7 @@ export async function remove(image: string | Buffer): Promise<any> {
 
         const status = await approvalWm()
         if (status !== 204) {
-            console.log('[ WARN ] Request denied.')
-            return null
+            throw new Error('[WARN] Request denied.')
         }
 
         await initSignature()
@@ -217,55 +243,48 @@ export async function remove(image: string | Buffer): Promise<any> {
     }
 }
 
-const DEFAULT_SETTINGS: Settings = {
+const DEFAULT_SETTINGS: Partial<Settings> = {
     face_enhance: {
         model: 'remini',
     },
     background_enhance: {
         model: 'rhino-tensorrt',
     },
-    bokeh: {
-        aperture_radius: '0',
-        highlights: '0.20',
-        vivid: '0.75',
-        group_picture: 'true',
-        rescale_kernel_for_small_images: 'true',
-        apply_front_bokeh: 'false',
-    },
+    bokeh: BACKGROUND_BLUR.LOW,
     jpeg_quality: 90,
 }
 
 export async function Remini(
     img: string | Buffer,
-    settings: Settings = DEFAULT_SETTINGS
+    settings: Partial<Settings> = {}
 ): Promise<{ no_wm: string; wm: string } | null> {
-    const SETTINGS: Settings = {
+    const SETTINGS: Partial<Settings> = {
         face_enhance: {
-            model:
-                settings.face_enhance?.model ||
-                DEFAULT_SETTINGS.face_enhance.model,
+            model: DEFAULT_SETTINGS.face_enhance?.model,
+            pre_blur: settings.face_enhance?.pre_blur,
         },
         background_enhance: {
             model:
                 settings.background_enhance?.model ||
-                DEFAULT_SETTINGS.background_enhance.model,
+                DEFAULT_SETTINGS.background_enhance?.model,
         },
         bokeh: {
             aperture_radius:
                 settings.bokeh?.aperture_radius ||
-                DEFAULT_SETTINGS.bokeh.aperture_radius,
+                DEFAULT_SETTINGS.bokeh?.aperture_radius,
             highlights:
-                settings.bokeh?.highlights || DEFAULT_SETTINGS.bokeh.highlights,
-            vivid: settings.bokeh?.vivid || DEFAULT_SETTINGS.bokeh.vivid,
+                settings.bokeh?.highlights ||
+                DEFAULT_SETTINGS.bokeh?.highlights,
+            vivid: settings.bokeh?.vivid || DEFAULT_SETTINGS.bokeh?.vivid,
             group_picture:
                 settings.bokeh?.group_picture ||
-                DEFAULT_SETTINGS.bokeh.group_picture,
+                DEFAULT_SETTINGS.bokeh?.group_picture,
             rescale_kernel_for_small_images:
                 settings.bokeh?.rescale_kernel_for_small_images ||
-                DEFAULT_SETTINGS.bokeh.rescale_kernel_for_small_images,
+                DEFAULT_SETTINGS.bokeh?.rescale_kernel_for_small_images,
             apply_front_bokeh:
                 settings.bokeh?.apply_front_bokeh ||
-                DEFAULT_SETTINGS.bokeh.apply_front_bokeh,
+                DEFAULT_SETTINGS.bokeh?.apply_front_bokeh,
         },
         jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
     }
@@ -287,14 +306,12 @@ export async function Remini(
         const sendStatus = await send(data, buffer)
 
         if (sendStatus !== 200) {
-            console.log('[ WARN ] Image failed to send.')
-            return null
+            throw new Error('[WARN] Image failed to send.')
         }
 
         const approvalStatus = await approval(data, SETTINGS)
         if (approvalStatus !== 202) {
-            console.log('[ WARN ] Request denied.')
-            return null
+            throw new Error('[WARN] Request denied.')
         }
 
         let wm: any
@@ -319,7 +336,6 @@ export async function Remini(
 
         return { no_wm, wm: wm.task_list[0].result.outputs[0].url }
     } catch (error) {
-        console.error(error)
-        return null
+        throw new Error(error as string)
     }
 }
