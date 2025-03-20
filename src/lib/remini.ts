@@ -302,6 +302,18 @@ export async function Remini(
         jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
     }
 
+    if (SETTINGS.face_enhance?.pre_blur === undefined) {
+        delete SETTINGS.face_enhance?.pre_blur
+    }
+
+    if (SETTINGS.color_enhance?.model === undefined) {
+        delete SETTINGS.color_enhance
+    }
+
+    if (SETTINGS.face_lifting?.model === undefined) {
+        delete SETTINGS.face_lifting
+    }
+
     console.log(SETTINGS)
 
     try {

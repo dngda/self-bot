@@ -130,8 +130,6 @@ const makeHdHandler = async (
         options.color_enhance = {
             model: COLOR_ENHANCE[colorMatch[0].toUpperCase()],
         }
-    
-    console.log(bokehMatch, faceMatch, colorMatch, options)
 
     const image = await Remini(mediaData, options)
     if (!image) throw new Error('‼️ Gagal membuat gambar HD!')
