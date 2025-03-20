@@ -296,6 +296,9 @@ export async function Remini(
         color_enhance: {
             model: settings.color_enhance?.model,
         },
+        face_lifting: {
+            model: settings.face_lifting?.model,
+        },
         jpeg_quality: settings.jpeg_quality || DEFAULT_SETTINGS.jpeg_quality,
     }
 

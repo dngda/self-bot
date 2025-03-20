@@ -23,7 +23,7 @@ type FaceLiftingModel =
     | 'pinko-style'
     | 'fa_charm_unset-style'
 interface FaceLiftingSettings {
-    model: FaceLiftingModel
+    model?: FaceLiftingModel
 }
 
 type ColorEnhanceModel =
@@ -36,7 +36,7 @@ type ColorEnhanceModel =
     | 'orange-teal_v2'
     | 'lit_soft_warm'
 interface ColorEnhanceSettings {
-    model: ColorEnhanceModel
+    model?: ColorEnhanceModel
 }
 
 export interface Settings {
