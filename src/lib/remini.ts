@@ -195,7 +195,7 @@ async function approvalWm(): Promise<number> {
     return response?.status
 }
 
-export async function remove(image: string | Buffer): Promise<any> {
+export async function removeWm(image: string | Buffer): Promise<any> {
     try {
         let buffer: Buffer
 
@@ -341,7 +341,7 @@ export async function Remini(
         const hasWatermark = wm.task_list[0].result.outputs[0].has_watermark
 
         const no_wm = hasWatermark
-            ? (await remove(outputUrl))?.output[0] ?? outputUrl
+            ? (await removeWm(outputUrl))?.output[0] ?? outputUrl
             : outputUrl
 
         return { no_wm, wm: outputUrl }

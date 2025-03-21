@@ -7,6 +7,7 @@ import {
     COLOR_ENHANCE,
     FACE_LIFTING,
     Remini,
+    removeWm,
     upscaleImage,
 } from '../lib/_index'
 import { Settings } from '../lib/types'
@@ -17,6 +18,7 @@ export default () => {
     flipImageCmd()
     reminiCmd()
     upscaleImageCmd()
+    removeWmCmd()
 }
 
 const flipImageCmd = () => {
@@ -187,5 +189,42 @@ const upscaleHandler = async (
         { image: { url: image.result_url } },
         { quoted: msg }
     )
+    ctx.reactSuccess()
+}
+
+const removeWmCmd = () => {
+    stringId.removeWm = {
+        hint: '🖼️ _Menghapus watermark pada gambar_',
+        error: {
+            noImage: () => '‼️ Gambar tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'removewm',
+        hint: stringId.removeWm.hint,
+        alias: 'rwm',
+        type: 'images',
+    })
+
+    Object.assign(actions, {
+        removewm: removeWmHandler,
+    })
+}
+
+const removeWmHandler = async (
+    waSocket: WASocket,
+    msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { isQuotedImage, isImage, download, downloadQuoted } = ctx
+    if (!isImage && !isQuotedImage)
+        throw new Error(stringId.removeWm.error.noImage())
+    ctx.reactWait()
+    const mediaData = isQuotedImage ? await downloadQuoted() : await download()
+    const image = await removeWm(mediaData)
+    await ctx.replyContent({ image: { url: image.output[0] } })
     ctx.reactSuccess()
 }
