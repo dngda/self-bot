@@ -72,6 +72,7 @@ Face Enhance:
 - base: Remini
 - v1: Remini + pre blur
 - v2: Gfpgan
+- none: none
 Bokeh: low, med, high
 Face Lifting: movie, glam, natural, cute, silk, charm
 Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
@@ -115,6 +116,7 @@ const reminiHandler = async (
     if (args.includes('v1'))
         options.face_enhance = { model: 'remini', pre_blur: 1.8 }
     if (args.includes('v2')) options.face_enhance = { model: 'gfpgan' }
+    if (args.includes('none')) options.face_enhance = { model: undefined }
 
     const bokehMatch = arg.match(/low|med|high/gi)
     if (bokehMatch) options.bokeh = BACKGROUND_BLUR[bokehMatch[0].toUpperCase()]

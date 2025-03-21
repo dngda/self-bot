@@ -249,9 +249,6 @@ export async function removeWm(image: string | Buffer): Promise<any> {
 }
 
 const DEFAULT_SETTINGS: Partial<Settings> = {
-    face_enhance: {
-        model: 'remini',
-    },
     background_enhance: {
         model: 'rhino-tensorrt',
     },
@@ -264,9 +261,7 @@ export async function Remini(
 ): Promise<{ no_wm: string; wm: string } | null> {
     const SETTINGS: Partial<Settings> = {
         face_enhance: {
-            model:
-                settings.face_enhance?.model ??
-                DEFAULT_SETTINGS.face_enhance?.model,
+            model: settings.face_enhance?.model,
             pre_blur: settings.face_enhance?.pre_blur,
         },
         background_enhance: {
@@ -282,6 +277,10 @@ export async function Remini(
             model: settings.face_lifting?.model,
         },
         jpeg_quality: settings.jpeg_quality ?? DEFAULT_SETTINGS.jpeg_quality,
+    }
+
+    if (SETTINGS.face_enhance?.model === undefined) {
+        delete SETTINGS.face_enhance
     }
 
     if (SETTINGS.face_enhance?.pre_blur === undefined) {
@@ -300,7 +299,7 @@ export async function Remini(
         delete SETTINGS.face_lifting
     }
 
-    console.log(SETTINGS)
+    console.log('Remini Settings:', SETTINGS)
 
     try {
         let buffer: Buffer
