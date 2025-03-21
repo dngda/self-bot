@@ -44,8 +44,8 @@ const flipImageCmd = () => {
 }
 
 const flipHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _wa: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { isQuotedImage, isImage, cmd, download, downloadQuoted } = ctx
@@ -55,17 +55,9 @@ const flipHandler = async (
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await sharp(mediaData)
     if (cmd === 'flip')
-        await waSocket.sendMessage(
-            ctx.from,
-            { image: await image.flip().toBuffer() },
-            { quoted: msg }
-        )
+        await ctx.replyContent({ image: await image.flip().toBuffer() })
     if (cmd === 'flop')
-        await waSocket.sendMessage(
-            ctx.from,
-            { image: await image.flop().toBuffer() },
-            { quoted: msg }
-        )
+        await ctx.replyContent({ image: await image.flop().toBuffer() })
     ctx.reactSuccess()
 }
 
@@ -99,8 +91,8 @@ Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
 }
 
 const reminiHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _wa: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const {
@@ -143,11 +135,7 @@ const reminiHandler = async (
 
     const image = await Remini(mediaData, options)
     if (!image) throw new Error('‼️ Gagal membuat gambar HD!')
-    await waSocket.sendMessage(
-        ctx.from,
-        { image: { url: image.no_wm } },
-        { quoted: msg }
-    )
+    await ctx.replyContent({ image: { url: image.no_wm } })
     return ctx.reactSuccess()
 }
 
@@ -174,8 +162,8 @@ const upscaleImageCmd = () => {
 }
 
 const upscaleHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _wa: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { isQuotedImage, isImage, download, downloadQuoted } = ctx
@@ -184,11 +172,7 @@ const upscaleHandler = async (
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await upscaleImage(mediaData)
-    await waSocket.sendMessage(
-        ctx.from,
-        { image: { url: image.result_url } },
-        { quoted: msg }
-    )
+    await ctx.replyContent({ image: { url: image.result_url } })
     ctx.reactSuccess()
 }
 
@@ -215,8 +199,8 @@ const removeWmCmd = () => {
 }
 
 const removeWmHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _wa: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { isQuotedImage, isImage, download, downloadQuoted } = ctx
