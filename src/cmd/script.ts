@@ -94,4 +94,6 @@ const execHandler = async (
     childProcess.stdout?.on('data', (data) => {
         ctx.reply(data)
     })
+
+    ctx.reactSuccess()
 }
