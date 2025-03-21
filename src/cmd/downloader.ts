@@ -222,12 +222,20 @@ async function twitter(url: string, ctx: MessageContext) {
     })
     const selectedUrl = resultUrls[0].url
     let captions = ''
-    for (const video of resultUrls) {
-        if (video?.url == selectedUrl) {
-            captions += stringId.videodl.sent?.(video?.quality)
-            continue
+    for (const item of resultUrls) {
+        if (item.type == 'jpg') {
+            await ctx.replyContent({
+                image: { url: item.url },
+                caption: `Origin: ${await tinyUrl(item.url)}`,
+            })
+            return
+        } else {
+            if (item?.url == selectedUrl) {
+                captions += stringId.videodl.sent?.(item?.quality)
+                continue
+            }
+            captions += `📩 ${item?.quality}p: ${await tinyUrl(item.url)}\n`
         }
-        captions += `📩 ${video?.quality}p: ${await tinyUrl(video.url)}\n`
     }
     captions += stringId.videodl.info?.(ctx)
 
