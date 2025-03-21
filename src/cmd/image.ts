@@ -7,6 +7,7 @@ import {
     COLOR_ENHANCE,
     FACE_LIFTING,
     Remini,
+    upscaleImage,
 } from '../lib/_index'
 import { Settings } from '../lib/types'
 import { menu } from '../menu'
@@ -14,7 +15,8 @@ import { MessageContext } from '../types'
 
 export default () => {
     flipImageCmd()
-    makeHdCmd()
+    reminiCmd()
+    upscaleImageCmd()
 }
 
 const flipImageCmd = () => {
@@ -65,9 +67,9 @@ const flipHandler = async (
     ctx.reactSuccess()
 }
 
-const makeHdCmd = () => {
-    stringId.makeHd = {
-        hint: '🖼️ _Mengubah gambar menjadi HD_',
+const reminiCmd = () => {
+    stringId.remini = {
+        hint: '🖼️ _Mengubah gambar menjadi HD dengan remini.ai_',
         error: {
             noImage: () => '‼️ Gambar tidak ditemukan!',
         },
@@ -83,18 +85,18 @@ Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
     }
 
     menu.push({
-        command: 'makehd',
-        hint: stringId.makeHd.hint,
-        alias: 'hd',
+        command: 'remini',
+        hint: stringId.remini.hint,
+        alias: 'rhd',
         type: 'images',
     })
 
     Object.assign(actions, {
-        makehd: makeHdHandler,
+        remini: reminiHandler,
     })
 }
 
-const makeHdHandler = async (
+const reminiHandler = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -110,7 +112,7 @@ const makeHdHandler = async (
         arg,
     } = ctx
     if (!isImage && !isQuotedImage && !isQuotedDocument)
-        return ctx.reply(stringId.makeHd.usage(ctx))
+        return ctx.reply(stringId.remini.usage(ctx))
     ctx.reactWait()
     const mediaData = isQuoted ? await downloadQuoted() : await download()
 
@@ -145,4 +147,45 @@ const makeHdHandler = async (
         { quoted: msg }
     )
     return ctx.reactSuccess()
+}
+
+const upscaleImageCmd = () => {
+    stringId.upscale = {
+        hint: '🖼️ _Mengubah gambar menjadi HD dengan pixelcut.ai_',
+        error: {
+            noImage: () => '‼️ Gambar tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'upscale',
+        hint: stringId.upscale.hint,
+        alias: 'hd',
+        type: 'images',
+    })
+
+    Object.assign(actions, {
+        upscale: upscaleHandler,
+    })
+}
+
+const upscaleHandler = async (
+    waSocket: WASocket,
+    msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { isQuotedImage, isImage, download, downloadQuoted } = ctx
+    if (!isImage && !isQuotedImage)
+        throw new Error(stringId.upscale.error.noImage())
+    ctx.reactWait()
+    const mediaData = isQuotedImage ? await downloadQuoted() : await download()
+    const image = await upscaleImage(mediaData)
+    await waSocket.sendMessage(
+        ctx.from,
+        { image: { url: image.result_url } },
+        { quoted: msg }
+    )
+    ctx.reactSuccess()
 }
