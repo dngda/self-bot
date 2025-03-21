@@ -69,7 +69,7 @@ const reminiCmd = () => {
         },
         usage: (ctx: MessageContext) => `🖼️ Options
 Face Enhance:
-- base: Remini
+- default: Remini
 - v1: Remini + pre blur
 - v2: Gfpgan
 - none: none
@@ -112,7 +112,7 @@ const reminiHandler = async (
     const mediaData = isQuoted ? await downloadQuoted() : await download()
 
     const options: Partial<Settings> = {}
-    if (args.includes('base')) options.face_enhance = { model: 'remini' }
+    options.face_enhance = { model: 'remini' }
     if (args.includes('v1'))
         options.face_enhance = { model: 'remini', pre_blur: 1.8 }
     if (args.includes('v2')) options.face_enhance = { model: 'gfpgan' }
