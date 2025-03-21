@@ -4,7 +4,7 @@ import { sample, sampleSize } from 'lodash'
 import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
-import { VideoData, pinterest, tinyUrl } from '../lib/_index'
+import { VideoData, pinterest, shorten } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
@@ -55,7 +55,7 @@ const pinterestHandler = async (
         for (const image of images) {
             await ctx.replyContent({
                 image: { url: image },
-                caption: `Origin: ${await tinyUrl(image)}`,
+                caption: `Origin: ${await shorten(image)}`,
             })
         }
         ctx.reactSuccess()
@@ -72,7 +72,7 @@ const pinterestHandler = async (
 
     return await ctx.replyContent({
         image: { url: image },
-        caption: `Origin: ${await tinyUrl(image)}`,
+        caption: `Origin: ${await shorten(image)}`,
     })
 }
 
@@ -184,7 +184,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
         let body = ''
         let i = 1
         for (const media of resultArray) {
-            body += `📩 ${i}. (${media.url[0].type}) ${await tinyUrl(
+            body += `📩 ${i}. (${media.url[0].type}) ${await shorten(
                 media.url[0].url
             )}\n`
             i++
@@ -195,7 +195,7 @@ async function tiktokReels(url: string, ctx: MessageContext) {
         if (result.url[0].type == 'jpg') {
             await ctx.replyContent({
                 image: { url: result.url[0].url },
-                caption: `Origin: ${await tinyUrl(result.url[0].url)}`,
+                caption: `Origin: ${await shorten(result.url[0].url)}`,
             })
         } else {
             let videoUrl
@@ -226,7 +226,7 @@ async function twitter(url: string, ctx: MessageContext) {
         if (item.type == 'jpg') {
             await ctx.replyContent({
                 image: { url: item.url },
-                caption: `Origin: ${await tinyUrl(item.url)}`,
+                caption: `Origin: ${await shorten(item.url)}`,
             })
             return
         } else {
@@ -234,7 +234,7 @@ async function twitter(url: string, ctx: MessageContext) {
                 captions += stringId.videodl.sent?.(item?.quality)
                 continue
             }
-            captions += `📩 ${item?.quality}p: ${await tinyUrl(item.url)}\n`
+            captions += `📩 ${item?.quality}p: ${await shorten(item.url)}\n`
         }
     }
     captions += stringId.videodl.info?.(ctx)
@@ -281,10 +281,10 @@ async function youtube(url: string, ctx: MessageContext) {
         if (video?.audio) continue
         if (video?.quality == selectedQuality) continue
         if (!video?.attr?.title) {
-            captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
+            captions += `📩 ${video.quality}p: ${await shorten(video.url)}\n`
             continue
         }
-        captions += `📩 ${video.quality}p: ${await tinyUrl(video.url)}\n`
+        captions += `📩 ${video.quality}p: ${await shorten(video.url)}\n`
     }
     captions += stringId.videodl.info?.(ctx)
 
