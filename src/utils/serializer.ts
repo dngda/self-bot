@@ -137,6 +137,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     ctx.isImage =
         msg.message?.imageMessage != null ||
         msg.message?.ephemeralMessage?.message?.imageMessage != null ||
+        msg.message?.documentMessage?.mimetype?.includes('image') != null ||
         msg.message?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
             'image'
         ) != null ||
