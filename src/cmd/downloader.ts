@@ -1,6 +1,6 @@
 import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import chalk from 'chalk'
-import { sample, sampleSize } from 'lodash'
+import { sampleSize } from 'lodash'
 import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
