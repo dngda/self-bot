@@ -49,7 +49,7 @@ const pinterestHandler = async (
         return ctx.reply(`Tidak ada hasil.`)
     }
 
-    const qty = Number(args[0])
+    const qty = Number(args[0]) || 1
     if (qty > 10) {
         ctx.reactError()
         return ctx.reply(`Max 10, bro.`)
@@ -68,16 +68,7 @@ const pinterestHandler = async (
               }
         await ctx.replyContent(content)
     }
-    ctx.reactSuccess()
-    return null
-
-    const item = sample(result.pins)
-    ctx.reactSuccess()
-
-    return await ctx.replyContent({
-        image: { url: item?.media.images.orig.url },
-        caption: `Origin: ${item?.pin_url}`,
-    })
+    return ctx.reactSuccess()
 }
 
 const tiktokPattern =
