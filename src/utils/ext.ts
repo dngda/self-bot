@@ -97,11 +97,12 @@ export const handleStickerCommand = async (
 }
 
 export const handleMathEquation = async (ctx: MessageContext) => {
-    const { body } = ctx
+    const { body, quotedMsg } = ctx
     if (!body?.startsWith('=')) return null
-    const args = body.slice(1)
+    let args = body.slice(1)
     if (!args || args == '') return null
     if (args.length < 2) return null
+    if (quotedMsg?.conversation) args = quotedMsg.conversation + args
     if (/[()$&_`~'":\\,|;\][?]/g.test(args) && !/\([^()]+\)/g.test(args))
         return null
     console.log(chalk.blue('[MATH]'), 'Doing =', args)
