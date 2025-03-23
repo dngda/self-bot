@@ -43,36 +43,40 @@ const pinterestHandler = async (
     const { arg, args } = ctx
     if (arg == '') throw new Error(stringId.pinterest.usage(ctx))
     ctx.reactWait()
-    const result = await pinterest(arg)
-    if (result.length == 0) {
+    const { result } = await pinterest.search(arg)
+    if (result.total == 0) {
         ctx.reactError()
         return ctx.reply(`Tidak ada hasil.`)
     }
 
     const qty = Number(args[0])
-    if (qty <= 10) {
-        const images = sampleSize(result, qty)
-        for (const image of images) {
-            await ctx.replyContent({
-                image: { url: image },
-                caption: `Origin: ${await shorten(image)}`,
-            })
-        }
-        ctx.reactSuccess()
-        return null
-    } else {
-        if (qty > 10) {
-            ctx.reactError()
-            return ctx.reply(`Max 10, bro.`)
-        }
+    if (qty > 10) {
+        ctx.reactError()
+        return ctx.reply(`Max 10, bro.`)
     }
 
-    const image = sample(result) as string
+    const items = sampleSize(result.pins, qty)
+    for (const item of items) {
+        const content = item.media.video
+            ? {
+                  video: { url: item.media.video.video_list.V_HLSV4?.url },
+                  caption: `Origin: ${item.pin_url}`,
+              }
+            : {
+                  image: { url: item.media.images.orig.url },
+                  caption: `Origin: ${item.pin_url}`,
+              }
+        await ctx.replyContent(content)
+    }
+    ctx.reactSuccess()
+    return null
+
+    const item = sample(result.pins)
     ctx.reactSuccess()
 
     return await ctx.replyContent({
-        image: { url: image },
-        caption: `Origin: ${await shorten(image)}`,
+        image: { url: item?.media.images.orig.url },
+        caption: `Origin: ${item?.pin_url}`,
     })
 }
 

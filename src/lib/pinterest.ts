@@ -1,42 +1,185 @@
 import axios from 'axios'
-import cheerio from 'cheerio'
+import { PinSearchContainer, PinSearchResponse } from './types'
 
-// cookie by RA :c
-export const pinterest = (query: string) =>
-    new Promise<string[]>((resolve, reject) => {
-        axios
-            .get(`https://id.pinterest.com/search/pins/?q=` + query, {
-                headers: {
-                    'sec-ch-ua':
-                        '"Chromium";v="90", "Opera GX";v="76", ";Not A Brand";v="99"',
-                    'sec-ch-ua-mobile': '?0',
-                    'upgrade-insecure-requests': '1',
-                    cookie: 'csrftoken=ebe0be3a93cea6072be18633add953a2; _b="AVezvd6F4UtE24FUsA6INxipyZZDoSpyCc5vaJK4QDYXmExosVEc4h6WkiKhlVtQ430="; cm_sub=denied; fba=True; _ga=GA1.2.862909259.1620474446; g_state={"i_l":0}; _auth=1; _pinterest_sess=TWc9PSZ0VEZqZmdDSlJYaGU5REIvNklIcVlnMjE5b0ZraTE5REJVQ0JiMUwxTkZZaGFoVk1sRDVhOFlwQzhkQnQ0YkMwRlNyV0lIWUFlK0ZVTkVxYUhKNmlvZ0R1UXlQYTBRRVVhMU1yYkpmcXpHK3UyNjNhckRqUFFOYVJVa3RnVmJtVzd2MmRGaHFMZUpLNVhtaHptTDhWSnBSdXhZY0FhRnRTN3J1S0V4cGtsVTBxeE54NkF2blVNSFV3R0NTQTR1bVVNRURGVGdnYlN5UjdBbk9YcHVGbGI3a1kwd1dEZDgrZVM1SDc3V0pJMm00OWxKUDVNQjBLVlFocTB4Mjg1M1RnbGxBaFAxbS9MTnVzei91cEQvcjBtakp6N0ZnU2t1Y3NxWW1DRDV1Q3h0ankvQ3FEWGh3MXczcXBHNXJpYVNCMHB6dUoxMGF6ZzVxN2VqQVBoSElSd0tiQk41ZVRPQXlOaGNpNzVQMWJSeVZJbCtYYVMxQ1ZRUFUwalU3eGVzMGRySlNzdWo1NG5uaXNFM3ZpT0o0TkZHR1daUXlwaXFQclMwa04raW9xVnVaTTRSVGEzTE03TVlZcmZYVDd5UmVPd2lZaGw4aE9VMHJBd0tidEsrcHdPWk96RlFMekVLTzY3VU1PL0tIYUdwUE1IWVdJNnJXalBkU09Sb3dEaHlQVVR1T1RqNW5Sc2FRdmVkZmhkMk9HNHBCL0ZpZ3NMdmZvVW9ReVltTFBCTlNLWHpray9LNWJ2UTNvTlBzVm9aZjRvYWRvRFhla0dBNzdveWJVYXZmVFp2cnFFNU5DYUVwSHhxeDlIajNIVTlHaEVYdGptWm5mSGVSRmtIMmQwVVVVZlVCVEh6UHB3TnBtdWV0b2l6L3VTc3pXMXFGN3lHS3ZJM3BwL0NrWVJDMm1HY2tROGxuQVFRNS9OUW45R3dtSk8zeFJidVFSTG1qTG5PelAvKzd3T3lrN1NoKzBHVGNTY1pGSEY0bW8xcGVmc3NtclBhTWE2QUMxOXNpQWUwRmo4UHl0ZGpwUzhUQXVhbjYwT0ZJeHhHai8yOWFUVTA1Wkx2czN4VSttLzMvbkFVQ2svWnZvNC9xZ3E4VkhYSFZ5elo4TzhtU0o5c3ZDcEJyYjE3QVI1WHlmTTFhWThvWHQ1T0tSTWRsWnI3a1lpU245dEVLd1lZSXRremtkTUZmcVA2YUg0c1UrSk1JOWJVRzZpcWd3T0NVaFZkdUh3UUdURi9sbDBqT2pBZVV2ZnlTQzc5ZnBMYkFMQ1ZsWjdIYWcmaDc1Uk5kK2I4MjFMUXBaVUthci9rVHpCUWRvPQ==; _pinterest_cm="TWc9PSYxZnpkMS9XN29Rd2R0TnpBN0RzVktja1J4NUtINUJqRzNGODFXS0xES1pndWlNVm52a0d3V0JocmVIS3p5eDdnNXNZa0hGelNQNDBSTFRId3ZhTFFIQjRGOW1lNlJZMzFiVlg1MHhSOFpmMGhRZUoySUpJZDIyWlVYMjRXNHRaL1lodFl4eW1jWjNyTklpbytYbHZyd29nRm5DY0pQOGgyUWpDdk9zQ1craXR5VEZoNHV4ZzRnOXV4SUFFSStYZCsmT08zMFI1bktXa3pwSDFtK3NNRWpxWWNpQzNzPQ=="; _routing_id="595f24cd-7f4c-4495-aa67-37212d099cd8"; sessionFunnelEventLogged=1',
+export const pinterest = {
+    api: {
+        base: 'https://www.pinterest.com',
+        endpoints: {
+            search: '/resource/BaseSearchResource/get/',
+            pin: '/resource/PinResource/get/',
+            user: '/resource/UserResource/get/',
+        },
+    },
+
+    headers: {
+        accept: 'application/json, text/javascript, */*, q=0.01',
+        referer: 'https://www.pinterest.com/',
+        'user-agent': 'Postify/1.0.0',
+        'x-app-version': 'a9522f',
+        'x-pinterest-appstate': 'active',
+        'x-pinterest-pws-handler': 'www/[username]/[slug].js',
+        'x-pinterest-source-url': '/search/pins/?rs=typed&q=sullyoon/',
+        'x-requested-with': 'XMLHttpRequest',
+    },
+
+    isUrl: (str: string) => {
+        try {
+            new URL(str)
+            return true
+        } catch (_) {
+            return false
+        }
+    },
+
+    isPin: (url: string) => {
+        if (!url) return false
+        const patterns = [
+            /^https?:\/\/(?:www\.)?pinterest\.com\/pin\/[\w.-]+/,
+            /^https?:\/\/(?:www\.)?pinterest\.[\w.]+\/pin\/[\w.-]+/,
+            /^https?:\/\/(?:www\.)?pinterest\.(?:ca|co\.uk|com\.au|de|fr|id|es|mx|br|pt|jp|kr|nz|ru|at|be|ch|cl|dk|fi|gr|ie|nl|no|pl|pt|se|th|tr)\/pin\/[\w.-]+/,
+            /^https?:\/\/pin\.it\/[\w.-]+/,
+            /^https?:\/\/(?:www\.)?pinterest\.com\/amp\/pin\/[\w.-]+/,
+            /^https?:\/\/(?:[a-z]{2}|www)\.pinterest\.com\/pin\/[\w.-]+/,
+            /^https?:\/\/(?:www\.)?pinterest\.com\/pin\/[\d]+(?:\/)?$/,
+            /^https?:\/\/(?:www\.)?pinterest\.[\w.]+\/pin\/[\d]+(?:\/)?$/,
+            /^https?:\/\/(?:www\.)?pinterestcn\.com\/pin\/[\w.-]+/,
+            /^https?:\/\/(?:www\.)?pinterest\.com\.[\w.]+\/pin\/[\w.-]+/,
+        ]
+
+        const clean = url.trim().toLowerCase()
+        return patterns.some((pattern) => pattern.test(clean))
+    },
+
+    getCookies: async () => {
+        try {
+            const response = await axios.get(pinterest.api.base)
+            const setHeaders = response.headers['set-cookie']
+            if (setHeaders) {
+                const cookies = setHeaders.map((cookieString) => {
+                    const cp = cookieString.split(';')
+                    const cv = cp[0].trim()
+                    return cv
+                })
+                return cookies.join('; ')
+            }
+            return null
+        } catch (error) {
+            console.error(error)
+            return null
+        }
+    },
+
+    search: async (query: string, limit = 10) => {
+        if (!query) {
+            return {
+                status: false,
+                code: 400,
+                result: {
+                    message:
+                        'Query nya mana nih? Gua kagak bisa searching tanpa query 😂',
                 },
-            })
-            .then((res) => {
-                const $ = cheerio.load(res.data)
-                const hasil: string[] = []
-                $(
-                    'body > div > div > div > div > div > div > div > div > div > div > div'
-                ).each(function (_, b) {
-                    $(b)
-                        .find('div')
-                        .each(function (_, d) {
-                            const Link = $(d)
-                                .find('div > div > div > div > a')
-                                .find('img')
-                                .attr('src')
-                            hasil.push(Link ?? '')
-                        })
+            }
+        }
+
+        try {
+            const cookies = await pinterest.getCookies()
+            if (!cookies) {
+                return {
+                    status: false,
+                    code: 400,
+                    result: {
+                        message:
+                            'Gua kagak bisa dapetin cookies buat searching nih 😂',
+                    },
+                }
+            }
+
+            const params = {
+                source_url: `/search/pins/?q=${query}`,
+                data: JSON.stringify({
+                    options: {
+                        isPrefetch: false,
+                        query: query,
+                        scope: 'pins',
+                        bookmarks: [''],
+                        no_fetch_context_on_resource: false,
+                        page_size: limit,
+                    },
+                    context: {},
+                }),
+                _: Date.now(),
+            }
+
+            const { data } = await axios.get(
+                `${pinterest.api.base}${pinterest.api.endpoints.search}`,
+                {
+                    headers: { ...pinterest.headers, cookie: cookies },
+                    params: params,
+                }
+            )
+
+            const container: PinSearchContainer[] = []
+            const results = data.resource_response.data.results.filter(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (v: any) => v.images?.orig
+            )
+
+            results.forEach((result: PinSearchResponse) => {
+                container.push({
+                    id: result.id,
+                    title: result.title || '',
+                    description: result.description,
+                    pin_url: `https://pinterest.com/pin/${result.id}`,
+                    media: {
+                        images: {
+                            orig: result.images.orig,
+                            small: result.images['236x'],
+                            medium: result.images['474x'],
+                            large: result.images['736x'],
+                        },
+                        video: result.videos
+                            ? {
+                                  video_list: result.videos.video_list,
+                              }
+                            : null,
+                    },
+                    uploader: {
+                        username: result.pinner.username,
+                        full_name: result.pinner.full_name,
+                        profile_url: `https://pinterest.com/${result.pinner.username}`,
+                    },
                 })
-                const Data = new Set()
-                hasil.forEach((h) => {
-                    if (h === undefined) return
-                    if (!h.includes('236x')) return
-                    Data.add(h.replace('236x', 'originals'))
-                })
-                resolve(Array.from(Data) as string[])
             })
-            .catch(reject)
-    })
+
+            if (container.length === 0) {
+                return {
+                    status: false,
+                    code: 404,
+                    result: {
+                        message: `Gua gak nemu hasilnya nih 😂`,
+                    },
+                }
+            }
+
+            return {
+                status: true,
+                code: 200,
+                result: {
+                    query: query,
+                    total: container.length,
+                    pins: container,
+                },
+            }
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        } catch (error: any) {
+            return {
+                status: false,
+                code: error.response?.status || 500,
+                result: {
+                    message:
+                        'Gua kagak bisa searching nih, coba lagi lain waktu 😂',
+                },
+            }
+        }
+    },
+}
