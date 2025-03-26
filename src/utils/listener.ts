@@ -5,8 +5,10 @@ import {
     proto,
 } from '@whiskeysockets/baileys'
 import { getMessage } from '../lib/_index'
+import { config } from '../handler'
 
 export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
+    if (config.norevoke_exceptions.includes(msg.key.remoteJid!)) return null
     if (msg.key.fromMe) return null
     if (
         msg.message?.protocolMessage?.type ==

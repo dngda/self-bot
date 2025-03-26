@@ -32,6 +32,7 @@ export let config: BotConfig = {
     allowedChats: [],
     stickerCommands: {},
     norevoke: false,
+    norevoke_exceptions: [],
     oneview: false,
     public: false,
 }
@@ -42,6 +43,7 @@ if (fs.existsSync('./data/config.json')) {
     if (!config.allowedChats) config.allowedChats = []
     if (!config.stickerCommands) config.stickerCommands = {}
     if (!config.norevoke) config.norevoke = false
+    if (!config.norevoke_exceptions) config.norevoke_exceptions = []
     if (!config.oneview) config.oneview = false
     if (!config.public) config.public = false
 }

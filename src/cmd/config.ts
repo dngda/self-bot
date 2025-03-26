@@ -229,6 +229,7 @@ const configHandler = async (
 ) => {
     if (!ctx.fromMe) return
     const configName = ctx.args[0]
+    const thisChat = ctx.arg.includes('this')
     const status = ctx.cmd === 'con'
     if (!configName) {
         ctx.reply(stringId.toggleConfig.usage(ctx))
@@ -236,7 +237,11 @@ const configHandler = async (
     }
 
     if (configName in config) {
-        config[configName] = status
+        if (!status && thisChat) {
+            config.norevoke_exceptions.push(ctx.from)
+        } else {
+            config[configName] = status
+        }
     } else {
         ctx.reply(stringId.toggleConfig.usage(ctx))
         return
