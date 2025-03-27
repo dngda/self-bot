@@ -77,15 +77,12 @@ const execHandler = async (
 
     const childProcess = exec(
         `cd ${scriptDir} && /bin/${script}`,
-        (err, stdout, stderr) => {
+        (err, _stdout, stderr) => {
             if (err) {
                 return console.error(err)
             }
             if (stderr) {
                 return ctx.reply(`${stderr}`)
-            }
-            if (stdout) {
-                return ctx.reply(`${stdout}`)
             }
             return false
         }
