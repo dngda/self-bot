@@ -75,25 +75,30 @@ const execHandler = async (
         throw new Error('Tidak diizinkan menjalankan command tersebut.')
     }
 
-    const childProcess = exec(
-        `cd ${scriptDir} && /bin/${script}`,
-        (err, stdout, stderr) => {
-            if (err) {
-                throw new Error(err.message)
+    try {
+        const childProcess = exec(
+            `cd ${scriptDir} && /bin/${script}`,
+            (err, stdout, stderr) => {
+                if (err) {
+                    throw new Error(err.message)
+                }
+                if (stderr) {
+                    throw new Error(stderr)
+                }
+                if (stdout) {
+                    return stdout
+                }
+                return false
             }
-            if (stderr) {
-                throw new Error(stderr)
-            }
-            if (stdout) {
-                return stdout
-            }
-            return false
-        }
-    )
+        )
 
-    childProcess.stdout?.on('data', (data) => {
-        ctx.reply(data)
-    })
-
-    ctx.reactSuccess()
+        childProcess.stdout?.on('data', (data) => {
+            ctx.reply(data)
+        })
+        ctx.reactSuccess()
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (e: any) {
+        ctx.reactError()
+        ctx.reply(e.toString())
+    }
 }
