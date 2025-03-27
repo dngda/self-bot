@@ -79,7 +79,7 @@ const execHandler = async (
         `cd ${scriptDir} && /bin/${script}`,
         (err, stdout, stderr) => {
             if (err) {
-                return ctx.reply(`${err}`)
+                return console.error(err)
             }
             if (stderr) {
                 return ctx.reply(`${stderr}`)
