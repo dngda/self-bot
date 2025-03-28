@@ -10,6 +10,7 @@ interface StoredMessage {
 
 let MessageStore = new Map<string, StoredMessage>()
 let StatusStore = new Map<string, StoredMessage[]>()
+let pushNameStore = new Map<string, string>()
 
 if (!fs.existsSync('data/status.json')) {
     fs.writeFileSync('data/status.json', '{}', 'utf-8')
@@ -19,6 +20,10 @@ if (!fs.existsSync('data/message.json')) {
     fs.writeFileSync('data/message.json', '{}', 'utf-8')
 }
 
+if (!fs.existsSync('data/pushname.json')) {
+    fs.writeFileSync('data/pushname.json', '{}', 'utf-8')
+}
+
 const statusData = fs.readFileSync('data/status.json', 'utf-8')
 const statusJSON = JSON.parse(statusData)
 StatusStore = new Map(Object.entries(statusJSON))
@@ -26,6 +31,10 @@ StatusStore = new Map(Object.entries(statusJSON))
 const messageData = fs.readFileSync('data/message.json', 'utf-8')
 const messageJSON = JSON.parse(messageData)
 MessageStore = new Map(Object.entries(messageJSON))
+
+const pushnameData = fs.readFileSync('data/pushname.json', 'utf-8')
+const pushnameJSON = JSON.parse(pushnameData)
+pushNameStore = new Map(Object.entries(pushnameJSON))
 
 export const storeMessage = (
     id: string,
@@ -47,6 +56,10 @@ export const storeStatus = (
     StatusStore.set(jid, messages)
 }
 
+export const storePushName = (jid: string, name: string) => {
+    pushNameStore.set(jid, name)
+}
+
 export const getMessage = (id: string) => {
     return MessageStore.get(id)
 }
@@ -61,6 +74,10 @@ export const getStatusList = () => {
     })
 
     return data
+}
+
+export const getPushName = (jid: string) => {
+    return pushNameStore.get(jid)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

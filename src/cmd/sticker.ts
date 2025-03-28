@@ -6,7 +6,14 @@ import sharp from 'sharp'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
 import { actions } from '../handler'
 import stringId from '../language'
-import { gifToMp4, memegen, textToPicture, uploadImage } from '../lib/_index'
+import {
+    gifToMp4,
+    memegen,
+    textToPicture,
+    uploadImage,
+    quotely,
+    getPushName,
+} from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 
@@ -15,6 +22,7 @@ export default () => {
     stickerCreatorCmd()
     addTextToImageCmd()
     downloadStickerCmd()
+    quotelyStickerCmd()
 }
 
 const stickerCreatorCmd = () => {
@@ -350,4 +358,64 @@ const downloadStickerHandler = async (
         await replyContent({ image: sticker })
     }
     ctx.reactSuccess()
+}
+
+const quotelyStickerCmd = () => {
+    stringId.quote = {
+        hint: '🖼️ _Create sticker from message bubble_',
+        error: {
+            textLimit: (s: number) =>
+                `‼️ Text is too long, maximum ${s} characters`,
+        },
+        usage: (ctx: MessageContext) =>
+            `Add text or reply msg with ${ctx.prefix}${ctx.cmd} <text>\n`,
+    }
+
+    menu.push({
+        command: 'quotely',
+        hint: stringId.quote.hint,
+        alias: 'qc',
+        type: 'sticker',
+    })
+
+    Object.assign(actions, {
+        quotely: quotelyHandler,
+    })
+}
+
+const quotelyHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { arg, isQuoted, replySticker, name } = ctx
+    if ((!arg && !isQuoted) || arg.length > 100)
+        throw new Error(stringId.quote.usage(ctx))
+    ctx.reactWait()
+    const text = arg.includes('|')
+        ? arg.split('|')[0]
+        : arg || ctx.quotedMsg?.conversation || ''
+    const avatar = await _wa.profilePictureUrl(
+        isQuoted
+            ? ctx.contextInfo?.participant || ctx.from
+            : ctx.participant || ctx.from
+    )
+
+    const pushname = isQuoted
+        ? getPushName(ctx.contextInfo?.participant || ctx.from) ||
+          '+' + ctx.from.split('@')[0]
+        : arg.includes('|')
+        ? arg.split('|')[1]
+        : name!
+
+    const quoteRes = await quotely(pushname, text, avatar)
+    const sticker = await new Sticker(quoteRes.image, {
+        pack: process.env.PACKNAME!,
+        author: process.env.AUTHOR!,
+        type: StickerTypes.FULL,
+        quality: 100,
+    }).toBuffer()
+
+    ctx.reactSuccess()
+    await replySticker(sticker)
 }

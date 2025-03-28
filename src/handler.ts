@@ -8,9 +8,9 @@ import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'
 import loadCommands from './cmd/_index'
-import { storeMessage, storeStatus } from './lib/_index'
 import { getCommand } from './menu'
 import { BotConfig, MessageContext } from './types'
+import { storeMessage, storePushName, storeStatus } from './lib/_index'
 import {
     getPrefix,
     handleAddList,
@@ -95,6 +95,7 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
         handleError(ctx, error)
     }
 
+    storePushNameData(msg)
     storeMessageData(msg)
     storeStatusData(msg)
 
@@ -207,5 +208,14 @@ const storeStatusData = (msg: proto.IWebMessageInfo) => {
         msg.message!,
         msg.key!
     )
+    return true
+}
+
+const storePushNameData = (msg: proto.IWebMessageInfo) => {
+    if (msg.key.fromMe) return null
+    if (msg.message?.protocolMessage) return null
+    const jid = msg.key.participant || msg.key.remoteJid || ''
+
+    storePushName(jid, msg.pushName || '+' + jid.split('@')[0])
     return true
 }
