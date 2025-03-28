@@ -31,7 +31,7 @@ interface QuoteResponse {
     }
 }
 
-export async function quotely(
+export async function quotly(
     username: string,
     message: string,
     avatar: string = 'https://i.ibb.co.com/jZQ0FpmY/profile-placeholder.png'

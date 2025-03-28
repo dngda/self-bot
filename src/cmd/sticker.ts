@@ -11,7 +11,7 @@ import {
     memegen,
     textToPicture,
     uploadImage,
-    quotely,
+    quotly,
     getPushName,
 } from '../lib/_index'
 import { menu } from '../menu'
@@ -22,7 +22,7 @@ export default () => {
     stickerCreatorCmd()
     addTextToImageCmd()
     downloadStickerCmd()
-    quotelyStickerCmd()
+    quotlyStickerCmd()
 }
 
 const stickerCreatorCmd = () => {
@@ -360,7 +360,7 @@ const downloadStickerHandler = async (
     ctx.reactSuccess()
 }
 
-const quotelyStickerCmd = () => {
+const quotlyStickerCmd = () => {
     stringId.quote = {
         hint: '🖼️ _Create sticker from message bubble_',
         error: {
@@ -373,18 +373,18 @@ const quotelyStickerCmd = () => {
     }
 
     menu.push({
-        command: 'quotely',
+        command: 'quotly',
         hint: stringId.quote.hint,
         alias: 'qc',
         type: 'sticker',
     })
 
     Object.assign(actions, {
-        quotely: quotelyHandler,
+        quotly: quotlyHandler,
     })
 }
 
-const quotelyHandler = async (
+const quotlyHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -395,6 +395,8 @@ const quotelyHandler = async (
     ctx.reactWait()
     const text = arg?.split('|')[0]?.trim() || ctx.quotedMsg?.conversation || ''
     if (!text) throw new Error(stringId.quote.error.noText())
+    if (text.length > 100)
+        throw new Error(stringId.quote.error.textLimit(100))
 
     const participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
@@ -404,7 +406,7 @@ const quotelyHandler = async (
         getPushName(participant) ||
         `+${participant.split('@')[0]}`
 
-    const quoteRes = await quotely(pushname, text, avatar)
+    const quoteRes = await quotly(pushname, text, avatar)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
         pack: process.env.PACKNAME!,
         author: process.env.AUTHOR!,
