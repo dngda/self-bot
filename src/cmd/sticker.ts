@@ -409,7 +409,7 @@ const quotelyHandler = async (
         : name!
 
     const quoteRes = await quotely(pushname, text, avatar)
-    const sticker = await new Sticker(quoteRes.image, {
+    const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
         pack: process.env.PACKNAME!,
         author: process.env.AUTHOR!,
         type: StickerTypes.FULL,
