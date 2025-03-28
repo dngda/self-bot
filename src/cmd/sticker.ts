@@ -393,7 +393,7 @@ const quotlyHandler = async (
     if ((!arg && !isQuoted) || arg.length > 100)
         throw new Error(stringId.quote.usage(ctx))
     ctx.reactWait()
-    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsg?.conversation || ''
+    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsgBody || ''
     if (!text && !isQuotedImage && !isQuotedSticker)
         throw new Error(stringId.quote.error.noText())
     if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))

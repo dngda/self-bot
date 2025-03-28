@@ -121,6 +121,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
     getCmdProperties(ctx)
     ctx.groupName = await getGroupName(ctx.isGroup, ctx.from)
     ctx.quotedMsg = getQuotedMsg(ctx.contextInfo)
+    ctx.quotedMsgBody =
+        ctx.quotedMsg?.conversation ||
+        ctx.quotedMsg?.imageMessage?.caption ||
+        ctx.quotedMsg?.videoMessage?.caption ||
+        ctx.quotedMsg?.extendedTextMessage?.text ||
+        ctx.quotedMsg?.documentMessage?.caption ||
+        ctx.quotedMsg?.documentWithCaptionMessage?.message?.documentMessage
+            ?.caption
     ctx.isQuotedImage =
         ctx.quotedMsg?.imageMessage != null ||
         ctx.quotedMsg?.documentMessage?.mimetype?.includes('image') != null ||

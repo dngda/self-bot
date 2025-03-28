@@ -34,6 +34,7 @@ export interface MessageContext {
     args: string[]
     groupName: string | null
     quotedMsg: WAMessageContent | null | undefined
+    quotedMsgBody: snu
     contextInfo: proto.IContextInfo | null | undefined
     expiration: number | null | undefined
 
