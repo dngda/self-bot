@@ -366,6 +366,7 @@ const quotelyStickerCmd = () => {
         error: {
             textLimit: (s: number) =>
                 `‼️ Text is too long, maximum ${s} characters`,
+            noText: () => `‼️ No text found`,
         },
         usage: (ctx: MessageContext) =>
             `Add text or reply msg with ${ctx.prefix}${ctx.cmd} <text>\n`,
@@ -392,21 +393,16 @@ const quotelyHandler = async (
     if ((!arg && !isQuoted) || arg.length > 100)
         throw new Error(stringId.quote.usage(ctx))
     ctx.reactWait()
-    const text = arg.includes('|')
-        ? arg.split('|')[0]
-        : arg || ctx.quotedMsg?.conversation || ''
-    const avatar = await _wa.profilePictureUrl(
-        isQuoted
-            ? ctx.contextInfo?.participant || ctx.from
-            : ctx.participant || ctx.from
-    )
+    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsg?.conversation || ''
+    if (!text) throw new Error(stringId.quote.error.noText())
 
-    const pushname = isQuoted
-        ? getPushName(ctx.contextInfo?.participant || ctx.from) ||
-          '+' + ctx.from.split('@')[0]
-        : arg.includes('|')
-        ? arg.split('|')[1]
-        : name!
+    const participant =
+        ctx.contextInfo?.participant || ctx.participant || ctx.from
+    const avatar = await _wa.profilePictureUrl(participant)
+    const pushname =
+        arg?.split('|')[1]?.trim() ||
+        getPushName(participant) ||
+        `+${participant.split('@')[0]}`
 
     const quoteRes = await quotely(pushname, text, avatar)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
