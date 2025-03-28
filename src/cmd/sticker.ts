@@ -389,7 +389,7 @@ const quotelyHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { arg, isQuoted, replySticker, name } = ctx
+    const { arg, isQuoted, replySticker } = ctx
     if ((!arg && !isQuoted) || arg.length > 100)
         throw new Error(stringId.quote.usage(ctx))
     ctx.reactWait()
