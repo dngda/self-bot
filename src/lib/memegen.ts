@@ -21,8 +21,7 @@ export async function uploadImage(imageBuffer: Buffer): Promise<string> {
 
     const {
         data: { url },
-    } = response.data.data
-
+    } = response.data
     return url
 }
 
