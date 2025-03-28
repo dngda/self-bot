@@ -5,17 +5,25 @@ import fs from 'fs'
 
 export async function uploadImage(imageBuffer: Buffer): Promise<string> {
     const formData = new FormData()
-    formData.append('file', imageBuffer, 'tmp.jpg')
+    formData.append('image', imageBuffer, 'tmp.png')
 
-    const response = await axios.post('https://tmpfiles.org/api/v1/upload', formData, {
-        headers: formData.getHeaders(),
-    })
+    const response = await axios.post(
+        'https://api.imgbb.com/1/upload',
+        formData,
+        {
+            headers: formData.getHeaders(),
+            params: {
+                key: process.env.IMGBB_API_KEY!,
+                expiration: 100,
+            },
+        }
+    )
 
     const {
-        data: { url: fileUrl },
-    } = response.data
+        data: { url },
+    } = response.data.data
 
-    return fileUrl.replace('tmpfiles.org/', 'tmpfiles.org/dl/')
+    return url
 }
 
 export async function memegen(
