@@ -212,7 +212,6 @@ const storeStatusData = (msg: proto.IWebMessageInfo) => {
 }
 
 const storePushNameData = (msg: proto.IWebMessageInfo) => {
-    if (msg.key.fromMe) return null
     if (msg.message?.protocolMessage) return null
     const jid = msg.key.participant || msg.key.remoteJid || ''
 
