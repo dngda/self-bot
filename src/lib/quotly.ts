@@ -2,6 +2,9 @@ import axios from 'axios'
 
 interface Message {
     entities: unknown[]
+    media?: {
+        url: string
+    }
     avatar: boolean
     from: {
         id: number
@@ -34,13 +37,14 @@ interface QuoteResponse {
 export async function quotly(
     username: string,
     message: string,
-    avatar: string = 'https://i.ibb.co.com/jZQ0FpmY/profile-placeholder.png'
+    avatar: string = 'https://i.ibb.co.com/zTtYZSQR/pl.png',
+    image: string = ''
 ): Promise<QuoteResponse['result']> {
     const json: Partial<QuoteRequest> = {
         type: 'quote',
         format: 'webp',
         backgroundColor: '#000000',
-        scale: 1,
+        scale: 2,
         messages: [
             {
                 entities: [],
@@ -55,6 +59,9 @@ export async function quotly(
             },
         ],
     }
+
+    if (json.messages && image.length > 0)
+        json.messages[0].media = { url: image }
 
     const response = await axios.post<QuoteResponse>(
         'https://bot.lyo.su/quote/generate',

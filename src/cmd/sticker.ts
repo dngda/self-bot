@@ -389,14 +389,14 @@ const quotlyHandler = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { arg, isQuoted, replySticker } = ctx
+    const { arg, isQuoted, replySticker, isQuotedImage, isQuotedSticker } = ctx
     if ((!arg && !isQuoted) || arg.length > 100)
         throw new Error(stringId.quote.usage(ctx))
     ctx.reactWait()
     const text = arg?.split('|')[0]?.trim() || ctx.quotedMsg?.conversation || ''
-    if (!text) throw new Error(stringId.quote.error.noText())
-    if (text.length > 100)
-        throw new Error(stringId.quote.error.textLimit(100))
+    if (!text && !isQuotedImage && !isQuotedSticker)
+        throw new Error(stringId.quote.error.noText())
+    if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))
 
     const participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
@@ -405,8 +405,18 @@ const quotlyHandler = async (
         arg?.split('|')[1]?.trim() ||
         getPushName(participant) ||
         `+${participant.split('@')[0]}`
+    const media = isQuotedImage
+        ? await ctx.downloadQuoted()
+        : isQuotedSticker
+        ? await ctx.downloadSticker()
+        : null
 
-    const quoteRes = await quotly(pushname, text, avatar)
+    let mediaUrl = ''
+    if (media) {
+        mediaUrl = await uploadImage(media)
+    }
+
+    const quoteRes = await quotly(pushname, text, avatar, mediaUrl)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
         pack: process.env.PACKNAME!,
         author: process.env.AUTHOR!,
