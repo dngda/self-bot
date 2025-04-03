@@ -48,31 +48,31 @@ const execHandler = async (
         throw new Error('Hanya script file php yang diizinkan.')
     }
 
-    if (
-        [
-            'sudo',
-            'rm',
-            'mv',
-            'cp',
-            'nano',
-            'vim',
-            'vi',
-            'chmod',
-            'chown',
-            'dd',
-            'mkfs',
-            'shutdown',
-            'reboot',
-            'kill',
-            'pkill',
-            'init',
-            'halt',
-            'poweroff',
-            'wget',
-            'curl',
-        ].some((cmd) => script.includes(cmd))
-    ) {
-        throw new Error('Tidak diizinkan menjalankan command tersebut.')
+    const forbiddenCommands = new Set([
+        'sudo',
+        'rm',
+        'mv',
+        'cp',
+        'nano',
+        'vim',
+        'vi',
+        'chmod',
+        'chown',
+        'dd',
+        'mkfs',
+        'shutdown',
+        'reboot',
+        'kill',
+        'pkill',
+        'init',
+        'halt',
+        'poweroff',
+        'wget',
+        'curl',
+    ]);
+
+    if (script.split(' ').some((cmd) => forbiddenCommands.has(cmd))) {
+        throw new Error('Tidak diizinkan menjalankan command tersebut.');
     }
 
     const childProcess = exec(
