@@ -10,7 +10,7 @@ import {
 import dotenv from 'dotenv'
 import { config } from '../handler'
 import { MessageContext } from '../types'
-import { menu } from '../menu'
+import { findMenu } from '../menu'
 dotenv.config()
 
 let prefix = process.env.PREFIX!
@@ -60,13 +60,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
             ctx.isCmd = ctx.body?.startsWith(prefix) ?? false
         }
 
-        const isNoPrefix = menu.find(
-            (m) =>
-                m.alias
-                    .split(', ')
-                    .concat(m.command)
-                    .indexOf(ctx.body?.split(' ')[0] ?? '') !== -1
-        )?.noprefix
+        const isNoPrefix = findMenu(ctx.body?.split(' ')[0] ?? '')?.noprefix
 
         if (ctx.isCmd) {
             ctx.cmd = ctx

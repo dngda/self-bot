@@ -8,12 +8,20 @@ type Menu = {
 
 export const menu: Menu[] = []
 
-export const getCommand = (cmd: string) => {
+export const findMenu = (cmd: string) => {
     return (
         menu.find(
-            (m) => m.alias.split(', ').concat(m.command).indexOf(cmd) !== -1
-        )?.command ?? ''
+            (m) =>
+                m.alias
+                    .split(/, ?| ,/)
+                    .concat(m.command)
+                    .indexOf(cmd) !== -1
+        ) ?? null
     )
+}
+
+export const getCommand = (cmd: string) => {
+    return findMenu(cmd)?.command ?? ''
 }
 
 export const getMenu = () => {

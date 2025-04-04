@@ -92,7 +92,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
         )} 〙✪`
         for (const sub of menus.filter((menu) => menu.type === type)) {
             const alias = sub.alias
-                .split(', ')
+                .split(/, ?| ,/)
                 .concat(sub.command)
                 .map((a: string) => {
                     return m(a)
