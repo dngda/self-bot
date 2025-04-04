@@ -126,7 +126,7 @@ const handleCommands = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (isDisabledChat(ctx)) {
+    if (isDisabledChat(ctx) && ctx.isCmd) {
         console.log(chalk.red('[CTX]'), 'Disabled chat:', ctx.from)
         return
     }
@@ -155,7 +155,7 @@ const handleError = (ctx: MessageContext, error: unknown) => {
     ctx.reactError()
 }
 const isDisabledChat = (ctx: MessageContext) =>
-    !config?.disabled_chats.includes(ctx.from)
+    config?.disabled_chats.includes(ctx.from)
 const isAllowedChat = (ctx: MessageContext) =>
     config?.allowed_chats.includes(ctx.from)
 const isHistorySync = (msg: WAMessage) =>
