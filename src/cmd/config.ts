@@ -181,22 +181,18 @@ const setPrefixHandler = async (
     } else if (ctx.cmd === 'cekprefix') {
         await ctx.reply(`Prefix: '${getPrefix()}'`)
     } else {
-        const prefix = ctx.arg
+        let prefix = ctx.arg
         if (!prefix) {
             ctx.reply(stringId.setPrefix.usage(ctx))
             return
         }
-        if (prefix.length > 1) {
-            if (prefix.startsWith('[') || prefix.startsWith(']')) {
-                setPrefix(prefix.trim())
-            } else {
-                setPrefix(prefix.trim() + ' ')
-            }
-            ctx.reply(stringId.setPrefix.success?.(prefix + ' ') ?? '')
-        } else {
-            setPrefix(prefix.trim())
-            ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
+
+        if (prefix.length > 1 && !prefix.startsWith('[')) {
+            prefix = prefix + ' '
         }
+
+        setPrefix(prefix.trim())
+        ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
     }
 
     return ctx.reactSuccess()
