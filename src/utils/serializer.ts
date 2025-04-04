@@ -74,7 +74,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
         if (isNoPrefix) {
             ctx.isCmd = true
-            ctx.cmd = ctx.body!
+            ctx.cmd = ctx.body?.split(' ')[0] ?? ''
         }
 
         ctx.arg = ctx.body?.replace(ctx.prefix + ctx.cmd, '').trim() ?? ''
