@@ -159,7 +159,7 @@ Cek prefix aktif dengan: *cekprefix*`,
     menu.push({
         command: 'setprefix',
         hint: stringId.setPrefix.hint,
-        alias: 'resetprefix',
+        alias: 'resetprefix, cekprefix',
         type: 'config',
         noprefix: true,
     })

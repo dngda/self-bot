@@ -65,7 +65,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
                 m.alias
                     .split(', ')
                     .concat(m.command)
-                    .indexOf(ctx.body ?? '') !== -1
+                    .indexOf(ctx.body?.split(' ')[0] ?? '') !== -1
         )?.noprefix
 
         if (ctx.isCmd) {
