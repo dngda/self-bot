@@ -97,7 +97,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
                 .map((a: string) => {
                     return m(a)
                 })
-            menuMsg += `\n┝> ${alias.join(' or ')}\n`
+            menuMsg += `\n├> ${alias.join(' or ')}\n`
             menuMsg += `│   ${sub.hint}`
         }
         menuMsg += '\n└──✪\n'
