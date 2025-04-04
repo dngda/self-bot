@@ -21,6 +21,7 @@ import {
     handleReplyToContactStatusList,
     handleReplyToStatusList,
     handleStickerCommand,
+    handleSuperConfig,
     listenDeletedMessage,
     listenOneViewMessage,
     logCmd,
@@ -28,23 +29,33 @@ import {
 } from './utils/_index'
 
 export let config: BotConfig = {
-    allowedChats: [],
-    stickerCommands: {},
+    allowed_chats: [],
+    sticker_commands: {},
     norevoke: false,
     norevoke_exceptions: [],
+    disabled_chats: [],
     oneview: false,
     public: false,
 }
 
 if (fs.existsSync('./data/config.json')) {
-    const conf = fs.readFileSync('./data/config.json', 'utf-8')
-    if (conf != '') config = JSON.parse(conf)
-    if (!config.allowedChats) config.allowedChats = []
-    if (!config.stickerCommands) config.stickerCommands = {}
-    if (!config.norevoke) config.norevoke = false
-    if (!config.norevoke_exceptions) config.norevoke_exceptions = []
-    if (!config.oneview) config.oneview = false
-    if (!config.public) config.public = false
+    try {
+        const conf = JSON.parse(
+            fs.readFileSync('./data/config.json', 'utf-8') || '{}'
+        )
+        config = {
+            allowed_chats: [],
+            sticker_commands: {},
+            norevoke: false,
+            norevoke_exceptions: [],
+            oneview: false,
+            public: false,
+            disabled_chats: [],
+            ...conf,
+        }
+    } catch (error) {
+        console.error(chalk.red('[ERROR]'), 'Failed to load config:', error)
+    }
 }
 
 export const updateConfig = () => {
@@ -115,6 +126,11 @@ const handleCommands = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
+    if (isDisabledChat(ctx)) {
+        console.log(chalk.red('[CTX]'), 'Disabled chat:', ctx.from)
+        return
+    }
+
     if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
         noPrefixHandler(waSocket, msg, ctx)
 
@@ -138,9 +154,10 @@ const handleError = (ctx: MessageContext, error: unknown) => {
     ctx.reply(`${error}`)
     ctx.reactError()
 }
-
+const isDisabledChat = (ctx: MessageContext) =>
+    !config?.disabled_chats.includes(ctx.from)
 const isAllowedChat = (ctx: MessageContext) =>
-    config?.allowedChats.includes(ctx.from)
+    config?.allowed_chats.includes(ctx.from)
 const isHistorySync = (msg: WAMessage) =>
     msg.message?.protocolMessage?.type ==
     proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
@@ -156,16 +173,22 @@ const noPrefixHandler = async (
 ) => {
     const { body } = ctx
 
-    if (/^#\w+$/.test(body as string)) {
-        await handleNoteCommand(ctx)
-    } else if (/^-r$/.test(body as string)) {
-        await handleRepeatCommand(_wa, _msg, ctx)
-    } else if (/^\d\d?\d?$/.test(body as string)) {
-        await handleReplyToStatusList(_wa, _msg, ctx)
-        await handleReplyToContactStatusList(_wa, _msg, ctx)
-    } else {
-        await handleMathEquation(ctx)
-        await handleStickerCommand(_wa, _msg, ctx)
+    switch (true) {
+        case /^#\w+$/.test(body as string):
+            await handleNoteCommand(ctx)
+            break
+        case /^-r$/.test(body as string):
+            await handleRepeatCommand(_wa, _msg, ctx)
+            break
+        case /^\d\d?\d?$/.test(body as string):
+            await handleReplyToStatusList(_wa, _msg, ctx)
+            await handleReplyToContactStatusList(_wa, _msg, ctx)
+            break
+        default:
+            await handleMathEquation(ctx)
+            await handleStickerCommand(_wa, _msg, ctx)
+            await handleSuperConfig(ctx)
+            break
     }
 }
 

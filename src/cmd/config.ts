@@ -43,14 +43,14 @@ const togglePublicHandler = async (
     ctx: MessageContext
 ) => {
     if (!ctx.fromMe) throw stringId.public.error.notSelf()
-    let isPublic = config.allowedChats.includes(ctx.from)
+    let isPublic = config.allowed_chats.includes(ctx.from)
     if (isPublic) {
-        config.allowedChats = config.allowedChats.filter(
+        config.allowed_chats = config.allowed_chats.filter(
             (x: string) => x !== ctx.from
         )
         isPublic = false
     } else {
-        config.allowedChats.push(ctx.from)
+        config.allowed_chats.push(ctx.from)
         isPublic = true
     }
     updateConfig()
@@ -106,10 +106,10 @@ const stickerAsCmdHandler = async (
     )
 
     if (ctx.cmd === 'dscmd') {
-        if (stickerSha in config.stickerCommands) {
-            const { cmd, arg } = config.stickerCommands[stickerSha]
+        if (stickerSha in config.sticker_commands) {
+            const { cmd, arg } = config.sticker_commands[stickerSha]
 
-            delete config.stickerCommands[stickerSha]
+            delete config.sticker_commands[stickerSha]
             updateConfig()
             await ctx.reactSuccess()
             return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) ?? '')
@@ -124,15 +124,15 @@ const stickerAsCmdHandler = async (
             ctx.reply(stringId.stickerCmd.usage(ctx))
             return
         }
-        if (stickerSha in config.stickerCommands) {
+        if (stickerSha in config.sticker_commands) {
             ctx.reply(
                 stringId.stickerCmd.error.exist(
-                    config.stickerCommands[stickerSha]
+                    config.sticker_commands[stickerSha]
                 )
             )
             return
         }
-        config.stickerCommands[stickerSha] = { cmd, arg }
+        config.sticker_commands[stickerSha] = { cmd, arg }
         updateConfig()
         await ctx.reactSuccess()
         return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) ?? '')

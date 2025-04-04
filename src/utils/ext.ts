@@ -84,9 +84,9 @@ export const handleStickerCommand = async (
         : ''
 
     try {
-        if (stickerSha in config.stickerCommands) {
-            ctx.cmd = config.stickerCommands[stickerSha].cmd
-            ctx.arg = config.stickerCommands[stickerSha].arg
+        if (stickerSha in config.sticker_commands) {
+            ctx.cmd = config.sticker_commands[stickerSha].cmd
+            ctx.arg = config.sticker_commands[stickerSha].arg
             ctx.args = ctx.arg.split(' ')
             const cmd = getCommand(ctx.cmd)
             await actions[cmd]?.(_wa, _msg, ctx)
@@ -236,4 +236,21 @@ export const handleDeleteList = async (
     await ctx.reactSuccess()
 
     return sendList(ctx, wa)
+}
+
+export const handleSuperConfig = async (ctx: MessageContext) => {
+    const { body, fromMe } = ctx
+    if (!fromMe) return null
+    if (!body) return null
+    switch (true) {
+        case 'disable_bot' == body:
+            config.disabled_chats.push(ctx.from)
+            return ctx.reactSuccess()
+        case 'enable_bot' == body:
+            config.disabled_chats = config.disabled_chats.filter(
+                (x: string) => x !== ctx.from
+            )
+            return ctx.reactSuccess()
+    }
+    return null
 }

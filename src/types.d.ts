@@ -6,10 +6,11 @@ export interface StickerCommand {
 }
 
 export interface BotConfig {
-    allowedChats: string[]
-    stickerCommands: { [key: string]: StickerCommand }
+    allowed_chats: string[]
+    sticker_commands: { [key: string]: StickerCommand }
     norevoke: boolean
     norevoke_exceptions: string[]
+    disabled_chats: string[]
     oneview: boolean
     public: boolean
     [key: string]:
