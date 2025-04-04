@@ -64,16 +64,19 @@ const q3 = '```'
 const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
     const m = (namaMenu: string) => `*${ctx.prefix}${namaMenu}*`
 
-    let menuMsg = `${q3} ___              ___      _   
+    let menuMsg = `
+    !------------ Help - Usage ------------!\n`
+
+    menuMsg += `${q3} ___              ___      _   
 / __| ___ _ _ ___| _ ) ___| |_ 
 \\__ \\/ -_) '_/ _ \\ _ \\/ _ \\  _|
 |___/\\___|_| \\___/___/\\___/\\__|${q3}
 `
 
-    menuMsg += `
-!------------ Help - Usage ------------!\n`
-    menuMsg += `\u200E`.repeat(850) // Add spoiler tag (read more button)
-    menuMsg += ` _Accepted prefix:_ '${getPrefix()}'\n`
+    menuMsg += `\u200E`.repeat(2000) // Add spoiler tag (read more button)
+    menuMsg += ` _Active prefix:_ ${
+        getPrefix().startsWith('[') ? 'regex: ' + getPrefix() : getPrefix()
+    }\n`
     const menus = getMenu()
     const menuTypes = menus.map((menu) => {
         return menu.type
@@ -84,7 +87,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
             (type) => !type.match(/owner|config/i)
         )
     for (const type of setMenuTypes) {
-        menuMsg += `\n╔══✪〘 ${type.replace(/^\w/, (c: string) =>
+        menuMsg += `\n┌──✪〘 ${type.replace(/^\w/, (c: string) =>
             c.toUpperCase()
         )} 〙✪`
         for (const sub of menus.filter((menu) => menu.type === type)) {
@@ -94,10 +97,10 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
                 .map((a: string) => {
                     return m(a)
                 })
-            menuMsg += `\n╠> ${alias.join(' or ')}\n`
-            menuMsg += `║   ${sub.hint}`
+            menuMsg += `\n┝> ${alias.join(' or ')}\n`
+            menuMsg += `│   ${sub.hint}`
         }
-        menuMsg += '\n╚══✪\n'
+        menuMsg += '\n└──✪\n'
     }
     menuMsg += `\n-> Perhitungan matematika pake prefix '='`
     menuMsg += `\n\t\t(cth: =10x1+2)\n`

@@ -7,12 +7,12 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'
-import loadCommands from './cmd/_index'
 import { getCommand } from './menu'
+import loadCommands from './cmd/_index'
+import { HandlerFunction } from './raw/surah'
 import { BotConfig, MessageContext } from './types'
 import { storeMessage, storePushName, storeStatus } from './lib/_index'
 import {
-    getPrefix,
     handleAddList,
     handleDeleteList,
     handleMathEquation,
@@ -26,7 +26,6 @@ import {
     logCmd,
     serializeMessage,
 } from './utils/_index'
-import { HandlerFunction } from './raw/surah'
 
 export let config: BotConfig = {
     allowedChats: [],
@@ -161,8 +160,6 @@ const noPrefixHandler = async (
         await handleNoteCommand(ctx)
     } else if (/^-r$/.test(body as string)) {
         await handleRepeatCommand(_wa, _msg, ctx)
-    } else if (/^cekprefix$/.test(body as string)) {
-        await ctx.reply(`Prefix: '${getPrefix()}'`)
     } else if (/^\d\d?\d?$/.test(body as string)) {
         await handleReplyToStatusList(_wa, _msg, ctx)
         await handleReplyToContactStatusList(_wa, _msg, ctx)

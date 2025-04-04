@@ -2,7 +2,7 @@ import { WAMessage, WASocket } from '@whiskeysockets/baileys'
 import { actions, config, updateConfig } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
-import { resetPrefix, setPrefix } from '../utils/_index'
+import { getPrefix, resetPrefix, setPrefix } from '../utils/_index'
 import { MessageContext } from '../types'
 
 export default () => {
@@ -151,20 +151,21 @@ const setPrefixCmd = () => {
         success: (prefix: string) =>
             `✅ Prefix berhasil diubah menjadi "${prefix}"
 ➡️ Coba kirimkan: *${prefix}help*
-➡️ Reset prefix dengan: *${prefix}resetprefix*
+Reset prefix dengan: *resetprefix*
 Cek prefix aktif dengan: *cekprefix*`,
         info: () => '✅ Prefix berhasil direset',
     }
 
     menu.push({
-        command: 'setp',
+        command: 'setprefix',
         hint: stringId.setPrefix.hint,
-        alias: 'setprefix, resetprefix',
+        alias: 'resetprefix',
         type: 'config',
+        noprefix: true,
     })
 
     Object.assign(actions, {
-        setp: setPrefixHandler,
+        setprefix: setPrefixHandler,
     })
 }
 
@@ -177,6 +178,8 @@ const setPrefixHandler = async (
     if (ctx.cmd === 'resetprefix') {
         resetPrefix()
         return ctx.reply(stringId.setPrefix.info?.() ?? '')
+    } else if (ctx.cmd === 'cekprefix') {
+        await ctx.reply(`Prefix: '${getPrefix()}'`)
     } else {
         const prefix = ctx.arg
         if (!prefix) {
@@ -184,10 +187,10 @@ const setPrefixHandler = async (
             return
         }
         if (prefix.length > 1) {
-            setPrefix(prefix + ' ')
+            setPrefix(prefix.trim() + ' ')
             ctx.reply(stringId.setPrefix.success?.(prefix + ' ') ?? '')
         } else {
-            setPrefix(prefix)
+            setPrefix(prefix.trim())
             ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
         }
     }

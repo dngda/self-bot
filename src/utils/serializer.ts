@@ -10,6 +10,7 @@ import {
 import dotenv from 'dotenv'
 import { config } from '../handler'
 import { MessageContext } from '../types'
+import { menu } from '../menu'
 dotenv.config()
 
 let prefix = process.env.PREFIX!
@@ -53,13 +54,19 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         const isBracketed = prefix.startsWith('[') && prefix.endsWith(']')
 
         if (isBracketed) {
-            const prefixMatch = ctx.body
-                ?.substring(0, 1)
-                .match(process.env.PREFIX!)
-            ctx.isCmd = prefixMatch !== null && prefixMatch !== undefined
+            const prefixMatch = ctx.body?.substring(0, 1).match(prefix!)
+            ctx.isCmd = !!prefixMatch
         } else {
             ctx.isCmd = ctx.body?.startsWith(prefix) ?? false
         }
+
+        const isNoPrefix = menu.find(
+            (m) =>
+                m.alias
+                    .split(', ')
+                    .concat(m.command)
+                    .indexOf(ctx.body ?? '') !== -1
+        )?.noprefix
 
         if (ctx.isCmd) {
             ctx.cmd = ctx
@@ -69,6 +76,11 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         } else {
             ctx.cmd = ''
             ctx.prefix = ''
+        }
+
+        if (isNoPrefix) {
+            ctx.isCmd = true
+            ctx.cmd = ctx.body!
         }
 
         ctx.arg = ctx.body?.replace(ctx.prefix + ctx.cmd, '').trim() ?? ''

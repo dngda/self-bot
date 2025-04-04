@@ -3,6 +3,7 @@ type Menu = {
     hint: string
     alias: string
     type: string
+    noprefix?: boolean
 }
 
 export const menu: Menu[] = []
