@@ -187,7 +187,11 @@ const setPrefixHandler = async (
             return
         }
         if (prefix.length > 1) {
-            setPrefix(prefix.trim() + ' ')
+            if (prefix.startsWith('[') || prefix.startsWith(']')) {
+                setPrefix(prefix.trim())
+            } else {
+                setPrefix(prefix.trim() + ' ')
+            }
             ctx.reply(stringId.setPrefix.success?.(prefix + ' ') ?? '')
         } else {
             setPrefix(prefix.trim())
