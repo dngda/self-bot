@@ -1,4 +1,9 @@
-import { WAMediaUpload, WAMessageContent, proto } from '@whiskeysockets/baileys'
+import {
+    AnyMessageContent,
+    WAMediaUpload,
+    WAMessageContent,
+    proto,
+} from '@whiskeysockets/baileys'
 
 export interface StickerCommand {
     cmd: string

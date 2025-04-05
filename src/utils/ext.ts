@@ -1,4 +1,9 @@
-import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
+import {
+    AnyMessageContent,
+    WAMessage,
+    WASocket,
+    proto,
+} from '@whiskeysockets/baileys'
 import chalk from 'chalk'
 import fs from 'fs'
 import * as math from 'mathjs'
@@ -19,7 +24,10 @@ export const handleNoteCommand = async (ctx: MessageContext) => {
     if (note?.media) {
         const media = fs.readFileSync(note.media)
         const contentType = note.media.endsWith('.mp4') ? 'video' : 'image'
-        const content = { [contentType]: media, caption: note.content }
+        const content = {
+            [contentType]: media,
+            caption: note.content,
+        } as AnyMessageContent
         if (ctx.isQuoted) {
             await ctx.quoteReplyContent(content, {
                 key: {

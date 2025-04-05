@@ -18,8 +18,8 @@ export default () => {
     downloader()
     random()
     browser()
-    tools()
     image()
+    tools()
     script()
 
     config()

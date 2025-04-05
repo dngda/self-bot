@@ -193,12 +193,14 @@ async function tiktokReels(url: string, ctx: MessageContext) {
                 caption: `Origin: ${await shorten(result.url[0].url)}`,
             })
         } else {
-            let videoUrl
-            result.url.forEach((element) => {
-                if (element.type == 'mp4') {
-                    videoUrl = element.url
-                }
-            })
+            const videoUrl = result.url.find(
+                (element) => element.type === 'mp4'
+            )?.url
+
+            if (!videoUrl) {
+                throw new Error('Video URL not found.')
+            }
+
             await ctx.replyContent({
                 video: { url: videoUrl },
                 seconds: duration,

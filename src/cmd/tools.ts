@@ -1,9 +1,4 @@
-import {
-    WAMessage,
-    WASocket,
-    downloadMediaMessage,
-    proto,
-} from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
 import { unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import { delay } from 'lodash'
@@ -61,43 +56,32 @@ const getOneViewCmd = () => {
 }
 
 const oneViewHandler = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _wa: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const viewOnce =
-        ctx.quotedMsg?.viewOnceMessageV2 ||
-        ctx.quotedMsg?.viewOnceMessage ||
-        ctx.quotedMsg?.viewOnceMessageV2Extension
-    const isQuotedOneView = viewOnce != null
+    const isQuotedOneView =
+        ctx.quotedMsg?.imageMessage?.viewOnce ||
+        ctx.quotedMsg?.videoMessage?.viewOnce
     if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView())
     ctx.reactWait()
-    const { message } = viewOnce
-    const { imageMessage, videoMessage } = message as proto.IMessage
-    if (imageMessage) {
-        const mediaData = await downloadMediaMessage(
-            { key: msg.key, message: message },
-            'buffer',
-            {}
-        )
-        await waSocket.sendMessage(
-            ctx.from,
-            { image: mediaData as Buffer },
-            { quoted: msg }
-        )
+    const mediaData = await ctx.downloadQuoted()
+
+    if (ctx.isQuotedImage) {
+        ctx.replyContent({
+            image: mediaData,
+            caption: ctx.quotedMsg?.imageMessage?.caption ?? '',
+            mimetype: 'image/jpeg',
+        })
+    } else if (ctx.isQuotedVideo) {
+        ctx.replyContent({
+            video: mediaData,
+            caption: ctx.quotedMsg?.videoMessage?.caption ?? '',
+            seconds: ctx.quotedMsg?.videoMessage?.seconds ?? 0,
+            mimetype: 'video/mp4',
+        })
     }
-    if (videoMessage) {
-        const mediaData = await downloadMediaMessage(
-            { key: msg.key, message: message },
-            'buffer',
-            {}
-        )
-        await waSocket.sendMessage(
-            ctx.from,
-            { video: mediaData as Buffer },
-            { quoted: msg }
-        )
-    }
+
     ctx.reactSuccess()
 }
 
@@ -443,7 +427,7 @@ const gttsHandler = async (
             ctx.reply(`🗣️ Bahasa yang didukung: ${Object.keys(LANGUAGES)}`)
             return
         }
-        
+
         text = args.slice(1).join(' ')
     }
 

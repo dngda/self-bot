@@ -23,7 +23,6 @@ import {
     handleStickerCommand,
     handleSuperConfig,
     listenDeletedMessage,
-    listenOneViewMessage,
     logCmd,
     serializeMessage,
 } from './utils/_index'
@@ -110,7 +109,7 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
     storeStatusData(msg)
 
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
-    if (config.oneview) listenOneViewMessage(waSocket, msg)
+    // if (config.oneview) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
 }
 
 const logRawMessage = (msg: WAMessage) => {
