@@ -43,10 +43,9 @@ const startSock = async () => {
     console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
     const waSocket = makeWASocket({
-        browser: Browsers.ubuntu("Sero Selfbot"),
+        browser: Browsers.ubuntu('Sero Selfbot'),
         version,
         logger,
-        printQRInTerminal: true,
         auth: {
             creds: state.creds,
             keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -69,6 +68,10 @@ const startSock = async () => {
 
     waSocket.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
+        if (update.qr) {
+            console.log(chalk.blue('QR CODE'), update.qr)
+        }
+
         if (connection === 'close') {
             if (
                 (lastDisconnect?.error as Boom)?.output?.statusCode !==
