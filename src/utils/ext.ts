@@ -251,10 +251,10 @@ export const handleSuperConfig = async (ctx: MessageContext) => {
     if (!fromMe) return null
     if (!body) return null
     switch (true) {
-        case 'disable_bot' == body:
+        case 'ensb' == body:
             config.disabled_chats.push(ctx.from)
             return ctx.reactSuccess()
-        case 'enable_bot' == body:
+        case 'disb' == body:
             config.disabled_chats = config.disabled_chats.filter(
                 (x: string) => x !== ctx.from
             )
