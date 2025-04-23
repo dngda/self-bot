@@ -400,7 +400,14 @@ const quotlyHandler = async (
 
     const participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
-    const avatar = await _wa.profilePictureUrl(participant)
+
+    let avatar = ''
+    try {
+        avatar = (await _wa.profilePictureUrl(participant)) || ''
+    } catch (error) {
+        avatar = 'https://i.ibb.co.com/zTtYZSQR/pl.png'
+    }
+
     const pushname =
         arg?.split('|')[1]?.trim() ||
         getPushName(participant) ||
