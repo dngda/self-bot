@@ -7,6 +7,7 @@ import makeWASocket, {
     proto,
     Browsers,
 } from '@whiskeysockets/baileys'
+import qrTerminal from 'qrcode-terminal'
 import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'
 import NodeCache from 'node-cache'
@@ -43,7 +44,7 @@ const startSock = async () => {
     console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
     const waSocket = makeWASocket({
-        browser: Browsers.ubuntu('Sero Selfbot'),
+        browser: Browsers.baileys('SERO SELFBOT'),
         version,
         logger,
         auth: {
@@ -54,7 +55,7 @@ const startSock = async () => {
         generateHighQualityLinkPreview: true,
         markOnlineOnConnect: false,
         getMessage: async (key) => {
-            const msg = await getMessage(key.id!)
+            const msg = getMessage(key.id!)
             return (
                 msg?.message ||
                 proto.Message.fromObject({
@@ -69,7 +70,18 @@ const startSock = async () => {
     waSocket.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
         if (update.qr) {
-            console.log(chalk.blue('QR CODE'), update.qr)
+            console.log(chalk.blue('QR CODE'))
+            qrTerminal.generate(
+                update.qr,
+                {
+                    small: true,
+                },
+                (qr: unknown) => {
+                    console.log(qr)
+                }
+            )
+        } else {
+            console.log('Connection update:', update)
         }
 
         if (connection === 'close') {
@@ -84,7 +96,6 @@ const startSock = async () => {
                 console.log('Connection closed. You are logged out.')
             }
         }
-        console.log('Connection update:', update)
 
         if (connection === 'open') {
             console.log(
