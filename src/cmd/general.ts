@@ -87,7 +87,7 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
             (type) => !type.match(/owner|config/i)
         )
     for (const type of setMenuTypes) {
-        menuMsg += `\n┌──✪〘 ${type.replace(/^\w/, (c: string) =>
+        menuMsg += `\n✪〘 ${type.replace(/^\w/, (c: string) =>
             c.toUpperCase()
         )} 〙✪`
         for (const sub of menus.filter((menu) => menu.type === type)) {
@@ -97,10 +97,10 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
                 .map((a: string) => {
                     return m(a)
                 })
-            menuMsg += `\n├> ${alias.join(' or ')}\n`
-            menuMsg += `│   ${sub.hint}`
+            menuMsg += `\n> ${alias.join(' or ')}\n`
+            menuMsg += `   ${sub.hint}`
         }
-        menuMsg += '\n└──✪\n'
+        menuMsg += '\n✪\n'
     }
     menuMsg += `\n-> Perhitungan matematika pake prefix '='`
     menuMsg += `\n\t\t(cth: =10x1+2)\n`

@@ -4,13 +4,14 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
+import { LyricsApi, LyricsApiData, LyricsApiResponse } from '../lib/_index'
 
 export default () => {
     googleSearchCmd()
     citraRadarJogjaCmd()
     duckduckgoSearchCmd()
+    lyricsSearchCmd()
 }
-
 
 const citraRadarJogjaCmd = () => {
     stringId.crjogja = {
@@ -185,5 +186,64 @@ const googleSearchHandler = async (
             return ctx.reply(stringId.gs.error.timeOut())
         })
 
+    return ctx.reactSuccess()
+}
+
+const lyricsSearchCmd = () => {
+    stringId.lyrics = {
+        hint: '🎵 _Lirik lagu_',
+        error: {
+            timeOut: () => '‼️ Gagal mendapatkan lirik lagu!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🎵 Cari lirik lagu ➡️ ${ctx.prefix}${ctx.cmd} <judul>`,
+    }
+
+    menu.push({
+        command: 'lyrics',
+        hint: stringId.lyrics.hint,
+        alias: 'ly',
+        type: 'browser',
+    })
+
+    Object.assign(actions, {
+        lyrics: lyricsHandler,
+    })
+}
+
+const lyricsHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (ctx.args[0] == '') return ctx.reply(stringId.lyrics.usage(ctx))
+    ctx.reactWait()
+    let title = ''
+    let artist = ''
+    if (ctx.arg.includes('-')) {
+        const split = ctx.arg.split('-')
+        if (split.length > 1) {
+            title = split[0].trim()
+            artist = split[1].trim()
+        }
+    } else {
+        title = ctx.arg
+    }
+
+    let response: LyricsApiResponse
+    if (artist) {
+        response = await LyricsApi.musixmatchWithArtist(title, artist)
+    } else {
+        response = await LyricsApi.musixmatchWithTitle(title)
+    }
+
+    if (!response.status) {
+        ctx.reactError()
+        return ctx.reply(response.message)
+    }
+    const data = response.data
+    const { artist_name, track_name, lyrics } = data as LyricsApiData
+    const msgContent = `🎵 *Lirik lagu* _${track_name}_\n\n*Artis*: ${artist_name}\n\n${lyrics}`
+    await ctx.reply(msgContent)
     return ctx.reactSuccess()
 }
