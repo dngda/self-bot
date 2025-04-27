@@ -239,11 +239,11 @@ const lyricsHandler = async (
 
     if (!response.status) {
         ctx.reactError()
-        return ctx.reply(response.message)
+        return ctx.reply(stringId.lyrics.error.timeOut())
     }
     const data = response.data
     const { artist_name, track_name, lyrics } = data as LyricsApiData
-    const msgContent = `🎵 *Lirik lagu* _${track_name}_\n\n*Artis*: ${artist_name}\n\n${lyrics}`
+    const msgContent = `🎵 _${track_name}_\n\nArtis: ${artist_name}\n\n${lyrics}`
     await ctx.reply(msgContent)
     return ctx.reactSuccess()
 }

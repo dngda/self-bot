@@ -17,7 +17,7 @@ import chalk from 'chalk'
 
 import { PlaywrightBrowser, getMessage } from './src/lib/_index'
 import { executeSavedScriptInNote } from './src/cmd/owner'
-export const browser = new PlaywrightBrowser()
+export let browser: PlaywrightBrowser
 
 let lastDisconnectReason = ''
 
@@ -29,6 +29,10 @@ const msgRetryCounterCache = new NodeCache()
 const groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false })
 
 const startSock = async () => {
+    if (!browser) {
+        browser = new PlaywrightBrowser()
+    }
+
     const { state, saveCreds } = await useMultiFileAuthState(
         './env/baileys_auth_info'
     )

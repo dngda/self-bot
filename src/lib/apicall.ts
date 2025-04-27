@@ -2,7 +2,6 @@ import axios from 'axios'
 
 export type LyricsApiResponse = {
     status: boolean
-    message: string
     data: LyricsApiData | null
 }
 
@@ -29,7 +28,7 @@ export const LyricsApi: ILyricsApi = (() => {
     return {
         async musixmatchWithTitle(title: string): Promise<LyricsApiResponse> {
             const res = await axios.get(
-                `${BASE_URL}/musixmatch/lyrics?title=${encodeURIComponent(
+                `${BASE_URL}musixmatch/lyrics?title=${encodeURIComponent(
                     title
                 )}`
             )
@@ -37,15 +36,13 @@ export const LyricsApi: ILyricsApi = (() => {
             if (res.data.status === 'error') {
                 return {
                     status: false,
-                    message: res.data.message,
                     data: null,
                 }
             }
 
             return {
                 status: true,
-                message: res.data.message,
-                data: res.data.data as LyricsApiData,
+                data: res.data as LyricsApiData,
             }
         },
 
@@ -54,7 +51,7 @@ export const LyricsApi: ILyricsApi = (() => {
             artist: string
         ): Promise<LyricsApiResponse> {
             const res = await axios.get(
-                `${BASE_URL}/musixmatch/lyrics-search?title=${encodeURIComponent(
+                `${BASE_URL}musixmatch/lyrics-search?title=${encodeURIComponent(
                     title
                 )}&artist=${encodeURIComponent(artist)}`
             )
@@ -62,14 +59,12 @@ export const LyricsApi: ILyricsApi = (() => {
             if (res.data.status === 'error') {
                 return {
                     status: false,
-                    message: res.data.message,
                     data: null,
                 }
             }
 
             return {
                 status: true,
-                message: res.data.message,
                 data: res.data.data as LyricsApiData,
             }
         },
