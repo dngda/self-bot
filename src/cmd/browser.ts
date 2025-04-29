@@ -235,7 +235,13 @@ const lyricsHandler = async (
     }
 
     const song = songs[0]
-    const lyrics = await song.lyrics()
+    let lyrics = await song.lyrics()
+
+    if (lyrics.includes('[Intro')) {
+        lyrics = '[Intro' + lyrics.split('[Intro')[1]
+    } else if (lyrics.includes('[Verse 1')) {
+        lyrics = '[Verse 1' + lyrics.split('[Verse 1')[1]
+    }
 
     ctx.reply(`🎵 _${song.title}_\n\n${lyrics}`)
 
