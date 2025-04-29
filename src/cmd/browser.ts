@@ -6,6 +6,11 @@ import { menu } from '../menu'
 import { MessageContext } from '../types'
 import { Client } from 'genius-lyrics'
 
+console.log(
+    process.env.GENIUS_API_KEY
+        ? 'Genius API Loaded'
+        : 'Genius API Key not found!'
+)
 const GeniusClient = new Client(process.env.GENIUS_API_KEY as string)
 
 export default () => {
@@ -222,7 +227,7 @@ const lyricsHandler = async (
     ctx.reactWait()
 
     const songs = await GeniusClient.songs.search(ctx.arg)
-    if (songs.length === 0) {
+    if (songs.length == 0) {
         ctx.reactError()
         return ctx.reply('❌ Lagu tidak ditemukan!')
     }
@@ -230,7 +235,7 @@ const lyricsHandler = async (
     const song = songs[0]
     const lyrics = await song.lyrics()
 
-    ctx.reply(`🎵 _${song.title}_ - ${song.artist}\n\n${lyrics}`)
+    ctx.reply(`🎵 _${song.title}_\n\n${lyrics}`)
 
     return ctx.reactSuccess()
 }
