@@ -4,7 +4,9 @@ import { actions } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
-import { LyricsApi, LyricsApiData, LyricsApiResponse } from '../lib/_index'
+import { Client } from 'genius-lyrics'
+
+const GeniusClient = new Client(process.env.GENIUS_API_KEY as string)
 
 export default () => {
     googleSearchCmd()
@@ -218,32 +220,17 @@ const lyricsHandler = async (
 ) => {
     if (ctx.args[0] == '') return ctx.reply(stringId.lyrics.usage(ctx))
     ctx.reactWait()
-    let title = ''
-    let artist = ''
-    if (ctx.arg.includes('-')) {
-        const split = ctx.arg.split('-')
-        if (split.length > 1) {
-            title = split[0].trim()
-            artist = split[1].trim()
-        }
-    } else {
-        title = ctx.arg
-    }
 
-    let response: LyricsApiResponse
-    if (artist) {
-        response = await LyricsApi.musixmatchWithArtist(title, artist)
-    } else {
-        response = await LyricsApi.musixmatchWithTitle(title)
-    }
-
-    if (!response.status) {
+    const songs = await GeniusClient.songs.search(ctx.arg)
+    if (songs.length === 0) {
         ctx.reactError()
-        return ctx.reply(stringId.lyrics.error.timeOut())
+        return ctx.reply('❌ Lagu tidak ditemukan!')
     }
-    const data = response.data
-    const { artist_name, track_name, lyrics } = data as LyricsApiData
-    const msgContent = `🎵 _${track_name}_\n\nArtis: ${artist_name}\n\n${lyrics}`
-    await ctx.reply(msgContent)
+
+    const song = songs[0]
+    const lyrics = await song.lyrics()
+
+    ctx.reply(`🎵 _${song.title}_ - ${song.artist}\n\n${lyrics}`)
+
     return ctx.reactSuccess()
 }
