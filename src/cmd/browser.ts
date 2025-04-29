@@ -5,7 +5,9 @@ import stringId from '../language'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
 import { Client } from 'genius-lyrics'
+import dotenv from 'dotenv'
 
+dotenv.config()
 console.log(
     process.env.GENIUS_API_KEY
         ? 'Genius API Loaded'
