@@ -250,6 +250,7 @@ const configHandler = async (
     if (['norevoke', 'autosticker'].includes(configName) && thisChat) {
         toggleChatSpecificConfig(configName, status, ctx.from)
     } else {
+        if (configName === 'autosticker') return ctx.reactError()
         toggleGlobalConfig(configName, status)
     }
 
