@@ -268,7 +268,7 @@ export const handleAutoSticker = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!config.auto_sticker.includes(ctx.from)) return null
+    if (!config.autosticker.includes(ctx.from)) return null
 
     return actions['sticker'](wa, msg, ctx)
 }

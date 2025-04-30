@@ -269,11 +269,11 @@ const toggleChatSpecificConfig = (
     const targetList =
         configName === 'norevoke'
             ? config.norevoke_exceptions
-            : config.auto_sticker
+            : config.autosticker
 
     if (status) {
         config[
-            configName === 'norevoke' ? 'norevoke_exceptions' : 'auto_sticker'
+            configName === 'norevoke' ? 'norevoke_exceptions' : 'autosticker'
         ] = targetList.filter((x: string) => x !== chatId)
     } else {
         if (!targetList.includes(chatId)) {

@@ -16,7 +16,7 @@ export interface BotConfig {
     norevoke: boolean
     norevoke_exceptions: string[]
     disabled_chats: string[]
-    auto_sticker: string[]
+    autosticker: string[]
     oneview: boolean
     public: boolean
     [key: string]:
