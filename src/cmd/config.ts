@@ -208,6 +208,7 @@ Config:
 - public: allow global chat to use bot
 - norevoke: The revoked message will be forwarded to the owner.
 - oneview: The OneView message will be forwarded and showed to the owner.
+- autosticker: Auto convert image to sticker
 ➡️ Contoh: ${ctx.prefix}con norevoke`,
         success: (config: string, status: boolean) =>
             `✅ Config "${config}" berhasil diubah menjadi "${status}"`,
@@ -231,25 +232,52 @@ const configHandler = async (
     ctx: MessageContext
 ) => {
     if (!ctx.fromMe) return
+
     const configName = ctx.args[0]
     const thisChat = ctx.arg.includes('this')
     const status = ctx.cmd === 'con'
+
     if (!configName) {
         ctx.reply(stringId.toggleConfig.usage(ctx))
         return
     }
 
-    if (configName in config) {
-        if (!status && thisChat) {
-            config.norevoke_exceptions.push(ctx.from)
-        } else {
-            config[configName] = status
-        }
-    } else {
+    if (!(configName in config)) {
         ctx.reply(stringId.toggleConfig.usage(ctx))
         return
     }
 
+    if (['norevoke', 'autosticker'].includes(configName) && thisChat) {
+        toggleChatSpecificConfig(configName, status, ctx.from)
+    } else {
+        toggleGlobalConfig(configName, status)
+    }
+
     updateConfig()
-    return ctx.reply(stringId.toggleConfig.success?.(configName, status) ?? '')
+    return ctx.reactSuccess()
+}
+
+const toggleGlobalConfig = (configName: string, status: boolean) => {
+    config[configName] = status
+}
+
+const toggleChatSpecificConfig = (
+    configName: string,
+    status: boolean,
+    chatId: string
+) => {
+    const targetList =
+        configName === 'norevoke'
+            ? config.norevoke_exceptions
+            : config.auto_sticker
+
+    if (status) {
+        config[
+            configName === 'norevoke' ? 'norevoke_exceptions' : 'auto_sticker'
+        ] = targetList.filter((x: string) => x !== chatId)
+    } else {
+        if (!targetList.includes(chatId)) {
+            targetList.push(chatId)
+        }
+    }
 }

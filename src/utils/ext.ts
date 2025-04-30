@@ -262,3 +262,13 @@ export const handleSuperConfig = async (ctx: MessageContext) => {
     }
     return null
 }
+
+export const handleAutoSticker = async (
+    wa: WASocket,
+    msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!config.auto_sticker.includes(ctx.from)) return null
+
+    return actions['sticker'](wa, msg, ctx)
+}

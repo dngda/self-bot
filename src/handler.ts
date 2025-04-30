@@ -13,6 +13,7 @@ import { HandlerFunction } from './raw/surah'
 import { BotConfig, MessageContext } from './types'
 import { storeMessage, storePushName, storeStatus } from './lib/_index'
 import {
+    handleAutoSticker,
     handleAddList,
     handleDeleteList,
     handleMathEquation,
@@ -33,6 +34,7 @@ export let config: BotConfig = {
     norevoke: false,
     norevoke_exceptions: [],
     disabled_chats: [],
+    auto_sticker: [],
     oneview: false,
     public: false,
 }
@@ -47,9 +49,10 @@ if (fs.existsSync('./data/config.json')) {
             sticker_commands: {},
             norevoke: false,
             norevoke_exceptions: [],
+            disabled_chats: [],
+            auto_sticker: [],
             oneview: false,
             public: false,
-            disabled_chats: [],
             ...conf,
         }
     } catch (error) {
@@ -109,6 +112,7 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
     storeStatusData(msg)
 
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
+    handleAutoSticker(waSocket, msg, ctx)
     // if (config.oneview) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
 }
 
