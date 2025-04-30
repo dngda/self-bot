@@ -269,6 +269,7 @@ export const handleAutoSticker = async (
     ctx: MessageContext
 ) => {
     if (!config.autosticker.includes(ctx.from)) return null
+    if (getCommand(ctx.cmd) === 'sticker') return null
 
     return actions['sticker'](wa, msg, ctx)
 }
