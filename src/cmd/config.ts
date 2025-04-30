@@ -266,15 +266,14 @@ const toggleChatSpecificConfig = (
     status: boolean,
     chatId: string
 ) => {
-    const targetList =
-        configName === 'norevoke'
-            ? config.norevoke_exceptions
-            : config.autosticker
+    const isNorevoke = configName === 'norevoke'
+    const key = isNorevoke ? 'norevoke_exceptions' : 'autosticker'
+    const targetList = config[key] as string[]
 
-    if (status) {
-        config[
-            configName === 'norevoke' ? 'norevoke_exceptions' : 'autosticker'
-        ] = targetList.filter((x: string) => x !== chatId)
+    const shouldRemove = isNorevoke ? status : !status
+
+    if (shouldRemove) {
+        config[key] = targetList.filter((x: string) => x !== chatId)
     } else {
         if (!targetList.includes(chatId)) {
             targetList.push(chatId)
