@@ -400,7 +400,7 @@ const quotlyHandler = async (
 
     let participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
-    if (ctx.fromMe) {
+    if (ctx.fromMe && !ctx.isQuoted) {
         participant = process.env.OWNER_NUMBER!
     }
 
