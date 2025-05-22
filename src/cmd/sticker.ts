@@ -398,8 +398,11 @@ const quotlyHandler = async (
         throw new Error(stringId.quote.error.noText())
     if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))
 
-    const participant =
+    let participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
+    if (ctx.fromMe) {
+        participant = process.env.OWNER_NUMBER!
+    }
 
     let avatar = ''
     try {
