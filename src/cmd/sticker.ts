@@ -400,8 +400,13 @@ const quotlyHandler = async (
 
     let participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
+    let pushname =
+        arg?.split('|')[1]?.trim() ||
+        getPushName(participant) ||
+        `+${participant.split('@')[0]}`
     if (ctx.fromMe && !ctx.isQuoted) {
         participant = process.env.OWNER_NUMBER!
+        pushname = ctx.name!
     }
 
     let avatar = ''
@@ -411,11 +416,6 @@ const quotlyHandler = async (
         avatar = 'https://i.ibb.co.com/zTtYZSQR/pl.png'
     }
 
-    const pushname =
-        arg?.split('|')[1]?.trim() ||
-        getPushName(participant) ||
-        ctx.name ||
-        `+${participant.split('@')[0]}`
     const media = isQuotedImage
         ? await ctx.downloadQuoted()
         : isQuotedSticker
