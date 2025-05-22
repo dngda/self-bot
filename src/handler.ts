@@ -235,7 +235,7 @@ const storeStatusData = (msg: proto.IWebMessageInfo) => {
 }
 
 const storePushNameData = (msg: proto.IWebMessageInfo) => {
-    if (msg.message?.protocolMessage) return null
+    if (msg.message?.protocolMessage || msg.key.fromMe) return null
     const jid = msg.key.participant || msg.key.remoteJid || ''
 
     storePushName(jid, msg.pushName || '+' + jid.split('@')[0])

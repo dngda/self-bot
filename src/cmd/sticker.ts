@@ -411,6 +411,7 @@ const quotlyHandler = async (
     const pushname =
         arg?.split('|')[1]?.trim() ||
         getPushName(participant) ||
+        ctx.name ||
         `+${participant.split('@')[0]}`
     const media = isQuotedImage
         ? await ctx.downloadQuoted()
