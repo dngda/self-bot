@@ -404,8 +404,12 @@ const quotlyHandler = async (
         arg?.split('|')[1]?.trim() ||
         getPushName(participant) ||
         `+${participant.split('@')[0]}`
+
     if (ctx.fromMe && !ctx.isQuoted) {
         participant = process.env.OWNER_NUMBER!
+        pushname = ctx.name!
+    }
+    if (participant == process.env.OWNER_NUMBER!) {
         pushname = ctx.name!
     }
 
