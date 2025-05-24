@@ -400,18 +400,15 @@ const quotlyHandler = async (
 
     let participant =
         ctx.contextInfo?.participant || ctx.participant || ctx.from
-    let pushname =
-        arg?.split('|')[1]?.trim() ||
-        getPushName(participant) ||
-        `+${participant.split('@')[0]}`
 
     if (ctx.fromMe && !ctx.isQuoted) {
         participant = process.env.OWNER_NUMBER!
-        pushname = ctx.name!
     }
-    if (participant == process.env.OWNER_NUMBER!) {
-        pushname = ctx.name!
-    }
+
+    const pushname =
+        arg?.split('|')[1]?.trim() ||
+        getPushName(participant) ||
+        `+${participant.split('@')[0]}`
 
     let avatar = ''
     try {
