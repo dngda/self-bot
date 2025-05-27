@@ -8,53 +8,57 @@ import { MessageContext } from '../types'
 export default () => {
     setPrefixCmd()
     toggleConfigCmd()
-    togglePublicChatCmd()
+    toggleAllowChatCmd()
     stickerAsCommandCmd()
 }
 
-const togglePublicChatCmd = () => {
-    stringId.public = {
-        hint: '⚙️ _Toggle public mode pada chat ini_',
+const toggleAllowChatCmd = () => {
+    stringId.allow = {
+        hint: '⚙️ _Toggle allow pada chat ini_',
         error: {
             notSelf: () => '‼️ Self only command',
         },
         usage: (_: MessageContext) => '',
-        info: (isPublic: boolean, prefix: string) =>
-            isPublic
-                ? `🍻 Chat public-mode aktif, semua partisipan akan direspon bot!\n-> Coba kirimkan: *${prefix}help*`
+        info: (isAllowed: boolean, prefix: string) =>
+            isAllowed
+                ? `🍻 Chat allowed, semua partisipan akan direspon bot!\n-> Cmd: *${prefix}help*`
                 : `🤳🏼 Self-mode aktif`,
     }
 
     menu.push({
-        command: 'public',
-        hint: stringId.public.hint,
-        alias: 'mode',
+        command: 'allow',
+        hint: stringId.allow.hint,
+        alias: 'forbid',
         type: 'config',
     })
 
     Object.assign(actions, {
-        public: togglePublicHandler,
+        allow: toggleAllowHandler,
     })
 }
 
-const togglePublicHandler = async (
+const toggleAllowHandler = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) throw stringId.public.error.notSelf()
-    let isPublic = config.allowed_chats.includes(ctx.from)
-    if (isPublic) {
-        config.allowed_chats = config.allowed_chats.filter(
-            (x: string) => x !== ctx.from
-        )
-        isPublic = false
+    if (!ctx.fromMe) throw stringId.allow.error.notSelf()
+    let isAllowed = config.allowed_chats.includes(ctx.from)
+    if (ctx.cmd === 'forbid') {
+        if (isAllowed) {
+            config.allowed_chats = config.allowed_chats.filter(
+                (x: string) => x !== ctx.from
+            )
+            isAllowed = false
+        }
     } else {
-        config.allowed_chats.push(ctx.from)
-        isPublic = true
+        if (!isAllowed) {
+            config.allowed_chats.push(ctx.from)
+            isAllowed = true
+        }
     }
     updateConfig()
-    return ctx.reply(stringId.public.info?.(isPublic, ctx.prefix) ?? '')
+    return ctx.reply(stringId.allow.info?.(isAllowed, ctx.prefix) ?? '')
 }
 
 const stickerAsCommandCmd = () => {
