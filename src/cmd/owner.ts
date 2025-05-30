@@ -179,7 +179,7 @@ const getStatusHandler = async (
         let msg = 'List Status Update:\n'
         const mentions: string[] = []
         list.forEach((el) => {
-            msg += `${i}. @${el.key.replace('@s.whatsapp.net', '')} (${
+            msg += `${i}. @${el.key?.replace('@s.whatsapp.net', '')} (${
                 el.length
             })\n`
             mentions.push(el.key)
@@ -217,7 +217,7 @@ const getStatusHandler = async (
 }
 
 export const getStatusListMessage = async (jid: string): Promise<string> => {
-    const status = await getStatus(jid)
+    const status = getStatus(jid)
     if (!status) throw new Error(stringId.getStatus.error.notFound())
 
     let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
