@@ -249,7 +249,11 @@ const rwmHdHandler = async (
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await removeWm(mediaData)
-    const hdImage = await upscaleImage(image.output[0])
+    const wget = await fetch(image.output[0])
+    if (!wget.ok) throw new Error('‼️ Gagal mengunduh gambar!')
+    const arrayBuffer = await wget.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const hdImage = await upscaleImage(buffer)
     await ctx.replyContent({ image: { url: hdImage.result_url } })
     ctx.reactSuccess()
 }
