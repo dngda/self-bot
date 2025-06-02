@@ -19,6 +19,7 @@ export default () => {
     reminiCmd()
     upscaleImageCmd()
     removeWmCmd()
+    rwmHdCmd()
 }
 
 const flipImageCmd = () => {
@@ -212,5 +213,43 @@ const removeWmHandler = async (
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await removeWm(mediaData)
     await ctx.replyContent({ image: { url: image.output[0] } })
+    ctx.reactSuccess()
+}
+
+const rwmHdCmd = () => {
+    stringId.rwmHd = {
+        hint: '🖼️ _Menghapus watermark dan buat gambar HD_',
+        error: {
+            noImage: () => '‼️ Gambar tidak ditemukan!',
+        },
+        usage: (ctx: MessageContext) =>
+            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}${ctx.cmd}`,
+    }
+
+    menu.push({
+        command: 'rwmhd',
+        hint: stringId.rwmHd.hint,
+        alias: 'rwmhd',
+        type: 'images',
+    })
+
+    Object.assign(actions, {
+        rwmhd: rwmHdHandler,
+    })
+}
+
+const rwmHdHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { isQuotedImage, isImage, download, downloadQuoted } = ctx
+    if (!isImage && !isQuotedImage)
+        throw new Error(stringId.rwmHd.error.noImage())
+    ctx.reactWait()
+    const mediaData = isQuotedImage ? await downloadQuoted() : await download()
+    const image = await removeWm(mediaData)
+    const hdImage = await upscaleImage(image.output[0])
+    await ctx.replyContent({ image: { url: hdImage.result_url } })
     ctx.reactSuccess()
 }
