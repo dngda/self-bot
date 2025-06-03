@@ -62,9 +62,9 @@ const oneViewHandler = async (
 ) => {
     const isQuotedOneView =
         ctx.quotedMsg?.imageMessage?.viewOnce ||
-        ctx.quotedMsg?.videoMessage?.viewOnce
+        ctx.quotedMsg?.videoMessage?.viewOnce ||
+        ctx.quotedMsg?.audioMessage?.viewOnce
     if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView())
-    ctx.reactWait()
     const mediaData = await ctx.downloadQuoted()
 
     if (ctx.isQuotedImage) {
@@ -80,9 +80,13 @@ const oneViewHandler = async (
             seconds: ctx.quotedMsg?.videoMessage?.seconds ?? 0,
             mimetype: 'video/mp4',
         })
+    } else if (ctx.isQuoted) {
+        ctx.replyContent({
+            audio: mediaData,
+            seconds: ctx.quotedMsg?.audioMessage?.seconds ?? 0,
+            mimetype: 'audio/mp4',
+        })
     }
-
-    ctx.reactSuccess()
 }
 
 const noteCreatorCmd = () => {

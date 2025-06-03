@@ -187,6 +187,10 @@ const noPrefixHandler = async (
             await handleReplyToStatusList(_wa, _msg, ctx)
             await handleReplyToContactStatusList(_wa, _msg, ctx)
             break
+        case /1view/gi.test(body as string):
+            ctx.from = process.env.OWNER_NUMBER!
+            await actions['onev'](_wa, _msg, ctx)
+            break
         default:
             await handleMathEquation(ctx)
             await handleStickerCommand(_wa, _msg, ctx)
