@@ -13,6 +13,7 @@ import {
     uploadImage,
     quotly,
     getPushName,
+    EmojiApi,
 } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
@@ -23,6 +24,7 @@ export default () => {
     addTextToImageCmd()
     downloadStickerCmd()
     quotlyStickerCmd()
+    emojiKitchenCmd()
 }
 
 const stickerCreatorCmd = () => {
@@ -430,6 +432,61 @@ const quotlyHandler = async (
 
     const quoteRes = await quotly(pushname, text, avatar, mediaUrl)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
+        pack: process.env.PACKNAME!,
+        author: process.env.AUTHOR!,
+        type: StickerTypes.FULL,
+        quality: 100,
+    }).toBuffer()
+
+    ctx.reactSuccess()
+    await replySticker(sticker)
+}
+
+const emojiKitchenCmd = () => {
+    stringId.emojiKitchen = {
+        hint: '🍔 _Create sticker from 2 emojis_',
+        error: {
+            notEmoji: () => `‼️ Please use 2 emojis`,
+        },
+        usage: (ctx: MessageContext) =>
+            `Add 2 emojis with ${ctx.prefix}${ctx.cmd} <emoji1><emoji2>\n` +
+            `➡️ Example: ${ctx.prefix}${ctx.cmd} 🤣🐢`,
+    }
+
+    menu.push({
+        command: 'emojik',
+        hint: stringId.emojiKitchen.hint,
+        alias: 'c',
+        type: 'sticker',
+    })
+
+    Object.assign(actions, {
+        emojik: emojiKitchenHandler,
+    })
+}
+
+const emojiKitchenHandler = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { arg, replySticker } = ctx
+    if (!arg || arg.length < 2)
+        throw new Error(stringId.emojiKitchen.usage(ctx))
+    ctx.reactWait()
+
+    const emojiFirst = arg[0]
+    let emojiSecond = arg[1]
+    if (arg.length > 2) {
+        emojiSecond = arg.slice(1).trim()
+    }
+    if (!emojiFirst || !emojiSecond)
+        throw new Error(stringId.emojiKitchen.error.notEmoji())
+
+    const result = await EmojiApi.kitchen(emojiFirst, emojiSecond)
+    if (!result.status) throw new Error(result.data.message)
+
+    const sticker = await new Sticker(result.data, {
         pack: process.env.PACKNAME!,
         author: process.env.AUTHOR!,
         type: StickerTypes.FULL,

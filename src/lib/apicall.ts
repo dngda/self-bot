@@ -70,3 +70,27 @@ export const LyricsApi: ILyricsApi = (() => {
         },
     }
 })()
+
+export const EmojiApi = {
+    async kitchen(emojiFirst: string, emojiSecond: string) {
+        const url = `https://emojik.vercel.app/s/${encodeURIComponent(
+            emojiFirst
+        )}_${encodeURIComponent(emojiSecond)}?size=128`
+
+        // --- terima data biner ---
+        const res = await axios.get<ArrayBuffer>(url, {
+            responseType: 'arraybuffer',
+            validateStatus: () => true, // supaya JSON error ≤400 tetap lewat
+        })
+
+        // --- handle error ---
+        if (res.headers['content-type']?.includes('application/json')) {
+            const err = JSON.parse(Buffer.from(res.data).toString())
+            return { status: false, data: err }
+        }
+
+        const buf = Buffer.from(res.data)
+
+        return { status: true, data: buf }
+    },
+}
