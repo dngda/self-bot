@@ -450,7 +450,7 @@ const emojiKitchenCmd = () => {
         },
         usage: (ctx: MessageContext) =>
             `Add 2 emojis with ${ctx.prefix}${ctx.cmd} <emoji1><emoji2>\n` +
-            `➡️ Example: ${ctx.prefix}${ctx.cmd} 🤣🐢`,
+            `➡️ Example: ${ctx.prefix}${ctx.cmd} 🤣🐱`,
     }
 
     menu.push({

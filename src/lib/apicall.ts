@@ -73,9 +73,7 @@ export const LyricsApi: ILyricsApi = (() => {
 
 export const EmojiApi = {
     async kitchen(emojiFirst: string, emojiSecond: string) {
-        const url = `https://emojik.vercel.app/s/${encodeURIComponent(
-            emojiFirst
-        )}_${encodeURIComponent(emojiSecond)}?size=128`
+        const url = `https://emojik.vercel.app/s/${emojiFirst}_${emojiSecond}?size=128`
 
         // --- terima data biner ---
         const res = await axios.get<ArrayBuffer>(url, {
