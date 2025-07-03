@@ -73,6 +73,8 @@ export const LyricsApi: ILyricsApi = (() => {
 
 export const EmojiApi = {
     async kitchen(emojiFirst: string, emojiSecond: string) {
+        console.log(`[EMOJI KITCHEN] Fetching ${emojiFirst} + ${emojiSecond}`)
+
         const url = `https://emojik.vercel.app/s/${emojiFirst}_${emojiSecond}?size=128`
 
         // --- terima data biner ---
