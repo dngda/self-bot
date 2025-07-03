@@ -475,11 +475,9 @@ const emojiKitchenHandler = async (
         throw new Error(stringId.emojiKitchen.usage(ctx))
     ctx.reactWait()
 
-    const emojiFirst = arg[0]
-    let emojiSecond = arg[1]
-    if (arg.length > 2) {
-        emojiSecond = arg.slice(1).trim()
-    }
+    const emojis = Array.from(arg).filter((e) => e.trim() !== '')
+    const [emojiFirst, emojiSecond] = emojis
+
     if (!emojiFirst || !emojiSecond)
         throw new Error(stringId.emojiKitchen.error.notEmoji())
 
