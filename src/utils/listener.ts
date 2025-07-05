@@ -112,3 +112,47 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
 
     return true
 }
+
+export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
+    if (msg.key.fromMe) return null
+    if (
+        msg.message?.editedMessage?.message?.protocolMessage?.type !=
+        proto.Message.ProtocolMessage.Type.MESSAGE_EDIT
+    ) {
+        return null
+    }
+    if (msg.key.remoteJid == 'status@broadcast') return null
+
+    const key = msg.message?.editedMessage?.message?.protocolMessage?.key
+    if (!key) return null
+
+    const _msg = getMessage(key.id!)
+    if (!_msg) return null
+
+    const from = msg.key.participant || msg.key.remoteJid!
+
+    let sumber = `@${from.replace('@s.whatsapp.net', '')}`
+    if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
+        const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
+        sumber = `_${subject}_ by @${msg.key.participant!.replace(
+            '@s.whatsapp.net',
+            ''
+        )}`
+    }
+
+    const msgdata = `Original msg edited from ${sumber}:`
+
+    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+        text: msgdata,
+        mentions: [from],
+    })
+
+    if (_msg.message.conversation) {
+        await wa.sendMessage(process.env.OWNER_NUMBER!, {
+            text: _msg.message.conversation,
+            contextInfo: { forwardingScore: 2, isForwarded: true },
+        })
+    }
+
+    return true
+}

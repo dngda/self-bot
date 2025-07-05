@@ -26,6 +26,7 @@ import {
     listenDeletedMessage,
     logCmd,
     serializeMessage,
+    listenEditedMessage,
 } from './utils/_index'
 
 export let config: BotConfig = {
@@ -112,6 +113,7 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
     storeStatusData(msg)
 
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
+    listenEditedMessage(waSocket, msg)
     handleAutoSticker(waSocket, msg, ctx)
     // if (config.oneview) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
 }
