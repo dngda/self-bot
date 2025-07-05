@@ -117,13 +117,17 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
     if (msg.key.fromMe) return null
     if (
         msg.message?.editedMessage?.message?.protocolMessage?.type !=
-        proto.Message.ProtocolMessage.Type.MESSAGE_EDIT
+            proto.Message.ProtocolMessage.Type.MESSAGE_EDIT ||
+        msg.message.protocolMessage?.type !=
+            proto.Message.ProtocolMessage.Type.MESSAGE_EDIT
     ) {
         return null
     }
     if (msg.key.remoteJid == 'status@broadcast') return null
 
-    const key = msg.message?.editedMessage?.message?.protocolMessage?.key
+    const key =
+        msg.message?.editedMessage?.message?.protocolMessage?.key ||
+        msg.message.protocolMessage?.key
     if (!key) return null
 
     const _msg = getMessage(key.id!)
@@ -147,9 +151,12 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
         mentions: [from],
     })
 
-    if (_msg.message.conversation) {
+    const originalText =
+        _msg.message.conversation || _msg.message.extendedTextMessage?.text
+
+    if (originalText) {
         await wa.sendMessage(process.env.OWNER_NUMBER!, {
-            text: _msg.message.conversation,
+            text: originalText,
             contextInfo: { forwardingScore: 2, isForwarded: true },
         })
     }
