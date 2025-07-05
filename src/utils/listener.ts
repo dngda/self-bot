@@ -117,15 +117,15 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
     if (msg.key.fromMe) return null
     if (
         msg.message?.editedMessage?.message?.protocolMessage?.type !=
-            proto.Message.ProtocolMessage.Type.MESSAGE_EDIT ||
-        msg.message.protocolMessage?.type !=
+            proto.Message.ProtocolMessage.Type.MESSAGE_EDIT &&
+        msg.message?.protocolMessage?.type !=
             proto.Message.ProtocolMessage.Type.MESSAGE_EDIT
     ) {
         return null
     }
     if (msg.key.remoteJid == 'status@broadcast') return null
 
-    console.log('Edited message detected:', msg.key.id);
+    console.log('Edited message detected:', msg.key.id)
 
     const key =
         msg.message?.editedMessage?.message?.protocolMessage?.key ||
@@ -134,8 +134,8 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
 
     const _msg = getMessage(key.id!)
 
-    console.log('Original message:', _msg);
-    
+    console.log('Original message:', _msg)
+
     if (!_msg) return null
 
     const from = msg.key.participant || msg.key.remoteJid!
