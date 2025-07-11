@@ -67,19 +67,35 @@ const stickerHandler = async (
     const {
         arg,
         isMedia,
-        isImage,
-        isVideo,
         isQuoted,
         isQuotedImage,
+        isQuotedSticker,
         isQuotedVideo,
         replySticker,
     } = ctx
+    let { isVideo, isImage } = ctx
+
     if (!isMedia) throw new Error(stringId.sticker.usage(ctx))
     ctx.reactWait()
     let mediaData = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
+    if (isQuotedSticker) {
+        const isAnimated = mediaData.toString('utf-8').includes('ANMF')
+        if (isAnimated) {
+            const gif = await sharp(mediaData, { animated: true })
+                .gif()
+                .toBuffer()
+            const path = await gifToMp4(gif)
+            mediaData = fs.readFileSync(path)
+            fs.unlinkSync(path)
+            isVideo = true
+        } else {
+            mediaData = await sharp(mediaData).png().toBuffer()
+            isImage = true
+        }
+    }
     let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
     Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
-    if (arg.includes('-nobg')) {
+    if (arg.includes('-nobg') && isImage) {
         const base64 = mediaData.toString('base64')
         const res = await removeBackgroundFromImageBase64({
             base64img: base64,
@@ -287,7 +303,7 @@ const memefyHandler = async (
     else image = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
 
     let _arg = arg
-    const simage = await sharp(image).png()
+    const simage = sharp(image).png()
     if (arg.includes('-c') || arg.includes('-r')) simage.resize(512, 512)
     _arg = _arg.replace('-c', '').replace('-r', '')
     image = await simage.toBuffer()
@@ -328,14 +344,14 @@ const downloadStickerCmd = () => {
     }
 
     menu.push({
-        command: 'sdl',
+        command: 'toimg',
         hint: stringId.dls.hint,
-        alias: 'toimg, tomedia',
+        alias: 'tomedia',
         type: 'sticker',
     })
 
     Object.assign(actions, {
-        sdl: downloadStickerHandler,
+        toimg: downloadStickerHandler,
     })
 }
 
