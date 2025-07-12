@@ -476,13 +476,16 @@ export const ListMemory = new Map<string, string[]>()
 
 export const renderList = (ctx: MessageContext) => {
     const list = ListMemory.get(ctx.from) || []
-    let listText = `📝 List "${list[0]}" : \n`
+    let listText = `📝 ${list[0]} 📝\n`
     list.forEach((l, i) => {
         if (i == 0) return
         listText += `${i}. ${l}\n`
     })
-    listText +=
-        '\nKirim `+(isi)` untuk menambahkan ke list\nKirim `-(index)` untuk menghapus dari list.'
+
+    if (list.length == 0) {
+        listText += '(kosong)\n'
+    }
+
     return listText.replace(/\n$/, '')
 }
 
@@ -510,7 +513,7 @@ const collectListHandler = async (
     list.push(listName)
     ListMemory.set(ctx.from, list)
     await reply(
-        `List "${listName}" dimulai...\nKirim \`+ (isi)\` untuk menambahkan ke list`
+        `📝 ${listName} 📝 dibuat!\nKirim \`+ (isi)\` untuk menambahkan ke list!`
     )
 
     return await reactSuccess()

@@ -216,6 +216,9 @@ async function sendList(ctx: MessageContext, wa: WASocket) {
     }
 
     const sent = await ctx.send(renderList(ctx))
+    await ctx.send(
+        'Kirim `+(isi)` untuk menambahkan ke list\nKirim `-(nomor)` untuk menghapus dari list.'
+    )
     MsgKeyForList.set(ctx.from, {
         key: sent?.key as proto.IMessageKey,
         timestamp: sent?.messageTimestamp as number,
