@@ -239,7 +239,7 @@ export const handleDeleteList = async (
     const index = parseInt(ctx.body?.slice(1) ?? '1')
 
     if (index > list.length || index < 1) {
-        return await ctx.reply('Index out of range')
+        return await ctx.reply('Nomor tidak valid!')
     }
 
     list.splice(index, 1)
