@@ -8,7 +8,7 @@ interface StoredMessage {
     key: proto.IMessageKey
 }
 
-const DATA_DIR = path.join(__dirname, '../../data')
+const DATA_DIR = 'data'
 const STATUS_FILE = path.join(DATA_DIR, 'status.json')
 const MESSAGE_FILE = path.join(DATA_DIR, 'message.json')
 const PUSHNAME_FILE = path.join(DATA_DIR, 'pushname.json')
