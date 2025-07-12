@@ -1,5 +1,5 @@
 import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
-import { unlink, writeFileSync } from 'fs'
+import { existsSync, readFileSync, unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import { delay } from 'lodash'
 import ocrApi from 'ocr-space-api-wrapper'
@@ -472,7 +472,44 @@ const collectListCmd = () => {
 }
 
 // [jid][title][content]
-export const ListMemory = new Map<string, string[]>()
+export const LIST_MEMORY_PATH = 'data/list_memory.json'
+export let ListMemory = new Map<string, string[]>()
+
+// Ensure file exists and load data
+if (!existsSync(LIST_MEMORY_PATH)) {
+    writeFileSync(LIST_MEMORY_PATH, '{}', 'utf-8')
+}
+
+try {
+    const data = readFileSync(LIST_MEMORY_PATH, 'utf-8')
+    if (data) {
+        const parsedData = JSON.parse(data)
+        // Convert values to arrays if needed
+        ListMemory = new Map(
+            Object.entries(parsedData).map(([k, v]) => [
+                k,
+                Array.isArray(v) ? v : [],
+            ])
+        )
+    }
+} catch (e) {
+    // Handle corrupted JSON gracefully
+    ListMemory = new Map()
+}
+
+const saveListMemory = () => {
+    const obj: Record<string, string[]> = Object.fromEntries(ListMemory)
+    writeFileSync(LIST_MEMORY_PATH, JSON.stringify(obj, null, 2), 'utf-8')
+}
+
+// Save on process exit and at intervals
+process.on('exit', saveListMemory)
+process.on('SIGINT', () => {
+    saveListMemory()
+    process.exit()
+})
+
+setInterval(saveListMemory, 1000 * 60 * 15)
 
 export const renderList = (ctx: MessageContext) => {
     const list = ListMemory.get(ctx.from) || []

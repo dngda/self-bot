@@ -1,6 +1,6 @@
 import { proto } from '@whiskeysockets/baileys'
-import util from 'util'
-import fs from 'fs'
+import fs from 'fs/promises'
+import path from 'path'
 
 interface StoredMessage {
     timestamp: number
@@ -8,33 +8,66 @@ interface StoredMessage {
     key: proto.IMessageKey
 }
 
+const DATA_DIR = path.join(__dirname, '../../data')
+const STATUS_FILE = path.join(DATA_DIR, 'status.json')
+const MESSAGE_FILE = path.join(DATA_DIR, 'message.json')
+const PUSHNAME_FILE = path.join(DATA_DIR, 'pushname.json')
+
 let MessageStore = new Map<string, StoredMessage>()
 let StatusStore = new Map<string, StoredMessage[]>()
-let pushNameStore = new Map<string, string>()
+let PushNameStore = new Map<string, string>()
 
-if (!fs.existsSync('data/status.json')) {
-    fs.writeFileSync('data/status.json', '{}', 'utf-8')
+const dirty = { message: false, status: false, pushname: false }
+
+async function ensureFiles() {
+    await fs.mkdir(DATA_DIR, { recursive: true })
+    for (const file of [STATUS_FILE, MESSAGE_FILE, PUSHNAME_FILE]) {
+        try {
+            await fs.access(file)
+        } catch {
+            await fs.writeFile(file, '{}', 'utf-8')
+        }
+    }
 }
 
-if (!fs.existsSync('data/message.json')) {
-    fs.writeFileSync('data/message.json', '{}', 'utf-8')
+async function loadStore() {
+    const [statusData, messageData, pushnameData] = await Promise.all([
+        fs.readFile(STATUS_FILE, 'utf-8'),
+        fs.readFile(MESSAGE_FILE, 'utf-8'),
+        fs.readFile(PUSHNAME_FILE, 'utf-8'),
+    ])
+    StatusStore = new Map(Object.entries(JSON.parse(statusData)))
+    MessageStore = new Map(Object.entries(JSON.parse(messageData)))
+    PushNameStore = new Map(Object.entries(JSON.parse(pushnameData)))
 }
 
-if (!fs.existsSync('data/pushname.json')) {
-    fs.writeFileSync('data/pushname.json', '{}', 'utf-8')
+async function saveStore() {
+    if (dirty.message) {
+        const messageObj = Object.fromEntries(MessageStore)
+        await fs.writeFile(MESSAGE_FILE, JSON.stringify(messageObj), 'utf-8')
+        dirty.message = false
+    }
+    if (dirty.status) {
+        const statusObj = Object.fromEntries(StatusStore)
+        await fs.writeFile(STATUS_FILE, JSON.stringify(statusObj), 'utf-8')
+        dirty.status = false
+    }
+    if (dirty.pushname) {
+        const pushnameObj = Object.fromEntries(PushNameStore)
+        await fs.writeFile(PUSHNAME_FILE, JSON.stringify(pushnameObj), 'utf-8')
+        dirty.pushname = false
+    }
 }
 
-const statusData = fs.readFileSync('data/status.json', 'utf-8')
-const statusJSON = JSON.parse(statusData)
-StatusStore = new Map(Object.entries(statusJSON))
-
-const messageData = fs.readFileSync('data/message.json', 'utf-8')
-const messageJSON = JSON.parse(messageData)
-MessageStore = new Map(Object.entries(messageJSON))
-
-const pushnameData = fs.readFileSync('data/pushname.json', 'utf-8')
-const pushnameJSON = JSON.parse(pushnameData)
-pushNameStore = new Map(Object.entries(pushnameJSON))
+ensureFiles()
+    .then(() => {
+        loadStore().catch((err) => {
+            console.error('Error loading store:', err)
+        })
+    })
+    .catch((err) => {
+        console.error('Error initializing store:', err)
+    })
 
 export const storeMessage = (
     id: string,
@@ -43,6 +76,7 @@ export const storeMessage = (
     key: proto.IMessageKey
 ) => {
     MessageStore.set(id, { timestamp, message, key })
+    dirty.message = true
 }
 
 export const storeStatus = (
@@ -54,87 +88,55 @@ export const storeStatus = (
     const messages = StatusStore.get(jid) || []
     messages.push({ timestamp, message, key })
     StatusStore.set(jid, messages)
+    dirty.status = true
 }
 
 export const storePushName = (jid: string, name: string) => {
-    pushNameStore.set(jid, name)
+    PushNameStore.set(jid, name)
+    dirty.pushname = true
 }
 
-export const getMessage = (id: string) => {
-    return MessageStore.get(id)
-}
+export const getMessage = (id: string) => MessageStore.get(id)
+export const getStatus = (jid: string) => StatusStore.get(jid)
+export const getStatusList = () =>
+    Array.from(StatusStore).map(([key, value]) => ({
+        key,
+        length: value.length,
+    }))
+export const getPushName = (jid: string) => PushNameStore.get(jid)
 
-export const getStatus = (jid: string) => {
-    return StatusStore.get(jid)
-}
-
-export const getStatusList = () => {
-    const data = Array.from(StatusStore).map(([key, value]) => {
-        return { key: key, length: value.length }
-    })
-
-    return data
-}
-
-export const getPushName = (jid: string) => {
-    return pushNameStore.get(jid)
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const printStatusStore = (...txt: any[]) => {
-    console.log(...txt, util.inspect(StatusStore, false, null, true))
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const printMessageStore = (...txt: any[]) => {
-    console.log(...txt, util.inspect(MessageStore, false, null, true))
-}
-
-// clean up 3 hours old messages every 1 hour
+// Clean up old messages/status every hour
 setInterval(() => {
     const now = Date.now()
+    let changed = false
     MessageStore.forEach((value, key) => {
         if (now - value.timestamp * 1000 > 1000 * 60 * 60 * 3) {
             MessageStore.delete(key)
+            changed = true
         }
     })
+    if (changed) dirty.message = true
 }, 1000 * 60 * 60)
 
-// clean up 1 day old status every 1 hour
 setInterval(() => {
     const now = Date.now()
+    let changed = false
     StatusStore.forEach((value, key) => {
         const newMessages = value.filter(
             (msg) => now - msg.timestamp * 1000 < 1000 * 60 * 60 * 24
         )
         if (newMessages.length === 0) {
             StatusStore.delete(key)
-        } else {
+            changed = true
+        } else if (newMessages.length !== value.length) {
             StatusStore.set(key, newMessages)
+            changed = true
         }
     })
+    if (changed) dirty.status = true
 }, 1000 * 60 * 60)
 
-// save json data every 15 minutes
+// Save only if dirty every 15 minutes
 setInterval(() => {
-    const messageObj = Object.create(null)
-    Array.from(MessageStore).forEach((el) => {
-        messageObj[el[0]] = el[1]
-    })
-
-    fs.writeFileSync('data/message.json', JSON.stringify(messageObj), 'utf-8')
-
-    const statusObj = Object.create(null)
-    Array.from(StatusStore).forEach((el) => {
-        statusObj[el[0]] = el[1]
-    })
-
-    fs.writeFileSync('data/status.json', JSON.stringify(statusObj), 'utf-8')
-
-    const pushnameObj = Object.create(null)
-    Array.from(pushNameStore).forEach((el) => {
-        pushnameObj[el[0]] = el[1]
-    })
-
-    fs.writeFileSync('data/pushname.json', JSON.stringify(pushnameObj), 'utf-8')
+    saveStore()
 }, 1000 * 60 * 15)
