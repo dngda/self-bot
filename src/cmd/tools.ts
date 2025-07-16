@@ -534,18 +534,22 @@ const collectListHandler = async (
     const { arg, reply, send, reactWait, reactSuccess } = ctx
     const list = ListMemory.get(ctx.from) || []
     if (list.length == 0 && arg == '') throw stringId.collect_list.usage(ctx)
+    await reactWait()
 
     if (arg == '') {
-        return await send(renderList(ctx))
+        await send(renderList(ctx))
+        await send(
+            'Kirim `+(isi)` untuk menambahkan ke list\nKirim `-(nomor)` untuk menghapus dari list.'
+        )
+        return await reactSuccess()
     }
 
     if (arg == 'end') {
         ListMemory.delete(ctx.from)
-        ctx.reactSuccess()
+        reactSuccess()
         return await send(`✅ List ${list[0]} selesai!`)
     }
 
-    await reactWait()
     const listName = arg
     list.push(listName)
     ListMemory.set(ctx.from, list)
