@@ -1,34 +1,8 @@
 import stealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { BrowserContext, Browser, Page, Response } from 'playwright'
+import { BrowserContext, Browser, Page } from 'playwright'
 import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
-
-export interface VideoData {
-    id: string
-    url: {
-        url: string
-        name: string
-        ext: string
-        type: string
-        quality: string
-        no_audio: boolean
-        audio: boolean
-        attr: {
-            title: string
-            class: string
-        }
-    }[]
-    meta: {
-        title: string
-        source: string
-        duration: string
-    }
-    thumb: string
-    video_quality: string[]
-    timestamp: number
-    message: string
-}
 
 export class PlaywrightBrowser {
     private ctx: BrowserContext
@@ -114,40 +88,6 @@ export class PlaywrightBrowser {
         await page.goto(url)
         await page.waitForLoadState()
         return page
-    }
-
-    async getSocialVideo(url: string): Promise<VideoData> {
-        const page = await this.openPage('https://ssyoutube.com/')
-
-        const handleResponse = (page: Page): Promise<VideoData> => {
-            return new Promise((resolve, reject) => {
-                page.on('response', async (response: Response) => {
-                    if (
-                        response.request().resourceType() === 'xhr' &&
-                        response.request().url().includes('convert')
-                    ) {
-                        try {
-                            const data = await response.json()
-                            resolve(data)
-                        } catch (error: unknown) {
-                            reject(error)
-                        }
-                    }
-                })
-            })
-        }
-
-        try {
-            await page.fill('#id_url', url)
-            await page.click('#search')
-
-            const result = await handleResponse(page)
-            await page.close()
-            return result
-        } catch (error) {
-            await page.close()
-            throw error
-        }
     }
 
     async refreshContext() {

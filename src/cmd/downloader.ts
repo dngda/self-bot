@@ -1,12 +1,12 @@
 import { WAMessage, WASocket } from 'baileys'
-import chalk from 'chalk'
 import { sampleSize } from 'lodash'
-import { browser } from '../..'
 import { actions } from '../handler'
 import stringId from '../language'
-import { VideoData, pinterest, shorten } from '../lib/_index'
+import { pinterest } from '../lib/_index'
 import { menu } from '../menu'
 import { MessageContext } from '../types'
+import ytdl, { Payload } from 'youtube-dl-exec'
+import axios from 'axios'
 
 export default () => {
     searchPinterestCmd()
@@ -84,22 +84,6 @@ const youtubeShortPattern = /(?:https?):\/\/youtu\.be\/(\w+)/
 const youtubeShortsPattern =
     /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/(\w+)(?:\?[\w=&]*)?/
 
-const getDuration = (result: VideoData) => {
-    if (result.meta?.duration) {
-        const timeParts = result.meta.duration.split(':').map(Number)
-        if (timeParts.length === 2) {
-            // Format MM:SS
-            const [minutes, seconds] = timeParts
-            return minutes * 60 + seconds
-        } else if (timeParts.length === 3) {
-            // Format HH:MM:SS
-            const [hours, minutes, seconds] = timeParts
-            return hours * 3600 + minutes * 60 + seconds
-        }
-    }
-    return 0
-}
-
 const downloadSocialVideoCmd = () => {
     stringId.videodl = {
         hint: '📩 _Download video tiktok/reel/twitter/yt_',
@@ -140,13 +124,10 @@ export const videoDownloadHandler = async (
 
     ctx.reactWait()
 
-    if (
-        tiktokPattern.test(url) ||
-        tiktokShortPattern.test(url) ||
-        reelsPattern.test(url) ||
-        instagramPattern.test(url)
-    ) {
-        await tiktokReels(url, ctx)
+    if (tiktokPattern.test(url) || tiktokShortPattern.test(url)) {
+        await tiktok(url, ctx)
+    } else if (reelsPattern.test(url) || instagramPattern.test(url)) {
+        await instagram(url, ctx)
     } else if (twitterPattern.test(url) || xPattern.test(url)) {
         await twitter(url, ctx)
     } else if (
@@ -162,132 +143,112 @@ export const videoDownloadHandler = async (
     return ctx.reactSuccess()
 }
 
-async function tiktokReels(url: string, ctx: MessageContext) {
-    const urls: string[] =
-        tiktokPattern.exec(url) ??
-        tiktokShortPattern.exec(url) ??
-        reelsPattern.exec(url) ??
-        instagramPattern.exec(url) ??
-        []
+async function tiktok(url: string, ctx: MessageContext) {
+    const _url: string =
+        tiktokPattern.exec(url)?.[0] ?? tiktokShortPattern.exec(url)?.[0] ?? ''
 
-    const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw new Error(`‼️ ${result.message}`)
-    const duration = getDuration(result)
-    const resultArray = result as unknown as VideoData[]
+    const result = (await ytdl(_url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+    })) as Payload
 
-    if (resultArray.length > 1) {
-        let body = ''
-        let i = 1
-        for (const media of resultArray) {
-            body += `📩 ${i}. (${media.url[0].type}) ${await shorten(
-                media.url[0].url
-            )}\n`
-            i++
-        }
+    const videos = result.formats.filter(
+        (f: Payload['formats'][number]) =>
+            f.ext == 'mp4' && f.format_note == null
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    ) as any[]
 
-        await ctx.reply(body)
-    } else {
-        if (result.url[0].type == 'jpg') {
-            await ctx.replyContent({
-                image: { url: result.url[0].url },
-                caption: `Origin: ${await shorten(result.url[0].url)}`,
-            })
-        } else {
-            const videoUrl = result.url.find(
-                (element) => element.type === 'mp4'
-            )?.url
-
-            if (!videoUrl) {
-                throw new Error('Video URL not found.')
-            }
-
-            await ctx.replyContent({
-                video: { url: videoUrl },
-                seconds: duration,
-                caption: stringId.videodl.info?.(ctx),
-            })
-        }
+    if (videos.length == 0) {
+        throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
+
+    const response = await axios.get(videos[0].url, {
+        responseType: 'arraybuffer',
+        headers: { ...videos[0].http_headers, Cookie: videos[0].cookies },
+    })
+
+    const buffer = Buffer.from(response.data)
+    await ctx.replyContent({
+        video: buffer,
+    })
+
+    return ctx.reactSuccess()
+}
+
+async function instagram(url: string, ctx: MessageContext) {
+    const _url: string =
+        reelsPattern.exec(url)?.[0] ?? instagramPattern.exec(url)?.[0] ?? ''
+
+    const result = (await ytdl(_url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+    })) as Payload
+
+    const videos = result.formats.filter(
+        (f: Payload['formats'][number]) => f.ext == 'mp4'
+    )
+
+    if (videos.length == 0) {
+        throw new Error('‼️ Tidak ada video yang ditemukan.')
+    }
+
+    await ctx.replyContent({
+        video: { url: videos[0].url },
+    })
+    return ctx.reactSuccess()
 }
 
 async function twitter(url: string, ctx: MessageContext) {
-    const urls: string[] = twitterPattern.exec(url) ?? xPattern.exec(url) ?? []
-    const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw new Error(`‼️ ${result.message}`)
-    const resultUrls = [...result.url].sort((a, b) => {
-        return Number(a.quality) - Number(b.quality)
-    })
-    const selectedUrl = resultUrls[0].url
-    let captions = ''
-    for (const item of resultUrls) {
-        if (item.type == 'jpg') {
-            await ctx.replyContent({
-                image: { url: item.url },
-                caption: `Origin: ${await shorten(item.url)}`,
-            })
-            return
-        } else {
-            if (item?.url == selectedUrl) {
-                captions += stringId.videodl.sent?.(item?.quality)
-                continue
-            }
-            captions += `📩 ${item?.quality}p: ${await shorten(item.url)}\n`
-        }
+    const _url: string =
+        twitterPattern.exec(url)?.[0] ?? xPattern.exec(url)?.[0] ?? ''
+
+    const result = (await ytdl(_url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+    })) as Payload
+
+    const videos = result.formats.filter(
+        (f: Payload['formats'][number]) =>
+            f.ext == 'mp4' && f.protocol == 'https'
+    )
+
+    if (videos.length == 0) {
+        throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
-    captions += stringId.videodl.info?.(ctx)
 
     await ctx.replyContent({
-        video: { url: selectedUrl },
-        caption: captions,
+        video: { url: videos.pop()?.url ?? '' },
     })
+    return ctx.reactSuccess()
 }
 
 async function youtube(url: string, ctx: MessageContext) {
-    const urls: string[] =
-        youtubePattern.exec(url) ??
-        youtubeShortPattern.exec(url) ??
-        youtubeShortsPattern.exec(url) ??
-        []
-    const result = await browser.getSocialVideo(urls[0])
-    if (result.message) throw new Error(`‼️ ${result.message}`)
-    const duration = getDuration(result)
+    const _url: string =
+        youtubePattern.exec(url)?.[0] ??
+        youtubeShortPattern.exec(url)?.[0] ??
+        youtubeShortsPattern.exec(url)?.[0] ??
+        ''
 
-    if (duration / 60 > 10) throw stringId.videodl.error.maxDuration()
+    const result = (await ytdl(_url, {
+        dumpSingleJson: true,
+        noCheckCertificates: true,
+        noWarnings: true,
+    })) as Payload
 
-    let selectedUrl: string | URL
-    let selectedQuality: string
-    let captions: string = ''
+    const videos = result.formats.filter(
+        (f: Payload['formats'][number]) =>
+            f.ext == 'mp4' && f.audio_channels == 2
+    )
 
-    try {
-        if (result.url[0].quality == '720') {
-            selectedUrl = result.url[1].url
-            selectedQuality = result.url[1].quality
-        } else {
-            selectedUrl = result.url[0].url
-            selectedQuality = result.url[0].quality
-        }
-    } catch (error: unknown) {
-        console.log(chalk.blue('[RES]'), result)
-        console.error(chalk.red('[ERR]'), error)
-        throw stringId.videodl.error.internalError()
+    if (videos.length == 0) {
+        throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
-    captions += stringId.videodl.sent?.(selectedQuality)
-
-    for (const video of result.url) {
-        if (video?.no_audio) continue
-        if (video?.audio) continue
-        if (video?.quality == selectedQuality) continue
-        if (!video?.attr?.title) {
-            captions += `📩 ${video.quality}p: ${await shorten(video.url)}\n`
-            continue
-        }
-        captions += `📩 ${video.quality}p: ${await shorten(video.url)}\n`
-    }
-    captions += stringId.videodl.info?.(ctx)
 
     await ctx.replyContent({
-        video: { url: selectedUrl },
-        seconds: duration,
-        caption: captions.trim(),
+        video: { url: videos[0].url },
     })
+    return ctx.reactSuccess()
 }
