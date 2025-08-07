@@ -141,7 +141,12 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         ctx.quotedMsg?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
             'image'
         ) != null
-    ctx.isQuotedVideo = ctx.quotedMsg?.videoMessage != null
+    ctx.isQuotedVideo =
+        ctx.quotedMsg?.videoMessage != null ||
+        ctx.quotedMsg?.documentMessage?.mimetype?.includes('video') != null ||
+        ctx.quotedMsg?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
+            'video'
+        ) != null
     ctx.isQuotedSticker = ctx.quotedMsg?.stickerMessage != null
     ctx.isQuotedDocument =
         ctx.quotedMsg?.documentMessage != null ||
@@ -160,7 +165,14 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         ) != null
     ctx.isVideo =
         msg.message?.videoMessage != null ||
-        msg.message?.ephemeralMessage?.message?.videoMessage != null
+        msg.message?.ephemeralMessage?.message?.videoMessage != null ||
+        msg.message?.documentMessage?.mimetype?.includes('video') != null ||
+        msg.message?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
+            'video'
+        ) != null ||
+        msg.message?.ephemeralMessage?.message?.documentWithCaptionMessage?.message?.documentMessage?.mimetype?.includes(
+            'video'
+        ) != null
     ctx.isMedia =
         ctx.isImage ||
         ctx.isVideo ||
