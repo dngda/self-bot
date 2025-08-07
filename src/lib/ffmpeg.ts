@@ -1,94 +1,137 @@
-import ffmpeg from 'fluent-ffmpeg'
+import { spawn } from 'child_process'
 import fs from 'fs'
+import path from 'path'
+
+const ensureTmpDir = (dir: string) => {
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
+}
 
 export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
+    ensureTmpDir('tmp')
     let i = 1
-    while (fs.existsSync(`tmp/video${i}.mp4`)) {
-        i++
-    }
+    while (fs.existsSync(`tmp/video${i}.mp4`)) i++
+    const inputPath = `tmp/video${i}.mp4`
+    const outputPath = `tmp/audio${i}.mp3`
+    fs.writeFileSync(inputPath, buffer)
+
     return new Promise((resolve, reject) => {
-        fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
-        ffmpeg(`tmp/video${i}.mp4`)
-            .audioBitrate(192)
-            .noVideo()
-            .save(`tmp/audio${i}.mp3`)
-            .on('end', () => {
-                fs.unlink(`tmp/video${i}.mp4`, (_) => _)
-                resolve(`tmp/audio${i}.mp3`)
-            })
-            .on('error', (err) => {
-                reject(err)
-            })
+        const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i',
+            inputPath,
+            '-vn',
+            '-ab',
+            '192k',
+            outputPath,
+        ])
+        ffmpeg.on('close', (code) => {
+            fs.unlink(inputPath, () => {})
+            if (code === 0) resolve(outputPath)
+            else reject(new Error(`ffmpeg exited with code ${code}`))
+        })
+        ffmpeg.on('error', reject)
     })
 }
 
-export const splitVideo = async (id: string, buffer: Buffer): Promise<string[]> => {
+export const splitVideo = async (
+    id: string,
+    buffer: Buffer
+): Promise<string[]> => {
+    ensureTmpDir('tmp')
+    ensureTmpDir('tmp/vs')
     let i = 1
-    while (fs.existsSync(`tmp/video${i}.mp4`)) {
-        i++
-    }
+    while (fs.existsSync(`tmp/video${i}.mp4`)) i++
+    const inputPath = `tmp/video${i}.mp4`
+    const outputPattern = `tmp/vs/${id}_output%02d.mp4`
+    fs.writeFileSync(inputPath, buffer)
 
     return new Promise((resolve, reject) => {
-        fs.writeFileSync(`tmp/video${i}.mp4`, buffer)
-        ffmpeg(`tmp/video${i}.mp4`)
-            .outputOptions([
-                '-c copy',
-                '-map 0',
-                '-segment_time 27',
-                '-f segment',
-                '-reset_timestamps 1',
-            ])
-            .save(`tmp/vs/${id}_output%02d.mp4`)
-            .on('end', () => {
-                fs.unlink(`tmp/video${i}.mp4`, (_) => _)
-                resolve(fs.readdirSync('tmp/vs'))
-            })
-            .on('error', (err) => {
-                reject(err)
-            })
+        const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i',
+            inputPath,
+            '-c',
+            'copy',
+            '-map',
+            '0',
+            '-segment_time',
+            '27',
+            '-f',
+            'segment',
+            '-reset_timestamps',
+            '1',
+            outputPattern,
+        ])
+        ffmpeg.on('close', (code) => {
+            fs.unlink(inputPath, () => {})
+            if (code === 0) {
+                const files = fs
+                    .readdirSync('tmp/vs')
+                    .filter(
+                        (f) =>
+                            f.startsWith(`${id}_output`) && f.endsWith('.mp4')
+                    )
+                    .map((f) => path.join('tmp/vs', f))
+                resolve(files)
+            } else reject(new Error(`ffmpeg exited with code ${code}`))
+        })
+        ffmpeg.on('error', reject)
     })
 }
 
-export const mp3ToOpus = async (path: string, target = ''): Promise<string> => {
+export const mp3ToOpus = async (
+    inputPath: string,
+    target = ''
+): Promise<string> => {
+    ensureTmpDir('tmp')
     let _target = target
     if (!_target) {
         let i = 1
-        while (fs.existsSync(`tmp/audio${i}.opus`)) {
-            i++
-        }
+        while (fs.existsSync(`tmp/audio${i}.opus`)) i++
         _target = `tmp/audio${i}.opus`
     }
 
     return new Promise((resolve, reject) => {
-        ffmpeg(path)
-            .audioCodec('libopus')
-            .save(_target)
-            .on('end', () => {
-                resolve(_target)
-            })
-            .on('error', (err) => {
-                reject(err)
-            })
+        const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i',
+            inputPath,
+            '-c:a',
+            'libopus',
+            _target,
+        ])
+        ffmpeg.on('close', (code) => {
+            if (code === 0) resolve(_target)
+            else reject(new Error(`ffmpeg exited with code ${code}`))
+        })
+        ffmpeg.on('error', reject)
     })
 }
 
 export const gifToMp4 = async (buffer: Buffer): Promise<string> => {
+    ensureTmpDir('tmp')
     let i = 1
-    while (fs.existsSync(`tmp/sticker${i}.gif`)) {
-        i++
-    }
+    while (fs.existsSync(`tmp/sticker${i}.gif`)) i++
+    const inputPath = `tmp/sticker${i}.gif`
+    const outputPath = `tmp/sticker${i}.mp4`
+    fs.writeFileSync(inputPath, buffer)
 
     return new Promise((resolve, reject) => {
-        fs.writeFileSync(`tmp/sticker${i}.gif`, buffer)
-        ffmpeg(`tmp/sticker${i}.gif`)
-            .outputOptions(['-movflags faststart', '-pix_fmt yuv420p'])
-            .save(`tmp/sticker${i}.mp4`)
-            .on('end', () => {
-                fs.unlink(`tmp/sticker${i}.gif`, (_) => _)
-                resolve(`tmp/sticker${i}.mp4`)
-            })
-            .on('error', (err) => {
-                reject(err)
-            })
+        const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i',
+            inputPath,
+            '-movflags',
+            'faststart',
+            '-pix_fmt',
+            'yuv420p',
+            outputPath,
+        ])
+        ffmpeg.on('close', (code) => {
+            fs.unlink(inputPath, () => {})
+            if (code === 0) resolve(outputPath)
+            else reject(new Error(`ffmpeg exited with code ${code}`))
+        })
+        ffmpeg.on('error', reject)
     })
 }
