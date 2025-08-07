@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket } from 'baileys'
 import chalk from 'chalk'
 import { sampleSize } from 'lodash'
 import { browser } from '../..'

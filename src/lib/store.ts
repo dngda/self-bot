@@ -1,4 +1,4 @@
-import { proto } from '@whiskeysockets/baileys'
+import { proto } from 'baileys'
 import fs from 'fs/promises'
 import path from 'path'
 

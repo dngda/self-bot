@@ -3,7 +3,7 @@ import {
     WASocket,
     downloadMediaMessage,
     proto,
-} from '@whiskeysockets/baileys'
+} from 'baileys'
 import { getMessage } from '../lib/_index'
 import { config } from '../handler'
 
@@ -20,12 +20,12 @@ export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
         const _msg = getMessage(key.id!)
         if (!_msg) return null
 
-        const from = msg.key.participantPn || msg.key.remoteJid!
+        const from = msg.key.participant || msg.key.remoteJid!
 
         let sumber = `msg from @${from.replace('@s.whatsapp.net', '')}`
-        if (msg.key.participantPn && msg.key.remoteJid != 'status@broadcast') {
+        if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
             const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-            sumber = `msg from _${subject}_ by @${msg.key.participantPn!.replace(
+            sumber = `msg from _${subject}_ by @${msg.key.participant!.replace(
                 '@s.whatsapp.net',
                 ''
             )}`
@@ -134,12 +134,12 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
 
     if (!_msg) return null
 
-    const from = msg.key.participantPn || msg.key.remoteJid!
+    const from = msg.key.participant || msg.key.remoteJid!
 
     let sumber = `@${from.replace('@s.whatsapp.net', '')}`
-    if (msg.key.participantPn && msg.key.remoteJid != 'status@broadcast') {
+    if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
         const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
-        sumber = `_${subject}_ by @${msg.key.participantPn!.replace(
+        sumber = `_${subject}_ by @${msg.key.participant!.replace(
             '@s.whatsapp.net',
             ''
         )}`

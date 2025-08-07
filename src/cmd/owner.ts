@@ -4,7 +4,7 @@ import {
     getStatus,
     getStatusList,
 } from '../lib/_index'
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket } from 'baileys'
 import stringId from '../language'
 import { actions } from '../handler'
 import { menu } from '../menu'

@@ -1,4 +1,4 @@
-import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, proto } from 'baileys'
 import fs from 'fs'
 import lodash from 'lodash'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'

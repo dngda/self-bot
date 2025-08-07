@@ -1,4 +1,4 @@
-import { WAMessage, WASocket } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket } from 'baileys'
 import { actions, config, updateConfig } from '../handler'
 import stringId from '../language'
 import { menu } from '../menu'

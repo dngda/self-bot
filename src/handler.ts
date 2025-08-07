@@ -3,7 +3,7 @@ import {
     WAMessage,
     WASocket,
     proto,
-} from '@whiskeysockets/baileys'
+} from 'baileys'
 import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'

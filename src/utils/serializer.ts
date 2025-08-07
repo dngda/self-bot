@@ -6,7 +6,7 @@ import {
     AnyMessageContent,
     downloadMediaMessage,
     downloadContentFromMessage,
-} from '@whiskeysockets/baileys'
+} from 'baileys'
 import dotenv from 'dotenv'
 import { config } from '../handler'
 import { MessageContext } from '../types'

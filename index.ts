@@ -6,7 +6,7 @@ import makeWASocket, {
     DisconnectReason,
     proto,
     Browsers,
-} from '@whiskeysockets/baileys'
+} from 'baileys'
 import qrTerminal from 'qrcode-terminal'
 import MAIN_LOGGER from './src/utils/logger'
 import { messageHandler } from './src/handler'

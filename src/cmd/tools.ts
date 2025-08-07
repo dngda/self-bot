@@ -1,4 +1,4 @@
-import { WAMessage, WASocket, proto } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, proto } from 'baileys'
 import { existsSync, readFileSync, unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import { delay } from 'lodash'

@@ -3,7 +3,7 @@ import {
     WAMediaUpload,
     WAMessageContent,
     proto,
-} from '@whiskeysockets/baileys'
+} from 'baileys'
 
 export interface StickerCommand {
     cmd: string

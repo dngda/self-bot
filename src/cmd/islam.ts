@@ -1,5 +1,5 @@
 import stringId from '../language'
-import { WAMessage, WASocket, delay } from '@whiskeysockets/baileys'
+import { WAMessage, WASocket, delay } from 'baileys'
 import moment from 'moment-timezone'
 import { actions } from '../handler'
 import { mp3ToOpus } from '../lib/_index'
