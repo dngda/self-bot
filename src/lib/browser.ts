@@ -138,7 +138,7 @@ export class PlaywrightBrowser {
         }
 
         try {
-            await page.type('#id_url', url)
+            await page.fill('#id_url', url)
             await page.click('#search')
 
             const result = await handleResponse(page)
