@@ -171,6 +171,7 @@ async function tiktok(url: string, ctx: MessageContext) {
     const buffer = Buffer.from(response.data)
     await ctx.replyContent({
         video: buffer,
+        seconds: Math.floor(result.duration ?? 0),
     })
 
     return ctx.reactSuccess()
@@ -196,6 +197,7 @@ async function instagram(url: string, ctx: MessageContext) {
 
     await ctx.replyContent({
         video: { url: videos[0].url },
+        seconds: Math.floor(result.duration ?? 0),
     })
     return ctx.reactSuccess()
 }
@@ -221,6 +223,7 @@ async function twitter(url: string, ctx: MessageContext) {
 
     await ctx.replyContent({
         video: { url: videos.pop()?.url ?? '' },
+        seconds: Math.floor(result.duration ?? 0),
     })
     return ctx.reactSuccess()
 }
@@ -249,6 +252,7 @@ async function youtube(url: string, ctx: MessageContext) {
 
     await ctx.replyContent({
         video: { url: videos[0].url },
+        seconds: Math.floor(result.duration ?? 0),
     })
     return ctx.reactSuccess()
 }
