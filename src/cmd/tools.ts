@@ -331,16 +331,15 @@ const videoSplitHandler = async (
     for (let i = 0; i < video.length; i++) {
         if (!video[i].endsWith('.mp4')) continue
         if (!video[i].includes(id)) continue
-        const path = `tmp/vs/${video[i]}`
 
         await ctx.replyContent({
-            video: { url: path },
+            video: { url: video[i] },
             caption: `0${i}`,
-            seconds: await getVideoDurationInSeconds(path),
+            seconds: await getVideoDurationInSeconds(video[i]),
             mimetype: 'video/mp4',
         })
 
-        paths.push(path)
+        paths.push(video[i])
     }
 
     await ctx.reactSuccess()
