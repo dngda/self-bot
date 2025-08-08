@@ -163,9 +163,14 @@ async function tiktok(url: string, ctx: MessageContext) {
         throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
 
-    const response = await axios.get(videos[0].url, {
+    const selected = videos.shift()
+
+    // get tt_chain_token from cookie
+    const tt_chain_token = selected.cookies.match(/tt_chain_token="([^"]+)"/)[1]
+
+    const response = await axios.get(selected.url, {
         responseType: 'arraybuffer',
-        headers: { ...videos[0].http_headers, Cookie: videos[0].cookies },
+        headers: { ...selected.http_headers, Cookie: `tk=${tt_chain_token}` },
     })
 
     const buffer = Buffer.from(response.data)
