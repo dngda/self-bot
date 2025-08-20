@@ -240,6 +240,7 @@ export const handleDeleteList = async (
         return await ctx.reply('Nomor tidak valid!')
     }
 
+    // Index 0 stores the list title; items start from index 1
     list.splice(index, 1)
     ListMemory.set(ctx.from, list)
     await ctx.reactSuccess()
