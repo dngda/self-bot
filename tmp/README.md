@@ -1,1 +1,1 @@
-### Use this folder to temp media data at runtime!
+Use this folder to store temporary media data at runtime!
