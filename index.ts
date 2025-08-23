@@ -8,15 +8,15 @@ import makeWASocket, {
     Browsers,
 } from 'baileys'
 import qrTerminal from 'qrcode-terminal'
-import MAIN_LOGGER from './src/utils/logger'
-import { messageHandler } from './src/handler'
+import MAIN_LOGGER from './src/utils/logger.js'
+import { messageHandler } from './src/handler.js'
 import NodeCache from 'node-cache'
-import { textSync } from 'figlet'
+import figlet from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser, getMessage } from './src/lib/_index'
-import { executeSavedScriptInNote } from './src/cmd/owner'
+import { PlaywrightBrowser, getMessage } from './src/lib/_index.js'
+import { executeSavedScriptInNote } from './src/cmd/owner.js'
 export let browser: PlaywrightBrowser
 
 let lastDisconnectReason = ''
@@ -39,7 +39,7 @@ const startSock = async () => {
     const { version, isLatest } = await fetchLatestBaileysVersion()
     console.log(
         chalk.red(
-            textSync('SERO SELFBOT', {
+            figlet.textSync('SERO SELFBOT', {
                 horizontalLayout: 'fitted',
                 font: 'Letters',
             })

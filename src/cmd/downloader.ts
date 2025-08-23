@@ -1,10 +1,10 @@
 import { WAMessage, WASocket } from 'baileys'
-import { sampleSize } from 'lodash'
-import { actions } from '../handler'
-import stringId from '../language'
-import { pinterest } from '../lib/_index'
-import { menu } from '../menu'
-import { MessageContext } from '../types'
+import _ from 'lodash'
+import { actions } from '../handler.js'
+import stringId from '../language.js'
+import { pinterest } from '../lib/_index.js'
+import { menu } from '../menu.js'
+import { MessageContext } from '../types.js'
 import ytdl, { Payload } from 'youtube-dl-exec'
 import axios from 'axios'
 
@@ -55,7 +55,7 @@ const pinterestHandler = async (
         return ctx.reply(`Max 10, bro.`)
     }
 
-    const items = sampleSize(result.pins, qty)
+    const items = _.sampleSize(result.pins, qty)
     for (const item of items) {
         const content = item.media.video
             ? {

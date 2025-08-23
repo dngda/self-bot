@@ -3,14 +3,14 @@ import {
     getNotesNames,
     getStatus,
     getStatusList,
-} from '../lib/_index'
+} from '../lib/_index.js'
 import { WAMessage, WASocket } from 'baileys'
-import stringId from '../language'
-import { actions } from '../handler'
-import { menu } from '../menu'
-import { browser } from '../..'
+import stringId from '../language.js'
+import { actions } from '../handler.js'
+import { menu } from '../menu.js'
+import { browser } from '../../index.js'
 import chalk from 'chalk'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 
 export default () => {
     evalJS_Cmd()

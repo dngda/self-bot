@@ -4,8 +4,8 @@ import lodash from 'lodash'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import sharp from 'sharp'
 import { Sticker, StickerTypes } from 'wa-sticker-formatter'
-import { actions } from '../handler'
-import stringId from '../language'
+import { actions } from '../handler.js'
+import stringId from '../language.js'
 import {
     gifToMp4,
     memegen,
@@ -14,9 +14,9 @@ import {
     quotly,
     getPushName,
     EmojiApi,
-} from '../lib/_index'
-import { menu } from '../menu'
-import { MessageContext } from '../types'
+} from '../lib/_index.js'
+import { menu } from '../menu.js'
+import { MessageContext } from '../types.js'
 
 export default () => {
     textToStickerCmd()

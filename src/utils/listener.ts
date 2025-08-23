@@ -1,6 +1,6 @@
 import { WAMessage, WASocket, downloadMediaMessage, proto } from 'baileys'
-import { getMessage } from '../lib/_index'
-import { config } from '../handler'
+import { getMessage } from '../lib/_index.js'
+import { config } from '../handler.js'
 
 export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
     if (config.norevoke_exceptions.includes(msg.key.remoteJid!)) return null

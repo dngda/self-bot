@@ -7,11 +7,11 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'
-import { getCommand } from './menu'
-import loadCommands from './cmd/_index'
-import { HandlerFunction } from './raw/surah'
-import { BotConfig, MessageContext } from './types'
-import { storeMessage, storePushName, storeStatus } from './lib/_index'
+import { getCommand } from './menu.js'
+import loadCommands from './cmd/_index.js'
+import { HandlerFunction } from './raw/surah.js'
+import { BotConfig, MessageContext } from './types.js'
+import { storeMessage, storePushName, storeStatus } from './lib/_index.js'
 import {
     handleAutoSticker,
     handleAddList,
@@ -27,7 +27,7 @@ import {
     logCmd,
     serializeMessage,
     listenEditedMessage,
-} from './utils/_index'
+} from './utils/_index.js'
 
 export let config: BotConfig = {
     allowed_chats: [],

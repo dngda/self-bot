@@ -1,11 +1,11 @@
 import { WAMessage, WASocket, proto } from 'baileys'
 import { existsSync, readFileSync, unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
-import { delay } from 'lodash'
+import _ from 'lodash'
 import ocrApi from 'ocr-space-api-wrapper'
 import { Readable } from 'stream'
-import { actions } from '../handler'
-import stringId from '../language'
+import { actions } from '../handler.js'
+import stringId from '../language.js'
 import {
     LANGUAGES,
     createNote,
@@ -18,9 +18,9 @@ import {
     splitVideo,
     updateNoteContent,
     videoToMp3,
-} from '../lib/_index'
-import { menu } from '../menu'
-import { MessageContext } from '../types'
+} from '../lib/_index.js'
+import { menu } from '../menu.js'
+import { MessageContext } from '../types.js'
 
 export default () => {
     initNoteDatabase()
@@ -343,7 +343,7 @@ const videoSplitHandler = async (
     }
 
     await ctx.reactSuccess()
-    delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
+    _.delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
 }
 
 const ocrCmd = () => {

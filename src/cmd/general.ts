@@ -1,10 +1,10 @@
 import { WAMessage, WASocket } from 'baileys'
-import { getPrefix } from '../utils/_index'
-import { actions } from '../handler'
-import { getMenu, menu } from '../menu'
-import stringId from '../language'
+import { getPrefix } from '../utils/_index.js'
+import { actions } from '../handler.js'
+import { getMenu, menu } from '../menu.js'
+import stringId from '../language.js'
 import lodash from 'lodash'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 
 export default () => {
     pingCmd()

@@ -1,21 +1,16 @@
-import {
-    AnyMessageContent,
-    WAMessage,
-    WASocket,
-    proto,
-} from 'baileys'
+import { AnyMessageContent, WAMessage, WASocket, proto } from 'baileys'
 import chalk from 'chalk'
 import fs from 'fs'
 import * as math from 'mathjs'
-import { logCmd } from './_index'
-import { getStatusListMessage } from '../cmd/owner'
-import { actions, config } from '../handler'
-import stringId from '../language'
-import { getNoteContent, getStatus } from '../lib/_index'
-import { getCommand } from '../menu'
-import { MessageContext } from '../types'
-import { serializeMessage } from './serializer'
-import { ListMemory, renderList } from '../cmd/tools'
+import { logCmd } from './_index.js'
+import { getStatusListMessage } from '../cmd/owner.js'
+import { actions, config } from '../handler.js'
+import stringId from '../language.js'
+import { getNoteContent, getStatus } from '../lib/_index.js'
+import { getCommand } from '../menu.js'
+import { MessageContext } from '../types.js'
+import { serializeMessage } from './serializer.js'
+import { ListMemory, renderList } from '../cmd/tools.js'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
@@ -216,7 +211,7 @@ async function sendList(ctx: MessageContext, wa: WASocket) {
     }
 
     const sent = await ctx.send(renderList(ctx))
-    
+
     MsgKeyForList.set(ctx.from, {
         key: sent?.key as proto.IMessageKey,
         timestamp: sent?.messageTimestamp as number,

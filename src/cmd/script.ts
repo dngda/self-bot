@@ -1,8 +1,8 @@
 import { WAMessage, WASocket } from 'baileys'
-import { actions } from '../handler'
-import stringId from '../language'
-import { menu } from '../menu'
-import { MessageContext } from '../types'
+import { actions } from '../handler.js'
+import stringId from '../language.js'
+import { menu } from '../menu.js'
+import { MessageContext } from '../types.js'
 import { exec } from 'child_process'
 
 export default () => {

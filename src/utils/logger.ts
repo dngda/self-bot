@@ -2,7 +2,7 @@ import { WAMessage } from 'baileys'
 import chalk from 'chalk'
 import moment from 'moment-timezone'
 import P from 'pino'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 moment.tz.setDefault('Asia/Jakarta').locale('id')
 
 export default P({ timestamp: () => `,"time":"${new Date().toJSON()}"` })

@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from 'baileys'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 
 interface Translation {
     en: string

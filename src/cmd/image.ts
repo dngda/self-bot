@@ -1,7 +1,7 @@
 import { WAMessage, WASocket } from 'baileys'
 import sharp from 'sharp'
-import { actions } from '../handler'
-import stringId from '../language'
+import { actions } from '../handler.js'
+import stringId from '../language.js'
 import {
     BACKGROUND_BLUR,
     COLOR_ENHANCE,
@@ -9,10 +9,10 @@ import {
     Remini,
     removeWm,
     upscaleImage,
-} from '../lib/_index'
+} from '../lib/_index.js'
 import { Settings } from '../lib/types'
-import { menu } from '../menu'
-import { MessageContext } from '../types'
+import { menu } from '../menu.js'
+import { MessageContext } from '../types.js'
 
 export default () => {
     flipImageCmd()

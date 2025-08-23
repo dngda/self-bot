@@ -1,13 +1,13 @@
-import stringId from '../language'
+import stringId from '../language.js'
 import { WAMessage, WASocket, delay } from 'baileys'
 import moment from 'moment-timezone'
-import { actions } from '../handler'
-import { mp3ToOpus } from '../lib/_index'
-import { menu } from '../menu'
+import { actions } from '../handler.js'
+import { mp3ToOpus } from '../lib/_index.js'
+import { menu } from '../menu.js'
 import axios, { AxiosError } from 'axios'
 import fs from 'fs'
 import { Surah, SurahRepo } from '../raw/surah'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 
 export default () => {
     surahCmd()

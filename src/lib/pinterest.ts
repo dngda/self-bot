@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { PinSearchContainer, PinSearchResponse } from './types'
+import { PinSearchContainer, PinSearchResponse } from './types.js'
 
 export const pinterest = {
     api: {

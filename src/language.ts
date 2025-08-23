@@ -1,4 +1,4 @@
-import { LanguageString } from './types'
+import { LanguageString } from './types.js'
 
 const stringId: Record<string, LanguageString> = {}
 

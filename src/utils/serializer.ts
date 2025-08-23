@@ -8,9 +8,9 @@ import {
     downloadContentFromMessage,
 } from 'baileys'
 import dotenv from 'dotenv'
-import { config } from '../handler'
-import { MessageContext } from '../types'
-import { findMenu } from '../menu'
+import { config } from '../handler.js'
+import { MessageContext } from '../types.js'
+import { findMenu } from '../menu.js'
 dotenv.config()
 
 let prefix = process.env.PREFIX!

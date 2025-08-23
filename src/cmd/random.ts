@@ -1,10 +1,10 @@
 import { WAMessage, WASocket, delay } from 'baileys'
-import stringId from '../language'
-import { actions } from '../handler'
-import { menu } from '../menu'
+import stringId from '../language.js'
+import { actions } from '../handler.js'
+import { menu } from '../menu.js'
 import crypto from 'crypto'
 import axios from 'axios'
-import { MessageContext } from '../types'
+import { MessageContext } from '../types.js'
 
 export default () => {
     rollCmd()

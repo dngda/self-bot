@@ -1,9 +1,9 @@
 import { WAMessage, WASocket } from 'baileys'
-import { actions, config, updateConfig } from '../handler'
-import stringId from '../language'
-import { menu } from '../menu'
-import { getPrefix, resetPrefix, setPrefix } from '../utils/_index'
-import { MessageContext } from '../types'
+import { actions, config, updateConfig } from '../handler.js'
+import stringId from '../language.js'
+import { menu } from '../menu.js'
+import { getPrefix, resetPrefix, setPrefix } from '../utils/_index.js'
+import { MessageContext } from '../types.js'
 
 export default () => {
     setPrefixCmd()
