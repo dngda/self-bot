@@ -446,7 +446,23 @@ const quotlyHandler = async (
         mediaUrl = await uploadImage(media)
     }
 
-    const quoteRes = await quotly(pushname, text, avatar, mediaUrl)
+    const maxLength = 20
+    const lines: string[] = []
+    let currentLine = ''
+
+    for (const word of text.split(' ')) {
+        if (currentLine.length + word.length + 1 > maxLength) {
+            lines.push(currentLine)
+            currentLine = word
+        } else {
+            currentLine += (currentLine ? ' ' : '') + word
+        }
+    }
+
+    lines.push(currentLine)
+    const formattedText = lines.join('\n')
+
+    const quoteRes = await quotly(pushname, formattedText, avatar, mediaUrl)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {
         pack: process.env.PACKNAME!,
         author: process.env.AUTHOR!,
