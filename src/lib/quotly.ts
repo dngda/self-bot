@@ -45,7 +45,7 @@ export async function quotly(
     const json: Partial<QuoteRequest> = {
         type: 'quote',
         format: 'webp',
-        backgroundColor: '#000000',
+        backgroundColor: '#1b1429',
         scale: 2,
         messages: [
             {
