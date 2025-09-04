@@ -54,7 +54,7 @@ const flipHandler = async (
         throw new Error(stringId.flip.error.noImage())
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
-    const image = await sharp(mediaData)
+    const image = sharp(mediaData)
     if (cmd === 'flip')
         await ctx.replyContent({ image: await image.flip().toBuffer() })
     if (cmd === 'flop')
