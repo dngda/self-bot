@@ -121,10 +121,9 @@ export const handleMathEquation = async (ctx: MessageContext) => {
 
 export const handleReplyToContactStatusList = async (
     wa: WASocket,
-    msg: WAMessage,
+    _: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!msg.key.fromMe) return null
     if (!ctx.quotedMsg?.extendedTextMessage?.text?.includes('Status from'))
         return null
 
@@ -155,10 +154,9 @@ export const handleReplyToContactStatusList = async (
 
 export const handleReplyToStatusList = async (
     wa: WASocket,
-    msg: WAMessage,
+    _: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!msg.key.fromMe) return null
     const quoted = ctx.quotedMsg?.extendedTextMessage?.text
     if (!quoted?.includes('List Status Update')) return null
 

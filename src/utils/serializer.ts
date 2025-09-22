@@ -118,7 +118,9 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         from: msg.key.remoteJid!,
         name: msg.pushName,
         body: getBody(),
-        fromMe: msg.key.fromMe,
+        fromMe:
+            msg.key.fromMe ||
+            waSocket.user?.lid?.replace(':47', '') === msg.key.participant,
         participant: msg.key.participant,
         contextInfo: getContextInfo(),
         isGroup: msg.key.remoteJid!.endsWith('@g.us'),
