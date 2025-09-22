@@ -13,10 +13,10 @@
     "author": "",
     "license": "ISC",
     "devDependencies": {
-        "@eslint/js": "^9.34.0",
+        "@eslint/js": "^9.36.0",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
-        "eslint": "^9.34.0",
+        "eslint": "^9.36.0",
         "eslint-config-prettier": "^8.10.2",
         "globals": "^15.15.0",
         "nodemon": "^3.1.10",
@@ -34,13 +34,13 @@
         "@types/sequelize": "^4.28.20",
         "@types/sharp": "^0.31.1",
         "@types/sqlite3": "^3.1.11",
-        "axios": "^1.11.0",
+        "axios": "^1.12.2",
         "baileys": "github:WhiskeySockets/Baileys",
         "canvas": "^2.11.2",
         "chalk": "4.1.2",
         "cheerio": "1.0.0-rc.12",
         "dotenv": "^16.6.1",
-        "figlet": "^1.8.2",
+        "figlet": "^1.9.3",
         "form-data": "^4.0.4",
         "genius-lyrics": "^4.4.7",
         "get-video-duration": "^4.1.0",
@@ -60,7 +60,7 @@
         "sharp": "^0.32.6",
         "sqlite3": "^5.1.7",
         "wa-sticker-formatter": "^4.4.4",
-        "youtube-dl-exec": "^3.0.24"
+        "youtube-dl-exec": "^3.0.25"
     },
     "pnpm": {
         "onlyBuiltDependencies": [

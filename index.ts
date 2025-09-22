@@ -4,7 +4,6 @@ import makeWASocket, {
     fetchLatestBaileysVersion,
     useMultiFileAuthState,
     DisconnectReason,
-    proto,
     Browsers,
 } from 'baileys'
 import qrTerminal from 'qrcode-terminal'
@@ -60,12 +59,7 @@ const startSock = async () => {
         markOnlineOnConnect: false,
         getMessage: async (key) => {
             const msg = getMessage(key.id!)
-            return (
-                msg?.message ||
-                proto.Message.fromObject({
-                    message: { text: '_Failed to fetch message_' },
-                })
-            )
+            return msg?.message
         },
         shouldIgnoreJid: (jid) => jid?.endsWith('bot'),
         cachedGroupMetadata: async (jid) => groupCache.get(jid),
