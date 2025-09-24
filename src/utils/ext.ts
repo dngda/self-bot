@@ -92,6 +92,7 @@ export const handleStickerCommand = async (
             ctx.arg = config.sticker_commands[stickerSha].arg
             ctx.args = ctx.arg.split(' ')
             const cmd = getCommand(ctx.cmd)
+            logCmd(_msg, ctx)
             await actions[cmd]?.(_wa, _msg, ctx)
         }
     } catch (error) {

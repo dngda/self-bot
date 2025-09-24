@@ -1,7 +1,7 @@
 import { WAMessage, WASocket } from 'baileys'
 import { actions, config, updateConfig } from '../handler.js'
 import stringId from '../language.js'
-import { menu } from '../menu.js'
+import { findMenu, menu } from '../menu.js'
 import { getPrefix, resetPrefix, setPrefix } from '../utils/_index.js'
 import { MessageContext } from '../types.js'
 
@@ -28,7 +28,7 @@ const toggleAllowChatCmd = () => {
     menu.push({
         command: 'allow',
         hint: stringId.allow.hint,
-        alias: 'forbid',
+        alias: 'deny',
         type: 'config',
     })
 
@@ -44,7 +44,7 @@ const toggleAllowHandler = async (
 ) => {
     if (!ctx.fromMe) throw stringId.allow.error.notSelf()
     let isAllowed = config.allowed_chats.includes(ctx.from)
-    if (ctx.cmd === 'forbid') {
+    if (ctx.cmd !== 'allow') {
         if (isAllowed) {
             config.allowed_chats = config.allowed_chats.filter(
                 (x: string) => x !== ctx.from
@@ -70,15 +70,16 @@ const stickerAsCommandCmd = () => {
                     scmd.arg ? scmd.arg : ''
                 }`,
             notExist: () => '‼️ Sticker tidak terdaftar',
+            invalidCmd: () => '‼️ Command tidak valid',
         },
         usage: (ctx: MessageContext) =>
             `Reply sticker dengan: ${ctx.prefix}scmd <cmd> <arg>
 ➡️ Contoh: ${ctx.prefix}scmd sticker -r -nobg
     atau hapus scmd dengan: ${ctx.prefix}dscmd <cmd>`,
         success: (cmd: string) =>
-            `✅ Sticker dengan cmd "${cmd}" berhasil ditambahkan`,
+            `✅ Sticker dengan command "${cmd}" berhasil ditambahkan`,
         info: (cmd: string) =>
-            `✅ Sticker dengan cmd "${cmd}" berhasil dihapus`,
+            `✅ Sticker dengan command "${cmd}" berhasil dihapus`,
     }
 
     menu.push({
@@ -124,10 +125,11 @@ const stickerAsCmdHandler = async (
     } else {
         const cmd = ctx.args[0]
         const arg = ctx.arg.replace(cmd, '').trim()
-        if (!cmd) {
-            ctx.reply(stringId.stickerCmd.usage(ctx))
-            return
-        }
+
+        if (!cmd) return ctx.reply(stringId.stickerCmd.usage(ctx))
+        if (!findMenu(cmd))
+            return ctx.reply(stringId.stickerCmd.error.invalidCmd())
+
         if (stickerSha in config.sticker_commands) {
             ctx.reply(
                 stringId.stickerCmd.error.exist(
