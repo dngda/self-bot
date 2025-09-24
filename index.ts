@@ -22,7 +22,7 @@ let lastDisconnectReason = ''
 
 dotenv.config()
 const logger = MAIN_LOGGER.child({})
-logger.level = 'error'
+logger.level = 'fatal'
 
 const msgRetryCounterCache = new NodeCache()
 const groupCache = new NodeCache({ stdTTL: 5 * 60, useClones: false })
