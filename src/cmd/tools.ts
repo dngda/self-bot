@@ -343,7 +343,10 @@ const videoSplitHandler = async (
     }
 
     await ctx.reactSuccess()
-    _.delay(() => paths.forEach((path: string) => unlink(path, (_) => _)), 10_000)
+    _.delay(
+        () => paths.forEach((path: string) => unlink(path, (_) => _)),
+        10_000
+    )
 }
 
 const ocrCmd = () => {

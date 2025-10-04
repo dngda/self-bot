@@ -1,9 +1,4 @@
-import {
-    MessageUpsertType,
-    WAMessage,
-    WASocket,
-    proto,
-} from 'baileys'
+import { MessageUpsertType, WAMessage, WASocket, proto } from 'baileys'
 import chalk from 'chalk'
 import fs from 'fs'
 import util from 'util'
@@ -215,7 +210,7 @@ const universalHandler = async (
     }
 }
 
-const storeMessageData = (msg: proto.IWebMessageInfo) => {
+const storeMessageData = (msg: WAMessage) => {
     if (msg.message?.protocolMessage) return null
 
     storeMessage(
@@ -227,7 +222,7 @@ const storeMessageData = (msg: proto.IWebMessageInfo) => {
     return true
 }
 
-const storeStatusData = (msg: proto.IWebMessageInfo) => {
+const storeStatusData = (msg: WAMessage) => {
     if (msg.key.fromMe) return null
     if (msg.message?.protocolMessage) return null
     if (msg.key.remoteJid != 'status@broadcast') return null
@@ -241,7 +236,7 @@ const storeStatusData = (msg: proto.IWebMessageInfo) => {
     return true
 }
 
-const storePushNameData = (msg: proto.IWebMessageInfo) => {
+const storePushNameData = (msg: WAMessage) => {
     if (msg.message?.protocolMessage) return null
     const jid = msg.key.participant || msg.key.remoteJid || ''
     if (msg.key.fromMe && jid !== process.env.OWNER_NUMBER!) return null

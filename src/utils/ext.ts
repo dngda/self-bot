@@ -58,7 +58,7 @@ export const handleRepeatCommand = async (
 ) => {
     const quoted = ctx.quotedMsg
     if (quoted) {
-        const msg: proto.IWebMessageInfo = {
+        const msg: WAMessage = {
             key: _msg.key,
             messageTimestamp: _msg.messageTimestamp,
             pushName: _msg.pushName,

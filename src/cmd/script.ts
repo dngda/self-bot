@@ -69,10 +69,10 @@ const execHandler = async (
         'poweroff',
         'wget',
         'curl',
-    ]);
+    ])
 
     if (script.split(' ').some((cmd) => forbiddenCommands.has(cmd))) {
-        throw new Error('Tidak diizinkan menjalankan command tersebut.');
+        throw new Error('Tidak diizinkan menjalankan command tersebut.')
     }
 
     const childProcess = exec(

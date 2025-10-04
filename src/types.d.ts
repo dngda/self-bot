@@ -1,6 +1,7 @@
 import {
     AnyMessageContent,
     WAMediaUpload,
+    WAMessage,
     WAMessageContent,
     proto,
 } from 'baileys'
@@ -61,27 +62,23 @@ export interface MessageContext {
     download: () => Promise<Buffer>
     downloadQuoted: () => Promise<Buffer>
     downloadSticker: () => Promise<Buffer>
-    reply: (text: string) => Promise<proto.WebMessageInfo | undefined>
+    reply: (text: string) => Promise<WAMessage | undefined>
     quoteReply: (
         text: string,
-        quoted: proto.IWebMessageInfo
-    ) => Promise<proto.WebMessageInfo | undefined>
-    send: (text: string) => Promise<proto.WebMessageInfo | undefined>
-    replySticker: (
-        inputMedia: WAMediaUpload
-    ) => Promise<proto.WebMessageInfo | undefined>
-    replyContent: (
-        content: AnyMessageContent
-    ) => Promise<proto.WebMessageInfo | undefined>
+        quoted: WAMessage
+    ) => Promise<WAMessage | undefined>
+    send: (text: string) => Promise<WAMessage | undefined>
+    replySticker: (inputMedia: WAMediaUpload) => Promise<WAMessage | undefined>
+    replyContent: (content: AnyMessageContent) => Promise<WAMessage | undefined>
     quoteReplyContent: (
         content: AnyMessageContent,
-        quoted: proto.IWebMessageInfo
-    ) => Promise<proto.WebMessageInfo | undefined>
-    replyVoiceNote: (path: string) => Promise<proto.WebMessageInfo | undefined>
+        quoted: WAMessage
+    ) => Promise<WAMessage | undefined>
+    replyVoiceNote: (path: string) => Promise<WAMessage | undefined>
 
-    reactWait: () => Promise<proto.WebMessageInfo | undefined>
-    reactSuccess: () => Promise<proto.WebMessageInfo | undefined>
-    reactError: () => Promise<proto.WebMessageInfo | undefined>
+    reactWait: () => Promise<WAMessage | undefined>
+    reactSuccess: () => Promise<WAMessage | undefined>
+    reactError: () => Promise<WAMessage | undefined>
 }
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

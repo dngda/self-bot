@@ -235,7 +235,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         )
     }
 
-    ctx.quoteReply = async (text: string, quoted: proto.IWebMessageInfo) => {
+    ctx.quoteReply = async (text: string, quoted: WAMessage) => {
         return waSocket.sendMessage(
             ctx.from,
             { text: text },
@@ -268,7 +268,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
     ctx.quoteReplyContent = async (
         content: AnyMessageContent,
-        quoted: proto.IWebMessageInfo
+        quoted: WAMessage
     ) => {
         return waSocket.sendMessage(ctx.from, content, {
             quoted: quoted,
