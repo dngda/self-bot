@@ -2,7 +2,7 @@ import { WAMessage, WASocket } from 'baileys'
 import { actions } from '../handler.js'
 import stringId from '../language.js'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 import { exec } from 'child_process'
 
 export default () => {
@@ -31,7 +31,7 @@ const execScriptCmd = () => {
     })
 }
 
-const execHandler = async (
+const execHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -89,6 +89,8 @@ const execHandler = async (
     )
 
     childProcess.stdout?.on('data', (data) => {
-        ctx.reply(data)
+        return ctx.reply(data)
     })
+
+    return undefined
 }

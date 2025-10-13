@@ -3,7 +3,7 @@ import { browser } from '../../index.js'
 import { actions } from '../handler.js'
 import stringId from '../language.js'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 import { Client } from 'genius-lyrics'
 import dotenv from 'dotenv'
 
@@ -44,15 +44,14 @@ const citraRadarJogjaCmd = () => {
         cuaca: citraRadarHandler,
     })
 }
-
-const citraRadarHandler = async (
+const citraRadarHandler: HandlerFunction = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
 ) => {
     ctx.reactWait()
-    browser
-        .takeScreenshot(
+    try {
+        const r = await browser.takeScreenshot(
             'http://sipora-yogya.bmkg.go.id/radar/',
             'tmp/radar.png',
             { width: 1200, height: 1000 },
@@ -64,24 +63,25 @@ const citraRadarHandler = async (
                 await page.waitForTimeout(3000)
             }
         )
-        .then((r) => {
-            if (!r) {
-                ctx.reactError()
-                return ctx.reply(stringId.crjogja.error.timeOut())
-            }
 
-            waSocket.sendMessage(
-                ctx.from,
-                { image: { url: 'tmp/radar.png' } },
-                { quoted: msg, ephemeralExpiration: ctx.expiration! }
-            )
-            return ctx.reactSuccess()
-        })
-        .catch((e) => {
-            console.log(e)
+        if (!r) {
             ctx.reactError()
             return ctx.reply(stringId.crjogja.error.timeOut())
-        })
+        }
+
+        const result = await waSocket.sendMessage(
+            ctx.from,
+            { image: { url: 'tmp/radar.png' } },
+            { quoted: msg, ephemeralExpiration: ctx.expiration! }
+        )
+
+        ctx.reactSuccess()
+        return result
+    } catch (e) {
+        console.log(e)
+        ctx.reactError()
+        return ctx.reply(stringId.crjogja.error.timeOut())
+    }
 }
 
 const duckduckgoSearchCmd = () => {
@@ -106,7 +106,7 @@ const duckduckgoSearchCmd = () => {
     })
 }
 
-const ddgSearchHandler = async (
+const ddgSearchHandler: HandlerFunction = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -117,26 +117,27 @@ const ddgSearchHandler = async (
     const url = `https://duckduckgo.com/?q=${encodeURIComponent(
         query
     )}&hps=1&start=1&ia=web`
-    browser
-        .takeScreenshot(url, 'tmp/ddg.png', { width: 750, height: 1200 })
-        .then((r) => {
-            if (!r) {
-                ctx.reactError()
-                return ctx.reply(stringId.ddg.error.timeOut())
-            }
-
-            return waSocket.sendMessage(
-                ctx.from,
-                { image: { url: 'tmp/ddg.png' } },
-                { quoted: msg, ephemeralExpiration: ctx.expiration! }
-            )
+    try {
+        const r = await browser.takeScreenshot(url, 'tmp/ddg.png', {
+            width: 750,
+            height: 1200,
         })
-        .catch((e) => {
-            console.log(e)
+        if (!r) {
             ctx.reactError()
             return ctx.reply(stringId.ddg.error.timeOut())
-        })
-    return ctx.reactSuccess()
+        }
+
+        ctx.reactSuccess()
+        return await waSocket.sendMessage(
+            ctx.from,
+            { image: { url: 'tmp/ddg.png' } },
+            { quoted: msg, ephemeralExpiration: ctx.expiration! }
+        )
+    } catch (e) {
+        console.log(e)
+        ctx.reactError()
+        return ctx.reply(stringId.ddg.error.timeOut())
+    }
 }
 
 const googleSearchCmd = () => {
@@ -161,7 +162,7 @@ const googleSearchCmd = () => {
     })
 }
 
-const googleSearchHandler = async (
+const googleSearchHandler: HandlerFunction = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -172,30 +173,27 @@ const googleSearchHandler = async (
     const url = `https://www.google.com/search?client=firefox-b-d&q=${encodeURIComponent(
         query
     )}`
-    browser
-        .takeScreenshot(url, 'tmp/google.png', {
+    try {
+        const r = await browser.takeScreenshot(url, 'tmp/google.png', {
             width: 1300,
             height: 1700,
         })
-        .then((r) => {
-            if (!r) {
-                ctx.reactError()
-                return ctx.reply(stringId.gs.error.timeOut())
-            }
-
-            return waSocket.sendMessage(
-                ctx.from,
-                { image: { url: 'tmp/google.png' } },
-                { quoted: msg, ephemeralExpiration: ctx.expiration! }
-            )
-        })
-        .catch((e) => {
-            console.log(e)
+        if (!r) {
             ctx.reactError()
             return ctx.reply(stringId.gs.error.timeOut())
-        })
+        }
 
-    return ctx.reactSuccess()
+        ctx.reactSuccess()
+        return waSocket.sendMessage(
+            ctx.from,
+            { image: { url: 'tmp/google.png' } },
+            { quoted: msg, ephemeralExpiration: ctx.expiration! }
+        )
+    } catch (e) {
+        console.log(e)
+        ctx.reactError()
+        return ctx.reply(stringId.gs.error.timeOut())
+    }
 }
 
 const lyricsSearchCmd = () => {
@@ -220,7 +218,7 @@ const lyricsSearchCmd = () => {
     })
 }
 
-const lyricsHandler = async (
+const lyricsHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -243,7 +241,6 @@ const lyricsHandler = async (
         lyrics = '[Verse 1' + lyrics.split('[Verse 1')[1]
     }
 
-    ctx.reply(`🎵 _${song.title}_\n\n${lyrics}`)
-
-    return ctx.reactSuccess()
+    ctx.reactSuccess()
+    return ctx.reply(`🎵 _${song.title}_\n\n${lyrics}`)
 }

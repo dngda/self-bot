@@ -1,6 +1,3 @@
-import { WAMessage, WASocket } from 'baileys'
-import { MessageContext } from '../types.js'
-
 interface Translation {
     en: string
     id: string
@@ -43,9 +40,3 @@ export interface SurahRepo {
     message: string
     data: Surah[]
 }
-
-export type HandlerFunction = (
-    wa: WASocket,
-    msg: WAMessage,
-    ctx: MessageContext
-) => Promise<void>

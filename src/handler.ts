@@ -4,8 +4,7 @@ import fs from 'fs'
 import util from 'util'
 import { getCommand } from './menu.js'
 import loadCommands from './cmd/_index.js'
-import { HandlerFunction } from './raw/surah.js'
-import { BotConfig, MessageContext } from './types.js'
+import { BotConfig, HandlerFunction, MessageContext } from './types.js'
 import { storeMessage, storePushName, storeStatus } from './lib/_index.js'
 import {
     handleAutoSticker,
@@ -65,7 +64,7 @@ export const actions: { [index: string]: HandlerFunction } = {}
 loadCommands()
 
 // Main Handler
-export const messageHandler = async (
+export const mainMessageProcessor = async (
     waSocket: WASocket,
     event: {
         messages: WAMessage[]
@@ -103,9 +102,9 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
         handleError(ctx, error)
     }
 
-    storePushNameData(msg)
-    storeMessageData(msg)
-    storeStatusData(msg)
+    storeUserPushName(msg)
+    storeIncomingMessage(msg)
+    storeStatusMessage(msg)
 
     if (config.norevoke) listenDeletedMessage(waSocket, msg)
 
@@ -143,7 +142,11 @@ const handleCommands = async (
                 util.inspect(ctx, false, null, true)
             )
             logCmd(msg, ctx)
-            await actions[cmd](waSocket, msg, ctx)
+            const sent = await actions[cmd](waSocket, msg, ctx)
+
+            if (sent) {
+                storeMessage(sent)
+            }
         }
     }
 
@@ -168,8 +171,8 @@ const isAppStateSync = (msg: WAMessage) =>
 
 // --------------------------------------------------------- //
 const noPrefixHandler = async (
-    _wa: WASocket,
-    _msg: WAMessage,
+    wa: WASocket,
+    msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { body } = ctx
@@ -179,68 +182,56 @@ const noPrefixHandler = async (
             await handleNoteCommand(ctx)
             break
         case /^-r$/.test(body as string):
-            await handleRepeatCommand(_wa, _msg, ctx)
+            await handleRepeatCommand(wa, msg, ctx)
             break
         case /^\d\d?\d?$/.test(body as string):
-            await handleReplyToStatusList(_wa, _msg, ctx)
-            await handleReplyToContactStatusList(_wa, _msg, ctx)
+            await handleReplyToStatusList(wa, msg, ctx)
+            await handleReplyToContactStatusList(wa, msg, ctx)
             break
         case /1view/gi.test(body as string):
             ctx.from = process.env.OWNER_NUMBER!
-            await actions['onev'](_wa, _msg, ctx)
+            await actions['onev'](wa, msg, ctx)
             break
         default:
             await handleMathEquation(ctx)
-            await handleStickerCommand(_wa, _msg, ctx)
+            await handleStickerCommand(wa, msg, ctx)
             await handleSuperConfig(ctx)
             break
     }
 }
 
 const universalHandler = async (
-    _wa: WASocket,
-    _msg: WAMessage,
+    wa: WASocket,
+    msg: WAMessage,
     ctx: MessageContext
 ) => {
     const { body } = ctx
     if (/^\+.+/.test(body as string)) {
-        await handleAddList(_wa, _msg, ctx)
+        await handleAddList(wa, msg, ctx)
     } else if (/^-\d+/.test(body as string)) {
-        await handleDeleteList(_wa, _msg, ctx)
+        await handleDeleteList(wa, msg, ctx)
     }
 }
 
-const storeMessageData = (msg: WAMessage) => {
+const storeIncomingMessage = (msg: WAMessage) => {
     if (msg.message?.protocolMessage) return null
 
-    storeMessage(
-        msg.key.id!,
-        msg.messageTimestamp! as number,
-        msg.message!,
-        msg.key
-    )
-    return true
+    return storeMessage(msg)
 }
 
-const storeStatusData = (msg: WAMessage) => {
+const storeStatusMessage = (msg: WAMessage) => {
     if (msg.key.fromMe) return null
     if (msg.message?.protocolMessage) return null
     if (msg.key.remoteJid != 'status@broadcast') return null
 
-    storeStatus(
-        msg.key.participant!,
-        msg.messageTimestamp! as number,
-        msg.message!,
-        msg.key!
-    )
-    return true
+    return storeStatus(msg)
 }
 
-const storePushNameData = (msg: WAMessage) => {
+const storeUserPushName = (msg: WAMessage) => {
     if (msg.message?.protocolMessage) return null
     const jid = msg.key.participant || msg.key.remoteJid || ''
     if (msg.key.fromMe && jid !== process.env.OWNER_NUMBER!) return null
 
-    storePushName(jid, msg.pushName || '+' + jid.split('@')[0])
-    return true
+    const name = msg.pushName || (jid ? '+' + jid.split('@')[0] : '')
+    return storePushName(jid, name)
 }

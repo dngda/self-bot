@@ -3,7 +3,7 @@ import { actions, config, updateConfig } from '../handler.js'
 import stringId from '../language.js'
 import { findMenu, menu } from '../menu.js'
 import { getPrefix, resetPrefix, setPrefix } from '../utils/_index.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     setPrefixCmd()
@@ -37,7 +37,7 @@ const toggleAllowChatCmd = () => {
     })
 }
 
-const toggleAllowHandler = async (
+const toggleAllowHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -57,6 +57,7 @@ const toggleAllowHandler = async (
             isAllowed = true
         }
     }
+
     updateConfig()
     return ctx.reply(stringId.allow.info?.(isAllowed, ctx.prefix) ?? '')
 }
@@ -94,18 +95,19 @@ const stickerAsCommandCmd = () => {
     })
 }
 
-const stickerAsCmdHandler = async (
+const stickerAsCmdHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return
+    if (!ctx.fromMe) return undefined
 
     const quoted = ctx.quotedMsg
     if (!quoted?.stickerMessage?.fileSha256) {
         ctx.reply(stringId.stickerCmd.usage(ctx))
-        return
+        return undefined
     }
+
     const stickerSha = Buffer.from(quoted.stickerMessage?.fileSha256).toString(
         'base64'
     )
@@ -175,17 +177,17 @@ Cek prefix aktif dengan: *cekprefix*`,
     })
 }
 
-const setPrefixHandler = async (
+const setPrefixHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return
+    if (!ctx.fromMe) return undefined
     if (ctx.cmd === 'resetprefix') {
         resetPrefix()
         return ctx.reply(stringId.setPrefix.info?.() ?? '')
     } else if (ctx.cmd === 'cekprefix') {
-        await ctx.reply(`Prefix: '${getPrefix()}'`)
+        return ctx.reply(`Prefix: '${getPrefix()}'`)
     } else {
         let prefix = ctx.arg
         if (!prefix) {
@@ -198,10 +200,8 @@ const setPrefixHandler = async (
         }
 
         setPrefix(prefix.trim())
-        ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
+        return ctx.reply(stringId.setPrefix.success?.(prefix) ?? '')
     }
-
-    return ctx.reactSuccess()
 }
 
 const toggleConfigCmd = () => {
@@ -232,12 +232,12 @@ Config:
     })
 }
 
-const configHandler = async (
+const configHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return
+    if (!ctx.fromMe) return undefined
 
     const configName = ctx.args[0]
     const thisChat = ctx.arg.includes('this')

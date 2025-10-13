@@ -1,9 +1,9 @@
-import { proto } from 'baileys'
+import { proto, WAMessage } from 'baileys'
 import fs from 'fs/promises'
 import path from 'path'
 
 interface StoredMessage {
-    timestamp: number
+    timestamp: number | Long
     message: proto.IMessage
     key: proto.IMessageKey
 }
@@ -36,6 +36,7 @@ async function loadStore() {
         fs.readFile(MESSAGE_FILE, 'utf-8'),
         fs.readFile(PUSHNAME_FILE, 'utf-8'),
     ])
+
     StatusStore = new Map(Object.entries(JSON.parse(statusData)))
     MessageStore = new Map(Object.entries(JSON.parse(messageData)))
     PushNameStore = new Map(Object.entries(JSON.parse(pushnameData)))
@@ -69,22 +70,22 @@ ensureFiles()
         console.error('Error initializing store:', err)
     })
 
-export const storeMessage = (
-    id: string,
-    timestamp: number,
-    message: proto.IMessage,
-    key: proto.IMessageKey
-) => {
+export const storeMessage = (msg: WAMessage) => {
+    const { key, message, messageTimestamp } = msg
+    if (!key.id || !message) return
+    const id = key.id
+    const timestamp = messageTimestamp || Math.floor(Date.now() / 1000)
+
     MessageStore.set(id, { timestamp, message, key })
     dirty.message = true
 }
 
-export const storeStatus = (
-    jid: string,
-    timestamp: number,
-    message: proto.IMessage,
-    key: proto.IMessageKey
-) => {
+export const storeStatus = (msg: WAMessage) => {
+    const { key, message, messageTimestamp } = msg
+    if (!key.participant || !message) return
+    const jid = key.participant
+    const timestamp = messageTimestamp || Math.floor(Date.now() / 1000)
+
     const messages = StatusStore.get(jid) || []
     messages.push({ timestamp, message, key })
     StatusStore.set(jid, messages)
@@ -110,7 +111,11 @@ setInterval(() => {
     const now = Date.now()
     let changed = false
     MessageStore.forEach((value, key) => {
-        if (now - value.timestamp * 1000 > 1000 * 60 * 60 * 3) {
+        const ts =
+            typeof value.timestamp === 'number'
+                ? value.timestamp
+                : Number(value.timestamp)
+        if (now - ts * 1000 > 1000 * 60 * 60 * 3) {
             MessageStore.delete(key)
             changed = true
         }
@@ -123,7 +128,7 @@ setInterval(() => {
     let changed = false
     StatusStore.forEach((value, key) => {
         const newMessages = value.filter(
-            (msg) => now - msg.timestamp * 1000 < 1000 * 60 * 60 * 24
+            (msg) => now - Number(msg.timestamp) * 1000 < 1000 * 60 * 60 * 24
         )
         if (newMessages.length === 0) {
             StatusStore.delete(key)

@@ -2,12 +2,12 @@ import stringId from '../language.js'
 import { WAMessage, WASocket, delay } from 'baileys'
 import moment from 'moment-timezone'
 import { actions } from '../handler.js'
-import { mp3ToOpus } from '../lib/_index.js'
+import { mp3ToOpus, storeMessage } from '../lib/_index.js'
 import { menu } from '../menu.js'
 import axios, { AxiosError } from 'axios'
 import fs from 'fs'
 import { Surah, SurahRepo } from '../raw/surah'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     surahCmd()
@@ -45,7 +45,7 @@ const jadwalSholatCmd = () => {
 const q3 = '```'
 const get = axios.get
 
-const jadwalSholatHandler = async (
+const jadwalSholatHandler: HandlerFunction = async (
     _: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -62,7 +62,7 @@ const jadwalSholatHandler = async (
             hasil += `${kota.lokasi}\n`
         }
         hasil += '╚═〘 *SeroBot* 〙'
-        await ctx.reply(hasil)
+        return ctx.reply(hasil)
     } else {
         const { data: cariKota } = await get(
             'https://api.myquran.com/v2/sholat/kota/cari/' +
@@ -92,9 +92,10 @@ const jadwalSholatHandler = async (
         jadwalMsg += `╠> ${q3}Maghrib  : ${jadwal.maghrib}${q3}\n`
         jadwalMsg += `╠> ${q3}Isya'    : ${jadwal.isya}${q3}\n`
         jadwalMsg += '╚═〘 *SeroBot* 〙'
-        ctx.reply(jadwalMsg)
+
+        ctx.reactSuccess()
+        return ctx.reply(jadwalMsg)
     }
-    return ctx.reactSuccess()
 }
 
 const surahCmd = () => {
@@ -136,7 +137,7 @@ const surahRepo = JSON.parse(
     fs.readFileSync('./src/raw/surah.json', 'utf-8')
 ) as SurahRepo
 
-const surahHandler = async (
+const surahHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -150,7 +151,7 @@ const surahHandler = async (
     ctx.reactWait()
 
     if (args[0] == 'daftar') {
-        return await handleDaftar(ctx)
+        return handleDaftar(ctx)
     }
 
     const surahNumber = isNaN(Number(args[0]))
@@ -165,9 +166,8 @@ const surahHandler = async (
         ? processMultipleAyat
         : processSingleAyat
 
-    await processAyat(ctx, surahNumber, cmd)
-
-    return ctx.reactSuccess()
+    ctx.reactSuccess()
+    return processAyat(ctx, surahNumber, cmd)
 }
 
 const handleDaftar = async (ctx: MessageContext) => {
@@ -179,7 +179,7 @@ const handleDaftar = async (ctx: MessageContext) => {
     })
     list += '╚═〘 *SeroBot* 〙'
     ctx.reactSuccess()
-    return await ctx.reply(list)
+    return ctx.reply(list)
 }
 
 const getSurahNumberByName = (name: string) => {
@@ -241,6 +241,7 @@ const processMultipleAyat = async (
         await getAyatSurahDataAndSend(ctx, surahNumber, i, cmd)
         await delay(1000)
     }
+    return undefined
 }
 
 const processSingleAyat = async (
@@ -249,7 +250,7 @@ const processSingleAyat = async (
     cmd: string
 ) => {
     const ayatNumber = isNaN(Number(ctx.args[1])) ? 1 : Number(ctx.args[1])
-    await getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
+    return getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
 }
 
 interface SurahResponse {
@@ -303,17 +304,17 @@ const getAyatSurahDataAndSend = async (
 
                 const opus = await mp3ToOpus(path, pathConverted)
 
-                await ctx.replyVoiceNote(opus)
+                const sent = await ctx.replyVoiceNote(opus)
+                if (sent) storeMessage(sent)
                 fs.unlink(path, () => {})
             } else {
-                await ctx.replyVoiceNote(pathConverted)
+                const sent = await ctx.replyVoiceNote(pathConverted)
+                if (sent) storeMessage(sent)
             }
         }
 
         const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
-        await ctx.send(message)
-
-        return true
+        return ctx.send(message)
     } catch (err: unknown) {
         ctx.reactError()
         if ((err as AxiosError).response?.status == 404) {

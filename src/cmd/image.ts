@@ -12,7 +12,7 @@ import {
 } from '../lib/_index.js'
 import { Settings } from '../lib/types'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     flipImageCmd()
@@ -44,7 +44,7 @@ const flipImageCmd = () => {
     })
 }
 
-const flipHandler = async (
+const flipHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -55,11 +55,13 @@ const flipHandler = async (
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = sharp(mediaData)
-    if (cmd === 'flip')
-        await ctx.replyContent({ image: await image.flip().toBuffer() })
-    if (cmd === 'flop')
-        await ctx.replyContent({ image: await image.flop().toBuffer() })
+
     ctx.reactSuccess()
+    if (cmd === 'flip')
+        return ctx.replyContent({ image: await image.flip().toBuffer() })
+    if (cmd === 'flop')
+        return ctx.replyContent({ image: await image.flop().toBuffer() })
+    return undefined
 }
 
 const reminiCmd = () => {
@@ -92,7 +94,7 @@ Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
     })
 }
 
-const reminiHandler = async (
+const reminiHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -138,8 +140,9 @@ const reminiHandler = async (
 
     const image = await Remini(mediaData, options)
     if (!image) throw new Error('‼️ Gagal membuat gambar HD!')
-    await ctx.replyContent({ image: { url: image.no_wm } })
-    return ctx.reactSuccess()
+
+    ctx.reactSuccess()
+    return ctx.replyContent({ image: { url: image.no_wm } })
 }
 
 const upscaleImageCmd = () => {
@@ -164,7 +167,7 @@ const upscaleImageCmd = () => {
     })
 }
 
-const upscaleHandler = async (
+const upscaleHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -175,8 +178,9 @@ const upscaleHandler = async (
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await upscaleImage(mediaData)
-    await ctx.replyContent({ image: { url: image.result_url } })
+
     ctx.reactSuccess()
+    return ctx.replyContent({ image: { url: image.result_url } })
 }
 
 const removeWmCmd = () => {
@@ -201,7 +205,7 @@ const removeWmCmd = () => {
     })
 }
 
-const removeWmHandler = async (
+const removeWmHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -212,8 +216,8 @@ const removeWmHandler = async (
     ctx.reactWait()
     const mediaData = isQuotedImage ? await downloadQuoted() : await download()
     const image = await removeWm(mediaData)
-    await ctx.replyContent({ image: { url: image.output[0] } })
     ctx.reactSuccess()
+    return ctx.replyContent({ image: { url: image.output[0] } })
 }
 
 const rwmHdCmd = () => {
@@ -238,7 +242,7 @@ const rwmHdCmd = () => {
     })
 }
 
-const rwmHdHandler = async (
+const rwmHdHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -254,6 +258,7 @@ const rwmHdHandler = async (
     const arrayBuffer = await wget.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
     const hdImage = await upscaleImage(buffer)
-    await ctx.replyContent({ image: { url: hdImage.result_url } })
+
     ctx.reactSuccess()
+    return ctx.replyContent({ image: { url: hdImage.result_url } })
 }

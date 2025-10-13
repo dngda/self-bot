@@ -3,6 +3,7 @@ import {
     WAMediaUpload,
     WAMessage,
     WAMessageContent,
+    WASocket,
     proto,
 } from 'baileys'
 
@@ -91,3 +92,9 @@ export interface LanguageString {
     sent?: (...args: any[]) => string
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
+
+export type HandlerFunction = (
+    wa: WASocket,
+    msg: WAMessage,
+    ctx: MessageContext
+) => Promise<WAMessage | undefined>

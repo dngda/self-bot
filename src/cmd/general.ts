@@ -1,10 +1,10 @@
+import { HandlerFunction, MessageContext } from '../types.js'
 import { WAMessage, WASocket } from 'baileys'
 import { getPrefix } from '../utils/_index.js'
 import { actions } from '../handler.js'
 import { getMenu, menu } from '../menu.js'
 import stringId from '../language.js'
 import lodash from 'lodash'
-import { MessageContext } from '../types.js'
 
 export default () => {
     pingCmd()
@@ -31,13 +31,13 @@ const pingCmd = () => {
     })
 }
 
-const pingHandler = async (
+const pingHandler: HandlerFunction = async (
     _wa: WASocket,
     msg: WAMessage,
     ctx: MessageContext
 ) => {
     const processTime = Date.now() - (msg.messageTimestamp as number) * 1000
-    await ctx.reply(`Pong _${processTime} ms!_`)
+    return ctx.reply(`Pong _${processTime} ms!_`)
 }
 
 const menuCmd = () => {
@@ -61,14 +61,18 @@ const menuCmd = () => {
 
 const q3 = '```'
 
-const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
+const menuHandler: HandlerFunction = (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
     const m = (namaMenu: string) => `${q3}${ctx.prefix}${namaMenu}${q3}`
 
     let menuMsg = `
 !------------ Help - Usage ------------!\n`
 
-    menuMsg += `${q3} ___              ___      _   
-/ __| ___ _ _ ___| _ ) ___| |_ 
+    menuMsg += `${q3} ___              ___      _
+/ __| ___ _ _ ___| _ ) ___| |_
 \\__ \\/ -_) '_/ _ \\ _ \\/ _ \\  _|
 |___/\\___|_| \\___/___/\\___/\\__|${q3}
 `
@@ -110,7 +114,8 @@ const menuHandler = (_wa: WASocket, _msg: WAMessage, ctx: MessageContext) => {
         menuMsg += `\nPlease star ⭐ or fork 🍴 if you like!`
         menuMsg += `\nThanks for using this bot! 🙏`
     }
-    ctx.send(menuMsg)
+
+    return ctx.send(menuMsg)
 }
 
 const hideTagCmd = () => {
@@ -136,7 +141,7 @@ const hideTagCmd = () => {
     })
 }
 
-const hideTagHandler = async (
+const hideTagHandler: HandlerFunction = async (
     wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -154,8 +159,9 @@ const hideTagHandler = async (
         if (contact) mentions.push(contact)
     }
 
+    ctx.reactSuccess()
     if (isQuoted) {
-        await wa.sendMessage(
+        return wa.sendMessage(
             from,
             {
                 forward: {
@@ -173,7 +179,7 @@ const hideTagHandler = async (
             }
         )
     } else {
-        await wa.sendMessage(
+        return wa.sendMessage(
             from,
             {
                 text: arg,
@@ -186,6 +192,4 @@ const hideTagHandler = async (
             }
         )
     }
-
-    await ctx.reactSuccess()
 }

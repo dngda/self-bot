@@ -16,7 +16,7 @@ import {
     EmojiApi,
 } from '../lib/_index.js'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     textToStickerCmd()
@@ -59,7 +59,7 @@ const stickerCreatorCmd = () => {
     })
 }
 
-const stickerHandler = async (
+const stickerHandler: HandlerFunction = async (
     wa: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -93,6 +93,7 @@ const stickerHandler = async (
             isImage = true
         }
     }
+
     let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
     Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
     if (arg.includes('-nobg') && isImage) {
@@ -118,12 +119,13 @@ const stickerHandler = async (
             quality: 100,
         })
         ctx.reactSuccess()
-        await replySticker(await sticker.toBuffer())
+        return replySticker(await sticker.toBuffer())
     }
 
     if (isVideo || isQuotedVideo) {
-        await processVideo(wa, msg, mediaData, ctx, packname, author, Stype)
+        return processVideo(wa, msg, mediaData, ctx, packname, author, Stype)
     }
+    return undefined
 }
 
 const processVideo = async (
@@ -171,13 +173,13 @@ const processVideo = async (
             msgKey = msgInfo?.key
             isSendNotif = true
         } else {
-            const garbage =
+            const trash =
                 quality == 30
-                    ? '. At this point, the sticker may look like garbage.'
+                    ? '. At this point, the sticker may look like trash.'
                     : ''
             wa.sendMessage(ctx.from, {
                 edit: msgKey,
-                text: stringId.sticker.error.q(quality) + garbage,
+                text: stringId.sticker.error.q(quality) + trash,
             })
         }
 
@@ -195,7 +197,7 @@ const processVideo = async (
     }
 
     ctx.reactSuccess()
-    await ctx.replySticker(resultBuffer)
+    return ctx.replySticker(resultBuffer)
 }
 
 const textToStickerCmd = () => {
@@ -224,7 +226,7 @@ const textToStickerCmd = () => {
     })
 }
 
-const ttpHandler = async (
+const ttpHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -257,7 +259,7 @@ const ttpHandler = async (
         quality: 100,
     }).toFile('tmp/sticker-ttp.webp')
     ctx.reactSuccess()
-    await replySticker({ url: sticker })
+    return replySticker({ url: sticker })
 }
 
 const addTextToImageCmd = () => {
@@ -284,7 +286,7 @@ const addTextToImageCmd = () => {
     })
 }
 
-const memefyHandler = async (
+const memefyHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -316,7 +318,7 @@ const memefyHandler = async (
 
     if (cmd === 'memefy') {
         ctx.reactSuccess()
-        await ctx.replyContent({ image: memeBuffer })
+        return ctx.replyContent({ image: memeBuffer })
     }
 
     if (cmd === 'sm') {
@@ -329,8 +331,9 @@ const memefyHandler = async (
             quality: 100,
         }).toBuffer()
         ctx.reactSuccess()
-        await replySticker(sticker)
+        return replySticker(sticker)
     }
+    return undefined
 }
 
 const downloadStickerCmd = () => {
@@ -355,7 +358,7 @@ const downloadStickerCmd = () => {
     })
 }
 
-const downloadStickerHandler = async (
+const downloadStickerHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -369,13 +372,17 @@ const downloadStickerHandler = async (
     if (isAnimated) {
         const gif = await sharp(sticker, { animated: true }).gif().toBuffer()
         const mp4 = await gifToMp4(gif)
-        await replyContent({ video: { url: mp4 } })
+
+        ctx.reactSuccess()
+        const sent = await replyContent({ video: { url: mp4 } })
         fs.unlink(mp4, (_) => _)
+        return sent
     } else {
         sticker = await sharp(sticker).png().toBuffer()
-        await replyContent({ image: sticker })
+
+        ctx.reactSuccess()
+        return replyContent({ image: sticker })
     }
-    ctx.reactSuccess()
 }
 
 const quotlyStickerCmd = () => {
@@ -402,7 +409,7 @@ const quotlyStickerCmd = () => {
     })
 }
 
-const quotlyHandler = async (
+const quotlyHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -471,7 +478,7 @@ const quotlyHandler = async (
     }).toBuffer()
 
     ctx.reactSuccess()
-    await replySticker(sticker)
+    return replySticker(sticker)
 }
 
 const emojiKitchenCmd = () => {
@@ -497,7 +504,7 @@ const emojiKitchenCmd = () => {
     })
 }
 
-const emojiKitchenHandler = async (
+const emojiKitchenHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -524,5 +531,5 @@ const emojiKitchenHandler = async (
     }).toBuffer()
 
     ctx.reactSuccess()
-    await replySticker(sticker)
+    return replySticker(sticker)
 }

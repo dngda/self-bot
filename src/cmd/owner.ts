@@ -10,7 +10,7 @@ import { actions } from '../handler.js'
 import { menu } from '../menu.js'
 import { browser } from '../../index.js'
 import chalk from 'chalk'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     evalJS_Cmd()
@@ -60,11 +60,15 @@ const evalJS_Cmd = () => {
     })
 
     Object.assign(actions, {
-        eval: evalJS,
+        eval: evalJSHandler,
     })
 }
 
-const evalJS = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
+const evalJSHandler: HandlerFunction = async (
+    _w: WASocket,
+    _m: WAMessage,
+    _c: MessageContext
+) => {
     if (!_c.fromMe) return null
     if (_c.cmd == 'eval') {
         _w.sendMessage(_c.from, { edit: _m.key, text: '_Evaluating..._' })
@@ -103,13 +107,14 @@ const offline_Cmd = () => {
     })
 }
 
-const offlineHandler = async (
+const offlineHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return null
-    await _wa.sendPresenceUpdate('unavailable')
+    if (!ctx.fromMe) return undefined
+
+    _wa.sendPresenceUpdate('unavailable')
     return ctx.reactSuccess()
 }
 
@@ -132,12 +137,12 @@ const refreshBrowser_Cmd = () => {
     })
 }
 
-const refreshBrowserHandler = async (
+const refreshBrowserHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return null
+    if (!ctx.fromMe) return undefined
     await browser.refreshContext()
     return ctx.reactSuccess()
 }
@@ -166,12 +171,12 @@ const getStatus_Cmd = () => {
     })
 }
 
-const getStatusHandler = async (
+const getStatusHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!ctx.fromMe) return null
+    if (!ctx.fromMe) return undefined
     if (ctx.cmd == 'gls') {
         const list = getStatusList()
 

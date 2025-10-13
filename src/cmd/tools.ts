@@ -1,4 +1,4 @@
-import { WAMessage, WASocket, proto } from 'baileys'
+import { WAMessage, WASocket } from 'baileys'
 import { existsSync, readFileSync, unlink, writeFileSync } from 'fs'
 import { getVideoDurationInSeconds } from 'get-video-duration'
 import _ from 'lodash'
@@ -16,11 +16,12 @@ import {
     ocr,
     saveTextToSpeech,
     splitVideo,
+    storeMessage,
     updateNoteContent,
     videoToMp3,
 } from '../lib/_index.js'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
     initNoteDatabase()
@@ -55,7 +56,7 @@ const getOneViewCmd = () => {
     })
 }
 
-const oneViewHandler = async (
+const oneViewHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -68,25 +69,27 @@ const oneViewHandler = async (
     const mediaData = await ctx.downloadQuoted()
 
     if (ctx.isQuotedImage) {
-        ctx.replyContent({
+        return ctx.replyContent({
             image: mediaData,
             caption: ctx.quotedMsg?.imageMessage?.caption ?? '',
             mimetype: 'image/jpeg',
         })
     } else if (ctx.isQuotedVideo) {
-        ctx.replyContent({
+        return ctx.replyContent({
             video: mediaData,
             caption: ctx.quotedMsg?.videoMessage?.caption ?? '',
             seconds: ctx.quotedMsg?.videoMessage?.seconds ?? 0,
             mimetype: 'video/mp4',
         })
     } else if (ctx.isQuoted) {
-        ctx.replyContent({
+        return ctx.replyContent({
             audio: mediaData,
             seconds: ctx.quotedMsg?.audioMessage?.seconds ?? 0,
             mimetype: 'audio/mp4',
         })
     }
+
+    return undefined
 }
 
 const noteCreatorCmd = () => {
@@ -113,16 +116,17 @@ const noteCreatorCmd = () => {
     })
 }
 
-const noteHandler = async (
+const noteHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { from, fromMe, participant, cmd, args, isQuoted, quotedMsg } = ctx
+    const { from, fromMe, participant, cmd, args } = ctx
     const noteName = args[0].toLowerCase().startsWith('#')
         ? args[0].toLowerCase()
         : `#${args[0].toLowerCase()}`
     const id = fromMe ? 'me' : participant ?? from
+    const isEdit = cmd === 'editnote'
 
     switch (cmd) {
         case 'note':
@@ -130,15 +134,7 @@ const noteHandler = async (
             return handleNoteCommand(id, ctx)
         case 'addnote':
         case 'editnote':
-            return handleAddEditNoteCommand(
-                id,
-                noteName,
-                args,
-                isQuoted ?? false,
-                quotedMsg,
-                ctx,
-                cmd === 'editnote'
-            )
+            return handleAddEditNoteCommand(id, noteName, ctx, isEdit)
         case 'delnote':
             return handleDeleteNoteCommand(id, noteName, ctx)
         default:
@@ -160,30 +156,21 @@ async function handleNoteCommand(id: string, ctx: MessageContext) {
 async function handleAddEditNoteCommand(
     id: string,
     noteName: string,
-    args: string[],
-    isQuoted: boolean,
-    quotedMsg: proto.IMessage | null | undefined,
     ctx: MessageContext,
     isEdit: boolean
 ) {
     let note: string
-    if (isQuoted) {
+    if (ctx.isQuoted) {
         note =
-            quotedMsg?.conversation ||
-            quotedMsg?.extendedTextMessage?.text ||
+            ctx.quotedMsg?.conversation ||
+            ctx.quotedMsg?.extendedTextMessage?.text ||
             ''
     } else {
-        if (args.length < 2) return ctx.reply(stringId.note.usage(ctx))
-        note = args.slice(1).join(' ')
+        if (ctx.args.length < 2) return ctx.reply(stringId.note.usage(ctx))
+        note = ctx.args.slice(1).join(' ')
     }
 
-    const { path, note: _note } = await handleMediaNotes(
-        ctx,
-        note,
-        quotedMsg,
-        args,
-        noteName
-    )
+    const { path, note: _note } = await handleMediaNotes(ctx, note, noteName)
 
     const res = await (isEdit ? updateNoteContent : createNote)(
         id,
@@ -206,8 +193,6 @@ async function handleAddEditNoteCommand(
 async function handleMediaNotes(
     ctx: MessageContext,
     note: string,
-    quotedMsg: proto.IMessage | null | undefined,
-    args: string[],
     noteName: string
 ) {
     if (!ctx.isMedia) return { path: '', note }
@@ -217,10 +202,16 @@ async function handleMediaNotes(
     let ext
     if (ctx.isVideo) {
         ext = 'mp4'
-        note = quotedMsg?.videoMessage?.caption ?? args.slice(1).join(' ') ?? ''
+        note =
+            ctx.quotedMsg?.videoMessage?.caption ??
+            ctx.args.slice(1).join(' ') ??
+            ''
     } else {
         ext = 'jpg'
-        note = quotedMsg?.imageMessage?.caption ?? args.slice(1).join(' ') ?? ''
+        note =
+            ctx.quotedMsg?.imageMessage?.caption ??
+            ctx.args.slice(1).join(' ') ??
+            ''
     }
     const path = `data/saved_media/${ctx.from}_${noteName}.${ext}`
     writeFileSync(path, mediaData)
@@ -259,7 +250,7 @@ const videoToMp3Cmd = () => {
     })
 }
 
-const toMp3Handler = async (
+const toMp3Handler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -270,13 +261,15 @@ const toMp3Handler = async (
     ctx.reactWait()
     const mediaData = isQuotedVideo ? await downloadQuoted() : await download()
     const audio = await videoToMp3(mediaData)
-    await ctx.replyContent({
+    const sent = await ctx.replyContent({
         document: { url: audio },
         mimetype: 'audio/mp3',
         fileName: 'converted_audio.mp3',
     })
-    await ctx.reactSuccess()
+
+    ctx.reactSuccess()
     unlink(audio, (_) => _)
+    return sent
 }
 
 const videoSplitCmd = () => {
@@ -301,7 +294,7 @@ const videoSplitCmd = () => {
     })
 }
 
-const videoSplitHandler = async (
+const videoSplitHandler: HandlerFunction = async (
     _wa: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -332,12 +325,13 @@ const videoSplitHandler = async (
         if (!video[i].endsWith('.mp4')) continue
         if (!video[i].includes(id)) continue
 
-        await ctx.replyContent({
+        const sent = await ctx.replyContent({
             video: { url: video[i] },
             caption: `0${i}`,
             seconds: await getVideoDurationInSeconds(video[i]),
             mimetype: 'video/mp4',
         })
+        if (sent) storeMessage(sent)
 
         paths.push(video[i])
     }
@@ -347,6 +341,7 @@ const videoSplitHandler = async (
         () => paths.forEach((path: string) => unlink(path, (_) => _)),
         10_000
     )
+    return undefined
 }
 
 const ocrCmd = () => {
@@ -371,7 +366,7 @@ const ocrCmd = () => {
     })
 }
 
-const ocrHandler = async (
+const ocrHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -387,8 +382,8 @@ const ocrHandler = async (
     console.log('🚀 ~ file: tools.ts:366 ~ res:', res)
     const text = res.ParsedResults[0].ParsedText
 
-    await ctx.reply(text)
     ctx.reactSuccess()
+    return ctx.reply(text)
 }
 
 const gttsCmd = () => {
@@ -415,7 +410,7 @@ const gttsCmd = () => {
     })
 }
 
-const gttsHandler = async (
+const gttsHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -444,11 +439,13 @@ const gttsHandler = async (
     await saveTextToSpeech({ filepath, text, lang })
     const opus = await mp3ToOpus(filepath)
 
-    await replyVoiceNote(opus)
+    const sent = await replyVoiceNote(opus)
     await reactSuccess()
 
     unlink(filepath, (_) => _)
     unlink(opus, (_) => _)
+
+    return sent
 }
 
 const collectListCmd = () => {
@@ -528,7 +525,7 @@ export const renderList = (ctx: MessageContext) => {
     return listText.replace(/\n$/, '')
 }
 
-const collectListHandler = async (
+const collectListHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -539,25 +536,27 @@ const collectListHandler = async (
     await reactWait()
 
     if (arg == '') {
-        await send(renderList(ctx))
+        const sent = await send(renderList(ctx))
         await send(
             'Kirim `+(isi)` untuk menambahkan ke list\nKirim `-(nomor)` untuk menghapus dari list.'
         )
-        return await reactSuccess()
+        reactSuccess()
+
+        return sent
     }
 
     if (arg == 'end') {
         ListMemory.delete(ctx.from)
         reactSuccess()
-        return await send(`✅ List ${list[0]} selesai!`)
+        return send(`✅ List ${list[0]} selesai!`)
     }
 
     const listName = arg
     list.push(listName)
     ListMemory.set(ctx.from, list)
-    await reply(
+
+    reactSuccess()
+    return reply(
         `📝 ${listName} 📝 dibuat!\nKirim \`+ (isi)\` untuk menambahkan ke list!`
     )
-
-    return await reactSuccess()
 }

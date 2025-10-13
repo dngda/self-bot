@@ -2,9 +2,9 @@ import { WAMessage, WASocket } from 'baileys'
 import _ from 'lodash'
 import { actions } from '../handler.js'
 import stringId from '../language.js'
-import { pinterest } from '../lib/_index.js'
+import { pinterest, storeMessage } from '../lib/_index.js'
 import { menu } from '../menu.js'
-import { MessageContext } from '../types.js'
+import { HandlerFunction, MessageContext } from '../types.js'
 import ytdl, { Payload } from 'youtube-dl-exec'
 import axios from 'axios'
 
@@ -35,7 +35,7 @@ const searchPinterestCmd = () => {
     })
 }
 
-const pinterestHandler = async (
+const pinterestHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -66,8 +66,10 @@ const pinterestHandler = async (
                   image: { url: item.media.images.orig.url },
                   caption: `Origin: ${item.pin_url}`,
               }
-        await ctx.replyContent(content)
+        const sent = await ctx.replyContent(content)
+        if (sent) storeMessage(sent)
     }
+
     return ctx.reactSuccess()
 }
 
@@ -111,7 +113,7 @@ const downloadSocialVideoCmd = () => {
     })
 }
 
-export const videoDownloadHandler = async (
+export const videoDownloadHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
@@ -125,22 +127,20 @@ export const videoDownloadHandler = async (
     ctx.reactWait()
 
     if (tiktokPattern.test(url) || tiktokShortPattern.test(url)) {
-        await tiktok(url, ctx)
+        return tiktok(url, ctx)
     } else if (reelsPattern.test(url) || instagramPattern.test(url)) {
-        await instagram(url, ctx)
+        return instagram(url, ctx)
     } else if (twitterPattern.test(url) || xPattern.test(url)) {
-        await twitter(url, ctx)
+        return twitter(url, ctx)
     } else if (
         youtubePattern.test(url) ||
         youtubeShortPattern.test(url) ||
         youtubeShortsPattern.test(url)
     ) {
-        await youtube(url, ctx)
+        return youtube(url, ctx)
     } else {
         throw new Error(stringId.videodl.error.invalidUrl())
     }
-
-    return ctx.reactSuccess()
 }
 
 async function tiktok(url: string, ctx: MessageContext) {
@@ -174,12 +174,12 @@ async function tiktok(url: string, ctx: MessageContext) {
     })
 
     const buffer = Buffer.from(response.data)
-    await ctx.replyContent({
+    ctx.reactSuccess()
+
+    return ctx.replyContent({
         video: buffer,
         seconds: Math.floor(result.duration ?? 0),
     })
-
-    return ctx.reactSuccess()
 }
 
 async function instagram(url: string, ctx: MessageContext) {
@@ -200,11 +200,11 @@ async function instagram(url: string, ctx: MessageContext) {
         throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
 
-    await ctx.replyContent({
+    ctx.reactSuccess()
+    return ctx.replyContent({
         video: { url: videos[0].url },
         seconds: Math.floor(result.duration ?? 0),
     })
-    return ctx.reactSuccess()
 }
 
 async function twitter(url: string, ctx: MessageContext) {
@@ -226,11 +226,11 @@ async function twitter(url: string, ctx: MessageContext) {
         throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
 
-    await ctx.replyContent({
+    ctx.reactSuccess()
+    return ctx.replyContent({
         video: { url: videos.pop()?.url ?? '' },
         seconds: Math.floor(result.duration ?? 0),
     })
-    return ctx.reactSuccess()
 }
 
 async function youtube(url: string, ctx: MessageContext) {
@@ -255,9 +255,9 @@ async function youtube(url: string, ctx: MessageContext) {
         throw new Error('‼️ Tidak ada video yang ditemukan.')
     }
 
-    await ctx.replyContent({
+    ctx.reactSuccess()
+    return ctx.replyContent({
         video: { url: videos[0].url },
         seconds: Math.floor(result.duration ?? 0),
     })
-    return ctx.reactSuccess()
 }

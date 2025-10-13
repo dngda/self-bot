@@ -5,10 +5,11 @@ import makeWASocket, {
     useMultiFileAuthState,
     DisconnectReason,
     Browsers,
+    proto,
 } from 'baileys'
 import qrTerminal from 'qrcode-terminal'
 import MAIN_LOGGER from './src/utils/logger.js'
-import { messageHandler } from './src/handler.js'
+import { mainMessageProcessor } from './src/handler.js'
 import NodeCache from 'node-cache'
 import figlet from 'figlet'
 import dotenv from 'dotenv'
@@ -59,7 +60,12 @@ const startSock = async () => {
         markOnlineOnConnect: false,
         getMessage: async (key) => {
             const msg = getMessage(key.id!)
-            return msg?.message
+            return (
+                msg?.message ||
+                proto.Message.create({
+                    conversation: 'Failed to fetch message',
+                })
+            )
         },
         shouldIgnoreJid: (jid) => jid?.endsWith('bot'),
         cachedGroupMetadata: async (jid) => groupCache.get(jid),
@@ -116,7 +122,7 @@ const startSock = async () => {
 
     waSocket.ev.on('creds.update', saveCreds)
 
-    waSocket.ev.on('messages.upsert', messageHandler.bind(null, waSocket))
+    waSocket.ev.on('messages.upsert', mainMessageProcessor.bind(null, waSocket))
 
     waSocket.ev.on('groups.update', async ([event]) => {
         const metadata = await waSocket.groupMetadata(event.id!)
