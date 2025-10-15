@@ -90,10 +90,26 @@ const rollHandler: HandlerFunction = async (
 ) => {
     if (ctx.arg) {
         let random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
-        if (random > 1000) random = 1000
+        const m_id = await _wa.sendMessage(
+            ctx.from,
+            { text: `⏳ Rolling... ${random}` },
+            { ephemeralExpiration: ctx.expiration! }
+        )
+        await delay(700)
+        for (let i = 0; i < 3; i++) {
+            random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
+            await _wa.sendMessage(
+                ctx.from,
+                { edit: m_id?.key, text: `⏳ Rolling... ${random}` },
+                { ephemeralExpiration: ctx.expiration! }
+            )
+            await delay(700)
+        }
+
+        random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
         return _wa.sendMessage(
             ctx.from,
-            { text: `🎲 You rolled a ${random}` },
+            { edit: m_id?.key, text: `🎲 You rolled a ${random}` },
             { ephemeralExpiration: ctx.expiration! }
         )
     } else {
@@ -101,26 +117,26 @@ const rollHandler: HandlerFunction = async (
         let roll2 = crypto.randomInt(6)
         const m_id = await _wa.sendMessage(
             ctx.from,
-            { text: `⏳ ${roll} ⏳ ${roll2}` },
+            { text: `Rolling... ⏳ ${roll} ⏳ ${roll2}` },
             { ephemeralExpiration: ctx.expiration! }
         )
-        await delay(500)
+        await delay(700)
         for (let i = 0; i < 3; i++) {
             roll = crypto.randomInt(6)
             roll2 = crypto.randomInt(6)
             await _wa.sendMessage(
                 ctx.from,
-                { edit: m_id?.key, text: `⏳ ${roll} ⏳ ${roll2}` },
+                { edit: m_id?.key, text: `Rolling... ⏳ ${roll} ⏳ ${roll2}` },
                 { ephemeralExpiration: ctx.expiration! }
             )
-            await delay(500)
+            await delay(700)
         }
 
         roll = crypto.randomInt(6)
         roll2 = crypto.randomInt(6)
         return _wa.sendMessage(
             ctx.from,
-            { edit: m_id?.key, text: `🎲 ${roll} 🎲 ${roll2}` },
+            { edit: m_id?.key, text: `You rolled 🎲 ${roll} 🎲 ${roll2}` },
             { ephemeralExpiration: ctx.expiration! }
         )
     }
