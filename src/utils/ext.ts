@@ -242,23 +242,6 @@ export const handleDeleteList = async (
     return sendList(ctx, wa)
 }
 
-export const handleSuperConfig = async (ctx: MessageContext) => {
-    const { body, fromMe } = ctx
-    if (!fromMe) return null
-    if (!body) return null
-    switch (true) {
-        case 'disb' == body:
-            config.disabled_chats.push(ctx.from)
-            return ctx.reactSuccess()
-        case 'ensb' == body:
-            config.disabled_chats = config.disabled_chats.filter(
-                (x: string) => x !== ctx.from
-            )
-            return ctx.reactSuccess()
-    }
-    return null
-}
-
 export const handleAutoSticker = async (
     wa: WASocket,
     msg: WAMessage,

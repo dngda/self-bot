@@ -16,12 +16,12 @@ import {
     handleReplyToContactStatusList,
     handleReplyToStatusList,
     handleStickerCommand,
-    handleSuperConfig,
     listenDeletedMessage,
     logCmd,
     serializeMessage,
     listenEditedMessage,
 } from './utils/_index.js'
+import { handleSuperConfig } from './cmd/owner.js'
 
 export let config: BotConfig = {
     allowed_chats: [],

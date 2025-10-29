@@ -6,7 +6,7 @@ import {
 } from '../lib/_index.js'
 import { WAMessage, WASocket } from 'baileys'
 import stringId from '../language.js'
-import { actions } from '../handler.js'
+import { actions, config } from '../handler.js'
 import { menu } from '../menu.js'
 import { browser } from '../../index.js'
 import chalk from 'chalk'
@@ -18,6 +18,7 @@ export default () => {
     evalJSON_Cmd()
     getStatus_Cmd()
     refreshBrowser_Cmd()
+    super_Cmd()
 }
 
 const evalJSON_Cmd = () => {
@@ -246,4 +247,37 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
     }
     message += `\nReply this message with number to download status`
     return message
+}
+
+const super_Cmd = () => {
+    stringId.superconfig = {
+        hint: '_Toggle bot in chat_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'disb',
+        hint: stringId.superconfig.hint,
+        alias: 'ensb',
+        type: 'owner',
+    })
+}
+
+// called directly in handler.ts
+export const handleSuperConfig = async (ctx: MessageContext) => {
+    const { body, fromMe } = ctx
+    if (!fromMe) return null
+    if (!body) return null
+    switch (true) {
+        case 'disb' == body:
+            config.disabled_chats.push(ctx.from)
+            return ctx.reactSuccess()
+        case 'ensb' == body:
+            config.disabled_chats = config.disabled_chats.filter(
+                (x: string) => x !== ctx.from
+            )
+            return ctx.reactSuccess()
+    }
+    return null
 }
