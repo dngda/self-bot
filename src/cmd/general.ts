@@ -99,6 +99,7 @@ const menuHandler: HandlerFunction = (
                 .split(/, ?| ,/)
                 .concat(sub.command)
                 .map((a: string) => {
+                    if (sub.noprefix) return m(a).replace(ctx.prefix, '')
                     return m(a)
                 })
             menuMsg += `\n${alias.join(' or ')}\n`

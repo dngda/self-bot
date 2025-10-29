@@ -149,7 +149,7 @@ const stickerAsCmdHandler: HandlerFunction = async (
 
 const setPrefixCmd = () => {
     stringId.setPrefix = {
-        hint: '⚙️ _Set prefix_',
+        hint: '⚙️ _Prefix management_',
         error: {
             notSelf: () => '‼️ Self only command',
         },

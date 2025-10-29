@@ -13,12 +13,12 @@ import chalk from 'chalk'
 import { HandlerFunction, MessageContext } from '../types.js'
 
 export default () => {
+    super_Cmd()
     evalJS_Cmd()
     offline_Cmd()
     evalJSON_Cmd()
     getStatus_Cmd()
     refreshBrowser_Cmd()
-    super_Cmd()
 }
 
 const evalJSON_Cmd = () => {
@@ -261,6 +261,7 @@ const super_Cmd = () => {
         hint: stringId.superconfig.hint,
         alias: 'ensb',
         type: 'owner',
+        noprefix: true,
     })
 }
 
