@@ -91,13 +91,17 @@ export class PlaywrightBrowser {
     }
 
     async refreshContext() {
-        await this.ctx.close()
+        if (!this.browser?.isConnected()) {
+            this.browser = await chromium.launch({ headless: true })
+        }
+
+        await this.ctx?.close()
         this.ctx = await this.browser.newContext({ userAgent: getRandom() })
         console.log(chalk.green('Browser context refreshed!'))
     }
 
     async exit() {
-        await this.ctx.close()
-        await this.browser.close()
+        await this.ctx?.close()
+        await this.browser?.close()
     }
 }

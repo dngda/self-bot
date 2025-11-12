@@ -144,6 +144,7 @@ const refreshBrowserHandler: HandlerFunction = async (
     ctx: MessageContext
 ) => {
     if (!ctx.fromMe) return undefined
+
     await browser.refreshContext()
     return ctx.reactSuccess()
 }
