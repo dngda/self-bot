@@ -5,7 +5,7 @@
     "main": "index.ts",
     "type": "module",
     "scripts": {
-        "build": "tsc && tsc-alias",
+        "build": "tsc",
         "start": "ts-node index.ts",
         "dev": "nodemon -e ts --exec ts-node index.ts",
         "test": "echo \"Error: no test specified\" && exit 1"
@@ -59,8 +59,7 @@
         "sequelize": "^6.37.7",
         "sharp": "^0.32.6",
         "sqlite3": "^5.1.7",
-        "wa-sticker-formatter": "^4.4.4",
-        "youtube-dl-exec": "^3.0.26"
+        "wa-sticker-formatter": "^4.4.4"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
@@ -73,5 +72,8 @@
             "sqlite3",
             "youtube-dl-exec"
         ]
-    }
+    },
+    "trustedDependencies": [
+        "protobufjs"
+    ]
 }
