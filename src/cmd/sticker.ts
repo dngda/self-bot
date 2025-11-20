@@ -96,7 +96,7 @@ const stickerHandler: HandlerFunction = async (
 
     let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
     Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
-    if (arg.includes('-nobg') && isImage) {
+    if (arg.includes('-nobg') && (isImage || isQuotedImage)) {
         const base64 = mediaData.toString('base64')
         const res = await removeBackgroundFromImageBase64({
             base64img: base64,
