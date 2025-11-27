@@ -17,9 +17,9 @@ import {
     handleReplyToStatusList,
     handleStickerCommand,
     listenDeletedMessage,
-    logCmd,
-    serializeMessage,
     listenEditedMessage,
+    serializeMessage,
+    logCmd,
 } from './utils/_index.js'
 import { handleSuperConfig } from './cmd/owner.js'
 
