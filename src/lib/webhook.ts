@@ -1,7 +1,12 @@
 import { Hono } from 'hono'
+import { AnyMessageContent } from 'baileys'
 import { waSocket } from '../../index.js'
 
 const app = new Hono()
+
+const isValidContent = (content: unknown): content is AnyMessageContent => {
+    return typeof content === 'object' && content !== null
+}
 
 app.get('/send', async (c) => {
     return c.json({
@@ -23,6 +28,17 @@ app.post('/send', async (c) => {
             { ok: false, error: 'WhatsApp socket not initialized' },
             503
         )
+    }
+
+    if (typeof data.jid !== 'string' || typeof data.content !== 'object') {
+        return c.json(
+            { ok: false, error: 'Invalid jid or content format' },
+            400
+        )
+    }
+
+    if (!isValidContent(data.content)) {
+        return c.json({ ok: false, error: 'Invalid content format' }, 400)
     }
 
     const msg = await waSocket.sendMessage(data.jid, data.content)
