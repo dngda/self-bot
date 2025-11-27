@@ -4,6 +4,7 @@ import makeWASocket, {
     fetchLatestBaileysVersion,
     useMultiFileAuthState,
     DisconnectReason,
+    WASocket as _WASocket,
     Browsers,
     proto,
 } from 'baileys'
@@ -17,7 +18,14 @@ import chalk from 'chalk'
 
 import { PlaywrightBrowser, getMessage } from './src/lib/_index.js'
 import { executeSavedScriptInNote } from './src/cmd/owner.js'
+import { serve } from '@hono/node-server'
+import app from './src/lib/webhook.js'
 export let browser: PlaywrightBrowser
+
+interface WASocket extends _WASocket {
+    isReady?: boolean
+}
+export let waSocket: WASocket = undefined as unknown as WASocket
 
 let lastDisconnectReason = ''
 
@@ -47,7 +55,7 @@ const startSock = async () => {
     )
     console.log(`Using WA v${version.join('.')}, isLatest: ${isLatest}`)
 
-    const waSocket = makeWASocket({
+    const sock = makeWASocket({
         browser: Browsers.baileys('SERO SELFBOT'),
         version,
         logger,
@@ -71,7 +79,9 @@ const startSock = async () => {
         cachedGroupMetadata: async (jid) => groupCache.get(jid),
     })
 
-    waSocket.ev.on('connection.update', (update) => {
+    waSocket = sock
+
+    sock.ev.on('connection.update', (update) => {
         const { connection, lastDisconnect } = update
         if (update.qr) {
             console.log(chalk.blue('QR CODE'))
@@ -107,32 +117,44 @@ const startSock = async () => {
             )
 
             if (lastDisconnectReason) {
-                waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
+                sock.sendMessage(process.env.OWNER_NUMBER as string, {
                     text: `🔰Reconnected! reason: ${lastDisconnectReason}`,
                 })
             } else {
-                waSocket.sendMessage(process.env.OWNER_NUMBER as string, {
+                sock.sendMessage(process.env.OWNER_NUMBER as string, {
                     text: '🔰Bot is online!',
                 })
             }
 
-            executeSavedScriptInNote(waSocket)
+            executeSavedScriptInNote(sock)
+            waSocket && (waSocket.isReady = true)
         }
     })
 
-    waSocket.ev.on('creds.update', saveCreds)
+    sock.ev.on('creds.update', saveCreds)
 
-    waSocket.ev.on('messages.upsert', mainMessageProcessor.bind(null, waSocket))
+    sock.ev.on('messages.upsert', mainMessageProcessor.bind(null, sock))
 
-    waSocket.ev.on('groups.update', async ([event]) => {
-        const metadata = await waSocket.groupMetadata(event.id!)
+    sock.ev.on('groups.update', async ([event]) => {
+        const metadata = await sock.groupMetadata(event.id!)
         groupCache.set(event.id!, metadata)
     })
 
-    waSocket.ev.on('group-participants.update', async (event) => {
-        const metadata = await waSocket.groupMetadata(event.id!)
+    sock.ev.on('group-participants.update', async (event) => {
+        const metadata = await sock.groupMetadata(event.id!)
         groupCache.set(event.id!, metadata)
     })
 }
 
 startSock()
+serve(
+    {
+        fetch: app.fetch,
+        port: 3333,
+    },
+    (info) => {
+        console.log(
+            `Webhook Server is running on http://localhost:${info.port}`
+        )
+    }
+)
