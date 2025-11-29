@@ -22,7 +22,7 @@ export const listenDeletedMessage = async (wa: WASocket, msg: WAMessage) => {
         if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
             const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
             sumber = `msg from _${subject}_ by @${msg.key.participant!.replace(
-                /(@s.whatsapp.net)|(@lid)/,
+                /(@s.whatsapp.net)|(@lid)/g,
                 ''
             )}`
         }
@@ -138,7 +138,7 @@ export const listenEditedMessage = async (wa: WASocket, msg: WAMessage) => {
     if (msg.key.participant && msg.key.remoteJid != 'status@broadcast') {
         const subject = (await wa.groupMetadata(msg.key.remoteJid!)).subject
         sumber = `_${subject}_ by @${msg.key.participant!.replace(
-            /(@s.whatsapp.net)|(@lid)/,
+            /(@s.whatsapp.net)|(@lid)/g,
             ''
         )}`
     }
