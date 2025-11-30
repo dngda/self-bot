@@ -32,7 +32,6 @@ type snu = string | null | undefined
 
 export interface MessageContext {
     from: string
-    fromAlt: string | undefined
     fromMe: boolean | null | undefined
     name: snu
     participant: snu
