@@ -116,6 +116,7 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
     const ctx: MessageContext = {
         from: msg.key.remoteJid!,
+        formAlt: msg.key.remoteJidAlt,
         name: msg.pushName,
         body: getBody(),
         fromMe:

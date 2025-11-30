@@ -159,9 +159,13 @@ const handleError = (ctx: MessageContext, error: unknown) => {
     ctx.reactError()
 }
 const isDisabledChat = (ctx: MessageContext) =>
-    config?.disabled_chats.includes(ctx.from)
+    (ctx.from ? (config?.disabled_chats ?? []).includes(ctx.from) : false) ||
+    (ctx.formAlt ? (config?.disabled_chats ?? []).includes(ctx.formAlt) : false)
+
 const isAllowedChat = (ctx: MessageContext) =>
-    config?.allowed_chats.includes(ctx.from)
+    (ctx.from ? (config?.allowed_chats ?? []).includes(ctx.from) : false) ||
+    (ctx.formAlt ? (config?.disabled_chats ?? []).includes(ctx.formAlt) : false)
+
 const isHistorySync = (msg: WAMessage) =>
     msg.message?.protocolMessage?.type ==
     proto.Message.ProtocolMessage.Type.HISTORY_SYNC_NOTIFICATION
