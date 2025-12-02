@@ -82,14 +82,14 @@ const execHandler: HandlerFunction = async (
                 return console.error(err)
             }
             if (stderr) {
-                return ctx.reply(`${stderr}`)
+                return ctx.reply(`${stderr.trim()}`)
             }
             return false
         }
     )
 
     childProcess.stdout?.on('data', (data) => {
-        return ctx.reply(data)
+        return ctx.reply(data.trim())
     })
 
     return undefined
