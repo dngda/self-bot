@@ -38,8 +38,8 @@ const execHandler: HandlerFunction = async (
 ) => {
     validateInput(ctx)
 
+    validateCommand(ctx.arg)
     const script = buildScriptCommand(ctx.arg)
-    validateCommand(script)
 
     executeScript(script, ctx)
 
