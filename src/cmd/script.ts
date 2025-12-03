@@ -44,7 +44,7 @@ const execHandler: HandlerFunction = async (
     let script = ctx.arg
     script = script.startsWith('php') ? script : `php ${script}`
 
-    if (!script.includes('.php')) {
+    if (!script.includes('.php') && !ctx.fromMe) {
         throw new Error('Hanya script file php yang diizinkan.')
     }
 
@@ -69,6 +69,16 @@ const execHandler: HandlerFunction = async (
         'poweroff',
         'wget',
         'curl',
+        'cd',
+        'git',
+        'npm',
+        'yarn',
+        'pnpm',
+        'docker',
+        'systemctl',
+        'apt',
+        'ls',
+        'cat',
     ])
 
     if (script.split(' ').some((cmd) => forbiddenCommands.has(cmd))) {
