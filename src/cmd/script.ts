@@ -36,71 +36,64 @@ const execHandler: HandlerFunction = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (ctx.arg == '') {
+    validateInput(ctx)
+
+    const script = buildScriptCommand(ctx.arg)
+    validateCommand(script)
+
+    executeScript(script, ctx)
+
+    return undefined
+}
+
+const validateInput = (ctx: MessageContext) => {
+    if (ctx.arg === '') {
         throw new Error(stringId.exec.usage(ctx))
     }
 
-    const scriptDir = process.env.EXT_SCRIPT_PATH
-    let script = ctx.arg
-    script = script.startsWith('php') ? script : `php ${script}`
-
-    if (!script.includes('.php') && !ctx.fromMe) {
+    if (!ctx.arg.includes('.php') && !ctx.fromMe) {
         throw new Error('Hanya script file php yang diizinkan.')
     }
+}
 
+const buildScriptCommand = (arg: string): string => {
+    const scriptDir = process.env.EXT_SCRIPT_PATH
+    let script = arg
+
+    if (script.includes('.php')) {
+        script = script.startsWith('php') ? script : `php ${script}`
+        script = `cd ${scriptDir} && /bin/${script}`
+    }
+
+    return script
+}
+
+const validateCommand = (script: string) => {
+    // prettier-ignore
     const forbiddenCommands = new Set([
-        'sudo',
-        'rm',
-        'mv',
-        'cp',
-        'nano',
-        'vim',
-        'vi',
-        'chmod',
-        'chown',
-        'dd',
-        'mkfs',
-        'shutdown',
-        'reboot',
-        'kill',
-        'pkill',
-        'init',
-        'halt',
-        'poweroff',
-        'wget',
-        'curl',
-        'cd',
-        'git',
-        'npm',
-        'yarn',
-        'pnpm',
-        'docker',
-        'systemctl',
-        'apt',
-        'ls',
-        'cat',
+        'sudo', 'rm', 'mv', 'cp', 'nano', 'vim', 'vi', 'chmod', 'chown',
+        'dd', 'mkfs', 'shutdown', 'reboot', 'kill', 'pkill', 'init',
+        'halt', 'poweroff', 'wget', 'curl', 'cd', 'git', 'npm', 'yarn',
+        'pnpm', 'docker', 'systemctl', 'apt', 'ls', 'cat',
     ])
 
     if (script.split(' ').some((cmd) => forbiddenCommands.has(cmd))) {
         throw new Error('Tidak diizinkan menjalankan command tersebut.')
     }
+}
 
-    const childProcess = exec(
-        `cd ${scriptDir} && /bin/${script}`,
-        (err, _stdout, stderr) => {
-            if (err) {
-                return console.error(err)
-            }
-            if (stderr) {
-                return ctx.reply(`${stderr.trim()}`)
-            }
-            return false
+const executeScript = (script: string, ctx: MessageContext) => {
+    const childProcess = exec(script, (err, _stdout, stderr) => {
+        if (err) {
+            console.error(err)
+            return
         }
-    )
-
-    childProcess.stdout?.on('data', (data) => {
-        return ctx.reply(data.trim())
+        if (stderr) {
+            ctx.reply(`${stderr.trim()}`)
+        }
     })
 
-    return undefined
+    childProcess.stdout?.on('data', (data) => {
+        ctx.reply(data.trim())
+    })
 }
