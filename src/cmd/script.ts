@@ -94,6 +94,6 @@ const executeScript = (script: string, ctx: MessageContext) => {
     })
 
     childProcess.stdout?.on('data', (data) => {
-        ctx.reply(data.trim())
+        ctx.send(data.trim())
     })
 }
