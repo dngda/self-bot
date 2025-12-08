@@ -82,5 +82,6 @@
     },
     "trustedDependencies": [
         "protobufjs"
-    ]
+    ],
+    "packageManager": "pnpm@10.24.0+sha256.196f4bd174ebcbd99786b33452f144cb2dc32ef4e7138ed44491e9d43d702d75"
 }
