@@ -5,10 +5,12 @@ import stringId from '../language.js'
 import { pinterest, storeMessage } from '../lib/_index.js'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
+import ytdl, { Payload } from 'youtube-dl-exec'
+import axios from 'axios'
 
 export default () => {
     searchPinterestCmd()
-    // downloadSocialVideoCmd()
+    downloadSocialVideoCmd()
 }
 
 const searchPinterestCmd = () => {
@@ -70,9 +72,6 @@ const pinterestHandler: HandlerFunction = async (
 
     return ctx.reactSuccess()
 }
-
-/*
-disabled due to yt-dlp issue
 
 const tiktokPattern =
     /(?:https?):\/\/(?:www\.)?tiktok\.com\/@([^\W]+)(\.)?([^\W]+)\/video\/(\d+)/
@@ -262,5 +261,3 @@ async function youtube(url: string, ctx: MessageContext) {
         seconds: Math.floor(result.duration ?? 0),
     })
 }
-
-*/

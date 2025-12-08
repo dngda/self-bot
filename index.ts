@@ -67,9 +67,9 @@ const displayBanner = (): void => {
 /**
  * Initialize the browser instance
  */
-const initializeBrowser = (): void => {
+const initializeBrowser = async (): Promise<void> => {
     if (!browser) {
-        browser = new PlaywrightBrowser()
+        browser = await PlaywrightBrowser.create()
     }
 }
 

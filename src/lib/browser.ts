@@ -1,27 +1,43 @@
+import type { Browser, BrowserContext, Page } from 'playwright'
 import stealthPlugin from 'puppeteer-extra-plugin-stealth'
-import { BrowserContext, Browser, Page } from 'playwright'
 import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
 
 export class PlaywrightBrowser {
-    private ctx: BrowserContext
-    private browser: Browser
+    private ctx!: BrowserContext
+    private browser!: Browser
+    private headless: boolean
+    private initialized = false
 
-    constructor(headless = true) {
-        this.init(headless)
+    private constructor(headless: boolean) {
+        this.headless = headless
     }
 
-    async init(headless: boolean) {
+    static async create(headless = true): Promise<PlaywrightBrowser> {
+        const instance = new PlaywrightBrowser(headless)
+        await instance.init()
+        return instance
+    }
+
+    private async init() {
+        if (this.initialized) return
+
         chromium.use(stealthPlugin())
-        const browser = await chromium.launch({ headless })
-        const context = await browser.newContext({
+        this.browser = await chromium.launch({ headless: this.headless })
+        this.ctx = await this.browser.newContext({
             userAgent: getRandom(),
         })
+        this.initialized = true
         console.log(chalk.green('Browser initialized!'))
-        this.browser = browser
-        this.ctx = context
-        return this
+    }
+
+    private ensureInitialized() {
+        if (!this.initialized) {
+            throw new Error(
+                'Browser not initialized. Use PlaywrightBrowser.create() instead of constructor.'
+            )
+        }
     }
 
     async takeScreenshot(
@@ -30,22 +46,27 @@ export class PlaywrightBrowser {
         viewPort = { width: 1920, height: 1080 },
         delay = 0,
         extraStep?: (page: Page) => Promise<void>
-    ) {
+    ): Promise<boolean> {
+        this.ensureInitialized()
         const page = await this.ctx.newPage()
         await page.setViewportSize(viewPort)
 
         try {
             await page.goto(url)
             await page.waitForLoadState('domcontentloaded')
-            await page.waitForTimeout(delay)
-            await extraStep?.(page)
+            if (delay > 0) {
+                await page.waitForTimeout(delay)
+            }
+            if (extraStep) {
+                await extraStep(page)
+            }
             await page.screenshot({ path: filePath })
-            await page.close()
             return true
         } catch (e) {
-            console.log(e)
-            await page.close()
+            console.error(chalk.red('Screenshot error:'), e)
             return false
+        } finally {
+            await page.close()
         }
     }
 
@@ -55,53 +76,65 @@ export class PlaywrightBrowser {
         filePath: string,
         viewPort = { width: 1920, height: 1080 },
         extraStep?: (page: Page) => Promise<void>
-    ) {
+    ): Promise<boolean> {
+        this.ensureInitialized()
         const page = await this.ctx.newPage()
         await page.setViewportSize(viewPort)
 
         try {
             await page.goto(url)
             await page.waitForLoadState('domcontentloaded')
-            await extraStep?.(page)
+            if (extraStep) {
+                await extraStep(page)
+            }
             const element = await page.$(selector)
-            if (element) {
-                await element.screenshot({
-                    path: filePath,
-                    animations: 'disabled',
-                })
-
-                await page.close()
-                return true
+            if (!element) {
+                console.warn(chalk.yellow(`Element not found: ${selector}`))
+                return false
             }
 
-            await page.close()
-            return false
+            await element.screenshot({
+                path: filePath,
+                animations: 'disabled',
+            })
+            return true
         } catch (e) {
-            console.log(e)
-            await page.close()
+            console.error(chalk.red('Element screenshot error:'), e)
             return false
+        } finally {
+            await page.close()
         }
     }
 
-    async openPage(url: string) {
+    async openPage(url: string): Promise<Page> {
+        this.ensureInitialized()
         const page = await this.ctx.newPage()
-        await page.goto(url)
-        await page.waitForLoadState()
+        await page.goto(url, { waitUntil: 'domcontentloaded' })
         return page
     }
 
-    async refreshContext() {
-        if (!this.browser?.isConnected()) {
-            this.browser = await chromium.launch({ headless: true })
+    async refreshContext(): Promise<void> {
+        this.ensureInitialized()
+
+        if (!this.browser.isConnected()) {
+            this.browser = await chromium.launch({ headless: this.headless })
         }
 
-        await this.ctx?.close()
+        await this.ctx.close()
         this.ctx = await this.browser.newContext({ userAgent: getRandom() })
         console.log(chalk.green('Browser context refreshed!'))
     }
 
-    async exit() {
-        await this.ctx?.close()
-        await this.browser?.close()
+    async exit(): Promise<void> {
+        if (!this.initialized) return
+
+        try {
+            await this.ctx?.close()
+            await this.browser?.close()
+            this.initialized = false
+            console.log(chalk.green('Browser closed!'))
+        } catch (e) {
+            console.error(chalk.red('Error closing browser:'), e)
+        }
     }
 }

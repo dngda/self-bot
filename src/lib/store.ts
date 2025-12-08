@@ -1,6 +1,7 @@
 import { proto, WAMessage } from 'baileys'
 import fs from 'fs/promises'
 import path from 'path'
+import type Long from 'long'
 
 interface StoredMessage {
     timestamp: number | Long
