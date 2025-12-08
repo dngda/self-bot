@@ -73,6 +73,7 @@
             "baileys",
             "canvas",
             "es5-ext",
+            "esbuild",
             "protobufjs",
             "sharp",
             "sqlite3",
