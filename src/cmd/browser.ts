@@ -50,9 +50,10 @@ const citraRadarHandler: HandlerFunction = async (
     ctx: MessageContext
 ) => {
     ctx.reactWait()
+    const webURL = 'http://sipora-yogya.bmkg.go.id/radar/'
     try {
         const r = await browser.takeScreenshot(
-            'http://sipora-yogya.bmkg.go.id/radar/',
+            webURL,
             'tmp/radar.png',
             { width: 1200, height: 1000 },
             0,
@@ -71,7 +72,7 @@ const citraRadarHandler: HandlerFunction = async (
 
         const result = await waSocket.sendMessage(
             ctx.from,
-            { image: { url: 'tmp/radar.png' } },
+            { image: { url: 'tmp/radar.png' }, caption: webURL },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
         )
 
