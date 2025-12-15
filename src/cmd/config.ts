@@ -102,6 +102,19 @@ const stickerAsCmdHandler: HandlerFunction = async (
 ) => {
     if (!ctx.fromMe) return undefined
 
+    if (ctx.arg === 'list') {
+        const entries = Object.entries(config.sticker_commands)
+        if (entries.length === 0) {
+            return ctx.reply('‼️ Tidak ada sticker command yang terdaftar')
+        }
+
+        let replyMsg = '📋 Daftar Sticker Command:\n\n'
+        for (const [sha, { cmd, arg }] of entries) {
+            replyMsg += `• Command: ${cmd} ${arg}\n  Sticker SHA256: ${sha}\n\n`
+        }
+        return ctx.reply(replyMsg.trim())
+    }
+
     const quoted = ctx.quotedMsg
     if (!quoted?.stickerMessage?.fileSha256) {
         ctx.reply(stringId.stickerCmd.usage(ctx))
