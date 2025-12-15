@@ -95,6 +95,60 @@ const stickerAsCommandCmd = () => {
     })
 }
 
+const listStickerCommands = (ctx: MessageContext) => {
+    const entries = Object.entries(config.sticker_commands)
+    if (entries.length === 0) {
+        return ctx.reply('‼️ Tidak ada sticker command yang terdaftar')
+    }
+
+    const replyMsg = entries
+        .map(
+            ([sha, { cmd, arg }]) =>
+                `• Command: ${cmd} ${arg}\n  Sticker SHA256: ${sha}`
+        )
+        .join('\n\n')
+
+    return ctx.reply(`📋 Daftar Sticker Command:\n\n${replyMsg}`)
+}
+
+const deleteStickerCommand = async (sha: string, ctx: MessageContext) => {
+    if (!(sha in config.sticker_commands)) {
+        await ctx.reactError()
+        return ctx.reply(stringId.stickerCmd.error.notExist())
+    }
+
+    const { cmd, arg } = config.sticker_commands[sha]
+    delete config.sticker_commands[sha]
+    updateConfig()
+    await ctx.reactSuccess()
+    return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) ?? '')
+}
+
+const addStickerCommand = async (stickerSha: string, ctx: MessageContext) => {
+    const cmd = ctx.args[0]
+    const arg = ctx.arg.replace(cmd, '').trim()
+
+    if (!cmd) return ctx.reply(stringId.stickerCmd.usage(ctx))
+    if (!findMenu(cmd)) return ctx.reply(stringId.stickerCmd.error.invalidCmd())
+
+    if (stickerSha in config.sticker_commands) {
+        return ctx.reply(
+            stringId.stickerCmd.error.exist(config.sticker_commands[stickerSha])
+        )
+    }
+
+    config.sticker_commands[stickerSha] = { cmd, arg }
+    updateConfig()
+    await ctx.reactSuccess()
+    return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) ?? '')
+}
+
+const getStickerSha = (ctx: MessageContext): string | null => {
+    const quoted = ctx.quotedMsg
+    if (!quoted?.stickerMessage?.fileSha256) return null
+    return Buffer.from(quoted.stickerMessage.fileSha256).toString('base64')
+}
+
 const stickerAsCmdHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -102,62 +156,31 @@ const stickerAsCmdHandler: HandlerFunction = async (
 ) => {
     if (!ctx.fromMe) return undefined
 
+    // Handle list command
     if (ctx.arg === 'list') {
-        const entries = Object.entries(config.sticker_commands)
-        if (entries.length === 0) {
-            return ctx.reply('‼️ Tidak ada sticker command yang terdaftar')
-        }
-
-        let replyMsg = '📋 Daftar Sticker Command:\n\n'
-        for (const [sha, { cmd, arg }] of entries) {
-            replyMsg += `• Command: ${cmd} ${arg}\n  Sticker SHA256: ${sha}\n\n`
-        }
-        return ctx.reply(replyMsg.trim())
+        return listStickerCommands(ctx)
     }
 
-    const quoted = ctx.quotedMsg
-    if (!quoted?.stickerMessage?.fileSha256) {
-        ctx.reply(stringId.stickerCmd.usage(ctx))
-        return undefined
+    // Handle delete by SHA (without quoted message)
+    if (ctx.cmd === 'dscmd' && !ctx.quotedMsg) {
+        const sha = ctx.args[0]
+        if (!sha) return ctx.reply(stringId.stickerCmd.usage(ctx))
+        return deleteStickerCommand(sha, ctx)
     }
 
-    const stickerSha = Buffer.from(quoted.stickerMessage?.fileSha256).toString(
-        'base64'
-    )
+    // Get sticker SHA from quoted message
+    const stickerSha = getStickerSha(ctx)
+    if (!stickerSha) {
+        return ctx.reply(stringId.stickerCmd.usage(ctx))
+    }
 
+    // Handle delete with quoted sticker
     if (ctx.cmd === 'dscmd') {
-        if (stickerSha in config.sticker_commands) {
-            const { cmd, arg } = config.sticker_commands[stickerSha]
-
-            delete config.sticker_commands[stickerSha]
-            updateConfig()
-            await ctx.reactSuccess()
-            return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) ?? '')
-        } else {
-            await ctx.reactError()
-            return ctx.reply(stringId.stickerCmd.error.notExist())
-        }
-    } else {
-        const cmd = ctx.args[0]
-        const arg = ctx.arg.replace(cmd, '').trim()
-
-        if (!cmd) return ctx.reply(stringId.stickerCmd.usage(ctx))
-        if (!findMenu(cmd))
-            return ctx.reply(stringId.stickerCmd.error.invalidCmd())
-
-        if (stickerSha in config.sticker_commands) {
-            ctx.reply(
-                stringId.stickerCmd.error.exist(
-                    config.sticker_commands[stickerSha]
-                )
-            )
-            return
-        }
-        config.sticker_commands[stickerSha] = { cmd, arg }
-        updateConfig()
-        await ctx.reactSuccess()
-        return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) ?? '')
+        return deleteStickerCommand(stickerSha, ctx)
     }
+
+    // Handle add sticker command
+    return addStickerCommand(stickerSha, ctx)
 }
 
 const setPrefixCmd = () => {
