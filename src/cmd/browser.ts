@@ -44,12 +44,33 @@ const citraRadarJogjaCmd = () => {
         cuaca: citraRadarHandler,
     })
 }
+
+// Sabtu 17 Januari 2026 19:00 WIB
+let LAST_UPDATE_TIME = ''
 const citraRadarHandler: HandlerFunction = async (
     waSocket: WASocket,
     msg: WAMessage,
     ctx: MessageContext
 ) => {
     ctx.reactWait()
+
+    const lastUpdateTime = new Date(LAST_UPDATE_TIME)
+    const now = new Date()
+    const diffMins = (now.getTime() - lastUpdateTime.getTime()) / 60000
+    if (diffMins >= 0 && diffMins <= 10 && LAST_UPDATE_TIME !== '') {
+        const result = await waSocket.sendMessage(
+            ctx.from,
+            {
+                image: { url: 'tmp/radar.png' },
+                caption: `🌐 Citra Radar Jogja\n🕒 ${LAST_UPDATE_TIME}`,
+            },
+            { quoted: msg, ephemeralExpiration: ctx.expiration! }
+        )
+
+        ctx.reactSuccess()
+        return result
+    }
+
     const webURL = 'http://sipora-yogya.bmkg.go.id/radar/'
     try {
         const r = await browser.takeScreenshot(
@@ -62,6 +83,16 @@ const citraRadarHandler: HandlerFunction = async (
                 await page.waitForTimeout(1000)
                 await page.click('a.leaflet-control-zoom-in')
                 await page.waitForTimeout(3000)
+                const updateTimeEl = await page.$('#updatetime')
+                if (updateTimeEl) {
+                    const updateTimeText = await page.evaluate(
+                        (el) => el.textContent,
+                        updateTimeEl
+                    )
+                    if (updateTimeText && updateTimeText !== LAST_UPDATE_TIME) {
+                        LAST_UPDATE_TIME = updateTimeText
+                    }
+                }
             }
         )
 
@@ -72,7 +103,10 @@ const citraRadarHandler: HandlerFunction = async (
 
         const result = await waSocket.sendMessage(
             ctx.from,
-            { image: { url: 'tmp/radar.png' }, caption: webURL },
+            {
+                image: { url: 'tmp/radar.png' },
+                caption: `🌐 Citra Radar Jogja\n🕒 ${LAST_UPDATE_TIME}`,
+            },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
         )
 

@@ -9,6 +9,7 @@ import tools from './tools.js'
 import config from './config.js'
 import script from './script.js'
 import image from './image.js'
+import media from './media.js'
 
 // Urutan pemanggilan akan menentukan urutan menu
 export default () => {
@@ -19,6 +20,7 @@ export default () => {
     random()
     browser()
     image()
+    media()
     tools()
     script()
 

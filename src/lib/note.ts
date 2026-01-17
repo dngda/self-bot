@@ -10,13 +10,13 @@ const sequelize = new Sequelize({
 const Note = sequelize.define('note', {
     from: {
         type: DataTypes.STRING(128),
-        key: 'from',
         primaryKey: true,
+        key: 'from',
     },
     title: {
         type: DataTypes.STRING(128),
-        key: 'title',
         primaryKey: true,
+        key: 'title',
     },
     content: {
         type: DataTypes.TEXT(),
@@ -29,9 +29,9 @@ const Note = sequelize.define('note', {
 })
 
 export async function initNoteDatabase() {
-    console.log(chalk.yellow('Initializing database...'))
+    console.log(chalk.yellow('Initializing note database...'))
     await sequelize.sync()
-    console.log(chalk.green('Database synced!'))
+    console.log(chalk.green('Note database synced!'))
 }
 
 export async function createNote(
