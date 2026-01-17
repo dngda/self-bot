@@ -89,8 +89,11 @@ const citraRadarHandler: HandlerFunction = async (
                         (el) => el.textContent,
                         updateTimeEl
                     )
-                    if (updateTimeText && updateTimeText !== LAST_UPDATE_TIME) {
-                        LAST_UPDATE_TIME = updateTimeText
+                    if (
+                        updateTimeText &&
+                        updateTimeText.trim() !== LAST_UPDATE_TIME
+                    ) {
+                        LAST_UPDATE_TIME = updateTimeText.trim()
                     }
                 }
             }
