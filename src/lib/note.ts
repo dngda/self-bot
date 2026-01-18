@@ -1,11 +1,12 @@
-import chalk from 'chalk'
-import { Sequelize, DataTypes } from 'sequelize'
+import { DataTypes } from 'sequelize'
+import { sequelize } from './database.js'
 
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: 'data/note.sqlite',
-    logging: false,
-})
+export interface NoteAttributes {
+    from: string
+    title: string
+    content: string
+    media?: string | null
+}
 
 const Note = sequelize.define('note', {
     from: {
@@ -28,56 +29,62 @@ const Note = sequelize.define('note', {
     },
 })
 
-export async function initNoteDatabase() {
-    console.log(chalk.yellow('Initializing note database...'))
-    await sequelize.sync()
-    console.log(chalk.green('Note database synced!'))
-}
-
-export async function createNote(
+export async function addNote(
     from: string,
     title: string,
     content: string,
     media?: string
-) {
+): Promise<NoteAttributes | null> {
     const note = await Note.create({ from, title, content, media }).catch(
         (error) => {
-            console.log(chalk.red('[ERR]'), error)
+            console.log('[ERR]', error)
             return null
         }
     )
-    return note?.toJSON()
+    return note?.toJSON() as NoteAttributes | null
 }
 
-export async function getNotesNames(from: string) {
+export async function getNotesList(from: string): Promise<string[]> {
     const notes = await Note.findAll({
         where: { from },
         order: [['title', 'ASC']],
     })
-    return notes.map((note) => note.toJSON().title)
+    return notes.map((note) => (note.toJSON() as NoteAttributes).title)
 }
 
-export async function getNoteContent(from: string, title: string) {
+export async function getNote(
+    from: string,
+    title: string
+): Promise<NoteAttributes | null> {
     const note = await Note.findOne({ where: { from, title } })
-    return note?.toJSON()
+    return note ? (note.toJSON() as NoteAttributes) : null
 }
 
-export async function updateNoteContent(
+export async function updateNote(
     from: string,
     title: string,
     content: string,
     media?: string
-) {
-    const note = await Note.update(
+): Promise<boolean> {
+    const result = await Note.update(
         { content, media },
         { where: { from, title } }
-    )
-    return note[0] > 0
+    ).catch((error) => {
+        console.log('[ERR]', error)
+        return [0]
+    })
+    return result[0] > 0
 }
 
-export async function deleteNote(from: string, title: string) {
+export async function deleteNote(
+    from: string,
+    title: string
+): Promise<string | null> {
     const note = await Note.findOne({ where: { from, title } })
-    const hasMedia = note?.toJSON().media
-    await note?.destroy()
-    return hasMedia
+    if (!note) return null
+
+    const noteData = note.toJSON() as NoteAttributes
+    const mediaPath = noteData.media || null
+    await note.destroy()
+    return mediaPath
 }

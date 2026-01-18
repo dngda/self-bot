@@ -21,9 +21,14 @@ import figlet from 'figlet'
 import dotenv from 'dotenv'
 import chalk from 'chalk'
 
-import { PlaywrightBrowser, getMessage } from './src/lib/_index.js'
+import {
+    PlaywrightBrowser,
+    getMessage,
+    initiateReminderCron,
+} from './src/lib/_index.js'
 import { executeSavedScriptInNote } from './src/cmd/owner.js'
 import app from './src/lib/webhook.js'
+import { rmdirSync } from 'fs'
 
 // Types
 interface WASocket extends _WASocket {
@@ -126,6 +131,9 @@ const handleConnectionUpdate =
                 startSock()
             } else {
                 console.log('Connection closed. You are logged out.')
+                // delete auth files and restart
+                rmdirSync(AUTH_DIR, { recursive: true })
+                startSock()
             }
         }
 
@@ -254,6 +262,7 @@ const startSock = async (): Promise<void> => {
         waSocket = sock
 
         registerEventHandlers(sock, saveCreds)
+        initiateReminderCron(sock)
     } catch (error) {
         console.error('Failed to start WhatsApp socket:', error)
         throw error

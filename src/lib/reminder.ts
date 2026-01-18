@@ -1,14 +1,25 @@
 // sqlite database setup for reminders
-import { Sequelize, DataTypes } from 'sequelize'
+import { DataTypes, Op, Model } from 'sequelize'
+import { CronJob } from 'cron'
+import chalk from 'chalk'
+import { WASocket } from 'baileys'
+import { sequelize } from './database.js'
 
-const sequelize = new Sequelize({
-    dialect: 'sqlite',
-    storage: 'data/reminder.sqlite',
-    logging: false,
-})
+export interface ReminderAttributes {
+    id: number
+    from: string
+    message: string
+    nextRunAt: Date
+    repeatType: 'none' | 'daily' | 'weekly' | 'monthly'
+    repeatInterval: number
+    lastTriggeredAt: Date | null
+    createdAt?: Date
+    updatedAt?: Date
+}
 
-const Reminder = sequelize.define(
-    'reminder',
+class Reminder extends Model {}
+
+Reminder.init(
     {
         id: {
             type: DataTypes.INTEGER,
@@ -24,53 +35,61 @@ const Reminder = sequelize.define(
             type: DataTypes.TEXT,
             allowNull: false,
         },
-        date: {
+        nextRunAt: {
             type: DataTypes.DATE,
-            allowNull: true, // can be null for recurring reminders
+            allowNull: true,
         },
-        time: {
-            type: DataTypes.STRING(16),
-            allowNull: false,
+        repeatType: {
+            type: DataTypes.ENUM('none', 'daily', 'weekly', 'monthly'),
+            defaultValue: 'none',
+        },
+        repeatInterval: {
+            type: DataTypes.INTEGER,
+            defaultValue: 1,
+        },
+        lastTriggeredAt: {
+            type: DataTypes.DATE,
+            allowNull: true,
         },
     },
     {
+        sequelize,
+        tableName: 'reminders',
         timestamps: true,
     }
 )
 
-export async function initReminderDatabase() {
-    console.log('Initializing reminder database...')
-    await sequelize.sync()
-    console.log('Reminder database synced!')
-}
-
-export async function createReminder(
+export async function addReminder(
     from: string,
     message: string,
-    date: Date | null,
-    time: string
-) {
-    const reminder = await Reminder.create({ from, message, date, time }).catch(
-        (error) => {
-            console.log('[ERR]', error)
-            return null
-        }
-    )
-    return reminder?.toJSON()
+    nextRunAt: Date,
+    repeatType: 'none' | 'daily' | 'weekly' | 'monthly' = 'none',
+    repeatInterval: number = 1
+): Promise<ReminderAttributes | null> {
+    const reminder = await Reminder.create({
+        from,
+        message,
+        nextRunAt,
+        repeatType,
+        repeatInterval,
+    }).catch((error) => {
+        console.log('[ERR]', error)
+        return null
+    })
+    return reminder?.toJSON() as ReminderAttributes | null
 }
 
-export async function getReminders(from: string) {
+export async function getRemindersList(
+    from: string
+): Promise<ReminderAttributes[]> {
     const reminders = await Reminder.findAll({
         where: { from },
-        order: [
-            ['date', 'ASC'],
-            ['time', 'ASC'],
-        ],
+        order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON())
+    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
 }
 
-export async function deleteReminder(id: number) {
+export async function deleteReminder(id: number): Promise<boolean> {
     const result = await Reminder.destroy({ where: { id } }).catch((error) => {
         console.log('[ERR]', error)
         return 0
@@ -78,7 +97,7 @@ export async function deleteReminder(id: number) {
     return result > 0
 }
 
-export async function deleteAllReminders(from: string) {
+export async function deleteAllReminders(from: string): Promise<boolean> {
     const result = await Reminder.destroy({ where: { from } }).catch(
         (error) => {
             console.log('[ERR]', error)
@@ -91,11 +110,12 @@ export async function deleteAllReminders(from: string) {
 export async function updateReminder(
     id: number,
     message: string,
-    date: Date | null,
-    time: string
-) {
+    nextRunAt: Date,
+    repeatType: 'none' | 'daily' | 'weekly' | 'monthly' = 'none',
+    repeatInterval: number = 1
+): Promise<boolean> {
     const result = await Reminder.update(
-        { message, date, time },
+        { message, nextRunAt, repeatType, repeatInterval },
         { where: { id } }
     ).catch((error) => {
         console.log('[ERR]', error)
@@ -104,12 +124,91 @@ export async function updateReminder(
     return result[0] > 0
 }
 
-export async function getAllReminders() {
+export async function getAllRemindersList(): Promise<ReminderAttributes[]> {
     const reminders = await Reminder.findAll({
-        order: [
-            ['date', 'ASC'],
-            ['time', 'ASC'],
-        ],
+        order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON())
+    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+}
+
+async function getNextRemindersJob(): Promise<ReminderAttributes[]> {
+    const reminders = await Reminder.findAll({
+        where: {
+            nextRunAt: {
+                [Op.lte]: new Date(),
+            },
+        },
+        order: [['nextRunAt', 'ASC']],
+    })
+    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+}
+
+const cleanStaleReminders = async () => {
+    const now = new Date()
+    const reminders = await getAllRemindersList()
+    for (const reminder of reminders) {
+        if (reminder.repeatType === 'none' && reminder.nextRunAt < now) {
+            await deleteReminder(reminder.id)
+        }
+    }
+}
+
+export const initiateReminderCron = (_wa: WASocket) => {
+    cleanStaleReminders()
+
+    const job = new CronJob('*/1 * * * *', async () => {
+        const now = new Date()
+        const reminders = await getNextRemindersJob()
+        if (!reminders || reminders.length === 0) return
+
+        for (const reminder of reminders) {
+            if (!reminder.nextRunAt) continue
+            const nextRunAt = new Date(reminder.nextRunAt)
+            // Check if reminder should trigger (within the current minute)
+            if (
+                nextRunAt <= now &&
+                nextRunAt.getTime() > now.getTime() - 60000
+            ) {
+                // send reminder message to user
+                _wa.sendMessage(reminder.from, {
+                    text: `⏰ Reminder:\n${reminder.message}`,
+                })
+
+                // Update lastTriggeredAt
+                await Reminder.update(
+                    { lastTriggeredAt: now },
+                    { where: { id: reminder.id } }
+                )
+
+                // Handle recurring reminders
+                if (reminder.repeatType !== 'none') {
+                    const nextRun = new Date(nextRunAt)
+                    const interval = reminder.repeatInterval || 1
+
+                    switch (reminder.repeatType) {
+                        case 'daily':
+                            nextRun.setDate(nextRun.getDate() + interval)
+                            break
+                        case 'weekly':
+                            nextRun.setDate(nextRun.getDate() + 7 * interval)
+                            break
+                        case 'monthly':
+                            nextRun.setMonth(nextRun.getMonth() + interval)
+                            break
+                    }
+
+                    await Reminder.update(
+                        { nextRunAt: nextRun },
+                        { where: { id: reminder.id } }
+                    )
+                } else {
+                    // Delete non-recurring reminders after triggering
+                    await deleteReminder(reminder.id)
+                }
+            }
+        }
+    })
+
+    job.start()
+    console.log(chalk.green('Reminder cron job started!'))
 }

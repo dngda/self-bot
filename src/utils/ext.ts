@@ -6,7 +6,7 @@ import { logCmd } from './_index.js'
 import { getStatusListMessage } from '../cmd/owner.js'
 import { actions, config } from '../handler.js'
 import stringId from '../language.js'
-import { getNoteContent, getStatus } from '../lib/_index.js'
+import { getNote, getStatus } from '../lib/_index.js'
 import { getCommand } from '../menu.js'
 import { MessageContext } from '../types.js'
 import { serializeMessage } from './serializer.js'
@@ -15,14 +15,14 @@ import { ListMemory, renderList } from '../cmd/tools.js'
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
     const id = fromMe ? 'me' : participant ?? from
-    const note = await getNoteContent(id, body as string)
+    const note = await getNote(id, body as string)
     if (note?.media) {
         const media = fs.readFileSync(note.media)
         const contentType = note.media.endsWith('.mp4') ? 'video' : 'image'
-        const content = {
-            [contentType]: media,
-            caption: note.content,
-        } as AnyMessageContent
+        const content: AnyMessageContent =
+            contentType === 'video'
+                ? { video: media, caption: note.content }
+                : { image: media, caption: note.content }
         if (ctx.isQuoted) {
             await ctx.quoteReplyContent(content, {
                 key: {

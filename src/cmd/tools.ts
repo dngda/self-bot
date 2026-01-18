@@ -4,23 +4,31 @@ import { actions } from '../handler.js'
 import stringId from '../language.js'
 import {
     LANGUAGES,
-    createNote,
+    addNote,
     deleteNote,
-    getNotesNames,
-    initNoteDatabase,
+    getNotesList,
+    initDatabase,
     mp3ToOpus,
     saveTextToSpeech,
-    updateNoteContent,
+    updateNote,
 } from '../lib/_index.js'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
+import {
+    addReminder,
+    deleteAllReminders,
+    deleteReminder,
+    getRemindersList,
+    ReminderAttributes,
+} from '../lib/reminder.js'
 
 export default () => {
-    initNoteDatabase()
+    initDatabase()
 
     gttsCmd()
     noteCreatorCmd()
     collectListCmd()
+    reminderCmd()
 }
 
 const noteCreatorCmd = () => {
@@ -74,7 +82,7 @@ const noteHandler: HandlerFunction = async (
 }
 
 async function handleNoteCommand(id: string, ctx: MessageContext) {
-    const note = await getNotesNames(id)
+    const note = await getNotesList(id)
     if (note.length == 0) throw stringId.note.error.noNote()
     let noteList = '📝 Note List:\n'
     note.forEach((n) => {
@@ -103,12 +111,7 @@ async function handleAddEditNoteCommand(
 
     const { path, note: _note } = await handleMediaNotes(ctx, note, noteName)
 
-    const res = await (isEdit ? updateNoteContent : createNote)(
-        id,
-        noteName,
-        _note,
-        path
-    )
+    const res = await (isEdit ? updateNote : addNote)(id, noteName, _note, path)
 
     if (!res) {
         return ctx.reply(
@@ -332,4 +335,199 @@ const collectListHandler: HandlerFunction = async (
     return reply(
         `📝 ${listName} 📝 dibuat!\nKirim \`+ (isi)\` untuk menambahkan ke list!`
     )
+}
+
+const reminderCmd = () => {
+    stringId.reminder = {
+        hint: '⏰ _Set a reminder message using cronjob_',
+        error: {
+            invalidFormat: () =>
+                '‼️ Format salah! Gunakan salah satu:\n' +
+                '• <YYYY-MM-DD> <HH:MM> <pesan>\n' +
+                '• <HH:MM> <pesan> (untuk hari ini)\n' +
+                '• every <daily|weekly|monthly> <HH:MM> <pesan>\n' +
+                'Contoh: 2025-12-31 14:30 Meeting penting!',
+            pastDate: () => '‼️ Tanggal/waktu sudah lewat!',
+            noReminders: () => '‼️ Tidak ada reminder yang aktif!',
+        },
+        usage: (
+            ctx: MessageContext
+        ) => `⏰ ➡️ ${ctx.prefix}remind <YYYY-MM-DD> <HH:MM> <pesan>
+⏰ ➡️ ${ctx.prefix}remind <HH:MM> <pesan>
+⏰ ➡️ ${ctx.prefix}remind every <daily|weekly|monthly> <HH:MM> <pesan>
+⏰ ➡️ ${ctx.prefix}reminders
+⏰ ➡️ ${ctx.prefix}delreminder <id>
+⏰ ➡️ ${ctx.prefix}delallreminders`,
+    }
+
+    menu.push({
+        command: 'remind',
+        hint: stringId.reminder.hint,
+        alias: 'reminders, delreminder, delallreminders',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        remind: reminderHandler,
+    })
+}
+
+const reminderHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { from, cmd, arg, args, reply } = ctx
+
+    switch (cmd) {
+        case 'remind': {
+            if (!arg) return reply(stringId.reminder.usage(ctx))
+
+            let nextRunAt: Date
+            let repeatType: 'none' | 'daily' | 'weekly' | 'monthly' = 'none'
+            let message: string
+
+            // Check if it's a recurring reminder: every <type> <HH:MM> <message>
+            if (args[0].toLowerCase() === 'every') {
+                const type = args[1]?.toLowerCase()
+                if (!['daily', 'weekly', 'monthly'].includes(type)) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+                repeatType = type as 'daily' | 'weekly' | 'monthly'
+
+                const time = args[2]
+                if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+
+                message = args.slice(3).join(' ')
+                if (!message) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+
+                // Set next run to today at specified time
+                const [hours, minutes] = time.split(/[:.]/).map(Number)
+                nextRunAt = new Date()
+                nextRunAt.setHours(hours, minutes, 0, 0)
+
+                // If time already passed today, set to tomorrow
+                if (nextRunAt <= new Date()) {
+                    nextRunAt.setDate(nextRunAt.getDate() + 1)
+                }
+            }
+            // Check if args[0] is time (HH:MM) or date (YYYY-MM-DD)
+            else if (/^\d{2}[:.]\d{2}$/.test(args[0])) {
+                // Format: <HH:MM> <pesan>
+                const time = args[0]
+                const [hours, minutes] = time.split(/[:.]/).map(Number)
+
+                message = args.slice(1).join(' ')
+                if (!message) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+
+                nextRunAt = new Date()
+                nextRunAt.setHours(hours, minutes, 0, 0)
+
+                // If time already passed today, set to tomorrow
+                if (nextRunAt <= new Date()) {
+                    nextRunAt.setDate(nextRunAt.getDate() + 1)
+                }
+            } else if (/^\d{4}-\d{2}-\d{2}$/.test(args[0])) {
+                // Format: <YYYY-MM-DD> <HH:MM> <pesan>
+                const date = args[0]
+                const time = args[1]
+
+                if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+
+                message = args.slice(2).join(' ')
+                if (!message) {
+                    return reply(stringId.reminder.error.invalidFormat())
+                }
+
+                const [year, month, day] = date.split('-').map(Number)
+                const [hours, minutes] = time.split(/[:.]/).map(Number)
+
+                nextRunAt = new Date(year, month - 1, day, hours, minutes, 0, 0)
+
+                // Check if date is in the past
+                if (nextRunAt <= new Date()) {
+                    return reply(stringId.reminder.error.pastDate())
+                }
+            } else {
+                return reply(stringId.reminder.error.invalidFormat())
+            }
+
+            const reminder = await addReminder(
+                from,
+                message,
+                nextRunAt,
+                repeatType
+            )
+
+            if (!reminder) {
+                return reply('‼️ Error creating reminder!')
+            }
+
+            const formattedDate = nextRunAt.toLocaleString('id-ID', {
+                dateStyle: 'medium',
+                timeStyle: 'short',
+            })
+
+            const repeatInfo = repeatType !== 'none' ? ` (${repeatType})` : ''
+
+            return reply(
+                `✅ Reminder set\n` +
+                    `[ID: ${reminder.id}]${repeatInfo}\n` +
+                    `📅 ${formattedDate}\n` +
+                    `💬 ${message}`
+            )
+        }
+        case 'reminders': {
+            const reminders = await getRemindersList(from)
+
+            if (reminders.length === 0) {
+                return reply(stringId.reminder.error.noReminders())
+            }
+
+            let list = '⏰ *Your Reminders:*\n\n'
+            reminders.forEach((r: ReminderAttributes) => {
+                const date = new Date(r.nextRunAt)
+                const formattedDate = date.toLocaleString('id-ID', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                })
+                const repeatInfo =
+                    r.repeatType !== 'none' ? ` (${r.repeatType})` : ''
+                list += `*[ID ${r.id}]${repeatInfo}*\n`
+                list += `📅 ${formattedDate}\n`
+                list += `💬 ${r.message}\n\n`
+            })
+
+            return reply(list.trim())
+        }
+        case 'delreminder': {
+            const id = parseInt(arg)
+            if (isNaN(id)) return reply(stringId.reminder.usage(ctx))
+
+            const success = await deleteReminder(id)
+            return reply(
+                success
+                    ? `✅ Reminder ID ${id} deleted!`
+                    : `‼️ Reminder ID ${id} not found!`
+            )
+        }
+        case 'delallreminders': {
+            const success = await deleteAllReminders(from)
+            return reply(
+                success
+                    ? '✅ All your reminders have been deleted!'
+                    : '‼️ You have no reminders to delete!'
+            )
+        }
+        default:
+            return
+    }
 }

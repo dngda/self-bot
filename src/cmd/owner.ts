@@ -1,6 +1,6 @@
 import {
-    getNoteContent,
-    getNotesNames,
+    getNote,
+    getNotesList,
     getStatus,
     getStatusList,
 } from '../lib/_index.js'
@@ -79,13 +79,14 @@ const evalJSHandler: HandlerFunction = async (
 }
 
 export const executeSavedScriptInNote = async (_w: WASocket) => {
-    const notes = await getNotesNames('me')
+    const notes = await getNotesList('me')
+    if (!notes) return console.log('No saved note found')
     const scripts = notes.filter((note) => note.startsWith('#script_'))
     if (scripts.length == 0) return console.log('No saved script found')
     for (const script of scripts) {
-        const { content } = await getNoteContent('me', script)
+        const note = await getNote('me', script)
         console.log(chalk.cyan('[CMD]'), 'Executing script:', script)
-        await eval(`(async () => { ${content} })()`)
+        await eval(`(async () => { ${note?.content} })()`)
     }
 }
 
