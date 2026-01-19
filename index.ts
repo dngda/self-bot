@@ -132,7 +132,7 @@ const handleConnectionUpdate =
             } else {
                 console.log('Connection closed. You are logged out.')
                 // delete auth files and restart
-                rmdirSync(AUTH_DIR, { recursive: true })
+                rmdirSync(AUTH_DIR)
                 startSock()
             }
         }
