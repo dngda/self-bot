@@ -346,15 +346,19 @@ const reminderCmd = () => {
                 '• <YYYY-MM-DD> <HH:MM> <pesan>\n' +
                 '• <HH:MM> <pesan> (untuk hari ini)\n' +
                 '• every <daily|weekly|monthly> <HH:MM> <pesan>\n' +
+                '• every <senin,rabu,jumat> <HH:MM> <pesan>\n' +
                 'Contoh: 2025-12-31 14:30 Meeting penting!',
             pastDate: () => '‼️ Tanggal/waktu sudah lewat!',
             noReminders: () => '‼️ Tidak ada reminder yang aktif!',
+            invalidDays: () =>
+                '‼️ Hari tidak valid! Gunakan: senin, selasa, rabu, kamis, jumat, sabtu, minggu',
         },
         usage: (
             ctx: MessageContext
         ) => `⏰ ➡️ ${ctx.prefix}remind <YYYY-MM-DD> <HH:MM> <pesan>
 ⏰ ➡️ ${ctx.prefix}remind <HH:MM> <pesan>
 ⏰ ➡️ ${ctx.prefix}remind every <daily|weekly|monthly> <HH:MM> <pesan>
+⏰ ➡️ ${ctx.prefix}remind every <senin,rabu,jumat> <HH:MM> <pesan>
 ⏰ ➡️ ${ctx.prefix}reminders
 ⏰ ➡️ ${ctx.prefix}delreminder <id>
 ⏰ ➡️ ${ctx.prefix}delallreminders`,
@@ -372,161 +376,329 @@ const reminderCmd = () => {
     })
 }
 
+// Helper: Parse day names to day numbers
+const parseDayNames = (daysStr: string): number[] | null => {
+    // prettier-ignore
+    const dayMap: { [key: string]: number } = {
+        'minggu': 0, 'sunday': 0, 'min': 0,
+        'senin': 1, 'monday': 1, 'sen': 1,
+        'selasa': 2, 'tuesday': 2, 'sel': 2,
+        'rabu': 3, 'wednesday': 3, 'rab': 3,
+        'kamis': 4, 'thursday': 4, 'kam': 4,
+        'jumat': 5, 'friday': 5, 'jum': 5,
+        'sabtu': 6, 'saturday': 6, 'sab': 6,
+    }
+
+    const days = daysStr
+        .toLowerCase()
+        .split(',')
+        .map((d) => d.trim())
+    const dayNumbers: number[] = []
+
+    for (const day of days) {
+        if (dayMap[day] !== undefined) {
+            dayNumbers.push(dayMap[day])
+        } else {
+            return null
+        }
+    }
+
+    return [...new Set(dayNumbers)].sort()
+}
+
+// Helper: Format date for display
+const formatReminderDate = (date: Date): string => {
+    return date.toLocaleString('id-ID', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+    })
+}
+
+// Helper: Format repeat info for display
+const formatRepeatInfo = (
+    repeatType: string,
+    repeatDays: number[] | null
+): string => {
+    if (repeatType === 'custom_days' && repeatDays) {
+        const dayNames = [
+            'Minggu',
+            'Senin',
+            'Selasa',
+            'Rabu',
+            'Kamis',
+            'Jumat',
+            'Sabtu',
+        ]
+        const daysList = repeatDays.map((d) => dayNames[d]).join(', ')
+        return ` (setiap ${daysList})`
+    } else if (repeatType !== 'none') {
+        return ` (${repeatType})`
+    }
+    return ''
+}
+
+// Helper: Parse time string to hours and minutes
+const parseTime = (time: string): [number, number] => {
+    return time.split(/[:.]/).map(Number) as [number, number]
+}
+
+// Helper: Calculate next run date for custom days
+const calculateNextCustomDay = (baseDate: Date, repeatDays: number[]): Date => {
+    const nextRun = new Date(baseDate)
+
+    // If time already passed today, start from tomorrow
+    if (nextRun <= new Date()) {
+        nextRun.setDate(nextRun.getDate() + 1)
+    }
+
+    // Find next day that matches repeatDays
+    let found = false
+    let attempts = 0
+    while (!found && attempts < 7) {
+        const dayOfWeek = nextRun.getDay()
+        if (repeatDays.includes(dayOfWeek)) {
+            found = true
+        } else {
+            nextRun.setDate(nextRun.getDate() + 1)
+            attempts++
+        }
+    }
+
+    return nextRun
+}
+
+// Helper: Parse recurring reminder (every ...)
+const parseRecurringReminder = (
+    args: string[]
+): {
+    nextRunAt: Date
+    repeatType: 'daily' | 'weekly' | 'monthly' | 'custom_days'
+    repeatDays: number[] | null
+    message: string
+} | null => {
+    const type = args[1]?.toLowerCase()
+    if (!type) return null
+
+    // Check if it's custom days
+    const parsedDays = parseDayNames(type)
+    let repeatType: 'daily' | 'weekly' | 'monthly' | 'custom_days'
+    let repeatDays: number[] | null = null
+
+    if (parsedDays !== null) {
+        repeatType = 'custom_days'
+        repeatDays = parsedDays
+    } else if (['daily', 'weekly', 'monthly'].includes(type)) {
+        repeatType = type as 'daily' | 'weekly' | 'monthly'
+    } else {
+        return null
+    }
+
+    const time = args[2]
+    if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) return null
+
+    const message = args.slice(3).join(' ')
+    if (!message) return null
+
+    const [hours, minutes] = parseTime(time)
+    let nextRunAt = new Date()
+    nextRunAt.setHours(hours, minutes, 0, 0)
+
+    if (repeatType === 'custom_days' && repeatDays && repeatDays.length > 0) {
+        nextRunAt = calculateNextCustomDay(nextRunAt, repeatDays)
+    } else {
+        // For daily/weekly/monthly, if time already passed today, set to tomorrow
+        if (nextRunAt <= new Date()) {
+            nextRunAt.setDate(nextRunAt.getDate() + 1)
+        }
+    }
+
+    return { nextRunAt, repeatType, repeatDays, message }
+}
+
+// Helper: Parse time-only reminder (HH:MM)
+const parseTimeOnlyReminder = (
+    args: string[]
+): { nextRunAt: Date; message: string } | null => {
+    const time = args[0]
+    if (!/^\d{2}[:.]\d{2}$/.test(time)) return null
+
+    const message = args.slice(1).join(' ')
+    if (!message) return null
+
+    const [hours, minutes] = parseTime(time)
+    const nextRunAt = new Date()
+    nextRunAt.setHours(hours, minutes, 0, 0)
+
+    // If time already passed today, set to tomorrow
+    if (nextRunAt <= new Date()) {
+        nextRunAt.setDate(nextRunAt.getDate() + 1)
+    }
+
+    return { nextRunAt, message }
+}
+
+// Helper: Parse date-time reminder (YYYY-MM-DD HH:MM)
+const parseDateTimeReminder = (
+    args: string[]
+): { nextRunAt: Date; message: string } | null => {
+    const date = args[0]
+    const time = args[1]
+
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+    if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) return null
+
+    const message = args.slice(2).join(' ')
+    if (!message) return null
+
+    const [year, month, day] = date.split('-').map(Number)
+    const [hours, minutes] = parseTime(time)
+
+    const nextRunAt = new Date(year, month - 1, day, hours, minutes, 0, 0)
+
+    // Check if date is in the past
+    if (nextRunAt <= new Date()) return null
+
+    return { nextRunAt, message }
+}
+
+// Handle: Create reminder
+const handleCreateReminder = async (
+    ctx: MessageContext
+): Promise<WAMessage | undefined> => {
+    const { from, args, reply } = ctx
+
+    let nextRunAt: Date
+    let repeatType: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom_days' =
+        'none'
+    let repeatDays: number[] | null = null
+    let message: string
+
+    // Parse recurring reminder
+    if (args[0].toLowerCase() === 'every') {
+        const parsed = parseRecurringReminder(args)
+        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        ;({ nextRunAt, repeatType, repeatDays, message } = parsed)
+    }
+    // Parse time-only reminder
+    else if (/^\d{2}[:.]\d{2}$/.test(args[0])) {
+        const parsed = parseTimeOnlyReminder(args)
+        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        ;({ nextRunAt, message } = parsed)
+    }
+    // Parse date-time reminder
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(args[0])) {
+        const parsed = parseDateTimeReminder(args)
+        if (!parsed) return reply(stringId.reminder.error.pastDate())
+        ;({ nextRunAt, message } = parsed)
+    }
+    // Invalid format
+    else {
+        return reply(stringId.reminder.error.invalidFormat())
+    }
+
+    // Create reminder
+    const reminder = await addReminder(
+        from,
+        message,
+        nextRunAt,
+        repeatType,
+        1,
+        repeatDays
+    )
+
+    if (!reminder) {
+        return reply('‼️ Error creating reminder!')
+    }
+
+    // Format response
+    const formattedDate = formatReminderDate(nextRunAt)
+    const repeatInfo = formatRepeatInfo(repeatType, repeatDays)
+
+    return reply(
+        `✅ Reminder set\n` +
+            `[ID: ${reminder.id}]${repeatInfo}\n` +
+            `📅 ${formattedDate}\n` +
+            `💬 ${message}`
+    )
+}
+
+// Handle: List reminders
+const handleListReminders = async (
+    ctx: MessageContext
+): Promise<WAMessage | undefined> => {
+    const { from, reply } = ctx
+    const reminders = await getRemindersList(from)
+
+    if (reminders.length === 0) {
+        return reply(stringId.reminder.error.noReminders())
+    }
+
+    let list = '⏰ *Your Reminders:*\n\n'
+    reminders.forEach((r: ReminderAttributes) => {
+        const formattedDate = formatReminderDate(new Date(r.nextRunAt))
+        const repeatInfo = formatRepeatInfo(r.repeatType, r.repeatDays)
+
+        list += `*[ID ${r.id}]${repeatInfo}*\n`
+        list += `📅 ${formattedDate}\n`
+        list += `💬 ${r.message}\n\n`
+    })
+
+    return reply(list.trim())
+}
+
+// Handle: Delete single reminder
+const handleDeleteReminder = async (
+    ctx: MessageContext
+): Promise<WAMessage | undefined> => {
+    const { arg, reply } = ctx
+    const id = parseInt(arg)
+
+    if (isNaN(id)) return reply(stringId.reminder.usage(ctx))
+
+    const success = await deleteReminder(id)
+    return reply(
+        success
+            ? `✅ Reminder ID ${id} deleted!`
+            : `‼️ Reminder ID ${id} not found!`
+    )
+}
+
+// Handle: Delete all reminders
+const handleDeleteAllReminders = async (
+    ctx: MessageContext
+): Promise<WAMessage | undefined> => {
+    const { from, reply } = ctx
+    const success = await deleteAllReminders(from)
+
+    return reply(
+        success
+            ? '✅ All your reminders have been deleted!'
+            : '‼️ You have no reminders to delete!'
+    )
+}
+
+// Main handler
 const reminderHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { from, cmd, arg, args, reply } = ctx
+    const { cmd, arg, reply } = ctx
 
     switch (cmd) {
-        case 'remind': {
+        case 'remind':
             if (!arg) return reply(stringId.reminder.usage(ctx))
+            return handleCreateReminder(ctx)
 
-            let nextRunAt: Date
-            let repeatType: 'none' | 'daily' | 'weekly' | 'monthly' = 'none'
-            let message: string
+        case 'reminders':
+            return handleListReminders(ctx)
 
-            // Check if it's a recurring reminder: every <type> <HH:MM> <message>
-            if (args[0].toLowerCase() === 'every') {
-                const type = args[1]?.toLowerCase()
-                if (!['daily', 'weekly', 'monthly'].includes(type)) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
-                repeatType = type as 'daily' | 'weekly' | 'monthly'
+        case 'delreminder':
+            return handleDeleteReminder(ctx)
 
-                const time = args[2]
-                if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
+        case 'delallreminders':
+            return handleDeleteAllReminders(ctx)
 
-                message = args.slice(3).join(' ')
-                if (!message) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
-
-                // Set next run to today at specified time
-                const [hours, minutes] = time.split(/[:.]/).map(Number)
-                nextRunAt = new Date()
-                nextRunAt.setHours(hours, minutes, 0, 0)
-
-                // If time already passed today, set to tomorrow
-                if (nextRunAt <= new Date()) {
-                    nextRunAt.setDate(nextRunAt.getDate() + 1)
-                }
-            }
-            // Check if args[0] is time (HH:MM) or date (YYYY-MM-DD)
-            else if (/^\d{2}[:.]\d{2}$/.test(args[0])) {
-                // Format: <HH:MM> <pesan>
-                const time = args[0]
-                const [hours, minutes] = time.split(/[:.]/).map(Number)
-
-                message = args.slice(1).join(' ')
-                if (!message) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
-
-                nextRunAt = new Date()
-                nextRunAt.setHours(hours, minutes, 0, 0)
-
-                // If time already passed today, set to tomorrow
-                if (nextRunAt <= new Date()) {
-                    nextRunAt.setDate(nextRunAt.getDate() + 1)
-                }
-            } else if (/^\d{4}-\d{2}-\d{2}$/.test(args[0])) {
-                // Format: <YYYY-MM-DD> <HH:MM> <pesan>
-                const date = args[0]
-                const time = args[1]
-
-                if (!time || !/^\d{2}[:.]\d{2}$/.test(time)) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
-
-                message = args.slice(2).join(' ')
-                if (!message) {
-                    return reply(stringId.reminder.error.invalidFormat())
-                }
-
-                const [year, month, day] = date.split('-').map(Number)
-                const [hours, minutes] = time.split(/[:.]/).map(Number)
-
-                nextRunAt = new Date(year, month - 1, day, hours, minutes, 0, 0)
-
-                // Check if date is in the past
-                if (nextRunAt <= new Date()) {
-                    return reply(stringId.reminder.error.pastDate())
-                }
-            } else {
-                return reply(stringId.reminder.error.invalidFormat())
-            }
-
-            const reminder = await addReminder(
-                from,
-                message,
-                nextRunAt,
-                repeatType
-            )
-
-            if (!reminder) {
-                return reply('‼️ Error creating reminder!')
-            }
-
-            const formattedDate = nextRunAt.toLocaleString('id-ID', {
-                dateStyle: 'medium',
-                timeStyle: 'short',
-            })
-
-            const repeatInfo = repeatType !== 'none' ? ` (${repeatType})` : ''
-
-            return reply(
-                `✅ Reminder set\n` +
-                    `[ID: ${reminder.id}]${repeatInfo}\n` +
-                    `📅 ${formattedDate}\n` +
-                    `💬 ${message}`
-            )
-        }
-        case 'reminders': {
-            const reminders = await getRemindersList(from)
-
-            if (reminders.length === 0) {
-                return reply(stringId.reminder.error.noReminders())
-            }
-
-            let list = '⏰ *Your Reminders:*\n\n'
-            reminders.forEach((r: ReminderAttributes) => {
-                const date = new Date(r.nextRunAt)
-                const formattedDate = date.toLocaleString('id-ID', {
-                    dateStyle: 'medium',
-                    timeStyle: 'short',
-                })
-                const repeatInfo =
-                    r.repeatType !== 'none' ? ` (${r.repeatType})` : ''
-                list += `*[ID ${r.id}]${repeatInfo}*\n`
-                list += `📅 ${formattedDate}\n`
-                list += `💬 ${r.message}\n\n`
-            })
-
-            return reply(list.trim())
-        }
-        case 'delreminder': {
-            const id = parseInt(arg)
-            if (isNaN(id)) return reply(stringId.reminder.usage(ctx))
-
-            const success = await deleteReminder(id)
-            return reply(
-                success
-                    ? `✅ Reminder ID ${id} deleted!`
-                    : `‼️ Reminder ID ${id} not found!`
-            )
-        }
-        case 'delallreminders': {
-            const success = await deleteAllReminders(from)
-            return reply(
-                success
-                    ? '✅ All your reminders have been deleted!'
-                    : '‼️ You have no reminders to delete!'
-            )
-        }
         default:
             return
     }

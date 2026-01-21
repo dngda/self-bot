@@ -9,6 +9,6 @@ export const sequelize = new Sequelize({
 
 export async function initDatabase() {
     console.log(chalk.yellow('Initializing database...'))
-    await sequelize.sync()
+    await sequelize.sync({ alter: true })
     console.log(chalk.green('Database synced successfully!'))
 }
