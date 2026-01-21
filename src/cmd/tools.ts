@@ -417,9 +417,13 @@ const formatReminderDate = (date: Date): string => {
 // Helper: Format repeat info for display
 const formatRepeatInfo = (
     repeatType: string,
-    repeatDays: number[] | null
+    repeatDays: number[] | null | string
 ): string => {
     if (repeatType === 'custom_days' && repeatDays) {
+        // Handle case where repeatDays might be a JSON string from SQLite
+        const daysArray =
+            typeof repeatDays === 'string' ? JSON.parse(repeatDays) : repeatDays
+
         const dayNames = [
             'Minggu',
             'Senin',
@@ -429,7 +433,7 @@ const formatRepeatInfo = (
             'Jumat',
             'Sabtu',
         ]
-        const daysList = repeatDays.map((d) => dayNames[d]).join(', ')
+        const daysList = daysArray.map((d: number) => dayNames[d]).join(', ')
         return ` (setiap ${daysList})`
     } else if (repeatType !== 'none') {
         return ` (${repeatType})`
