@@ -427,7 +427,7 @@ const quotlyHandler: HandlerFunction = async (
         ctx.contextInfo?.participant || ctx.participant || ctx.from
 
     if (ctx.fromMe && !ctx.isQuoted) {
-        participant = process.env.OWNER_NUMBER!
+        participant = process.env.OWNER_JID!
     }
 
     const pushname =

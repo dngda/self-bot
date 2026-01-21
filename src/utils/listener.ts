@@ -3,7 +3,7 @@ import { getMessage } from '../lib/_index.js'
 import { config } from '../handler.js'
 
 // Constants
-const OWNER_NUMBER = process.env.OWNER_NUMBER!
+const OWNER_JID = process.env.OWNER_JID!
 const STATUS_BROADCAST = 'status@broadcast'
 const WHATSAPP_LID_SUFFIX_PATTERN = /(@s.whatsapp.net)|(@lid)/g
 
@@ -66,13 +66,13 @@ const notifyOwner = async (
     text: string,
     mentions: string[]
 ): Promise<void> => {
-    if (!OWNER_NUMBER) {
-        console.warn('OWNER_NUMBER not configured')
+    if (!OWNER_JID) {
+        console.warn('OWNER_JID not configured')
         return
     }
 
     try {
-        await wa.sendMessage(OWNER_NUMBER, { text, mentions })
+        await wa.sendMessage(OWNER_JID, { text, mentions })
     } catch (error) {
         console.error('Failed to notify owner:', error)
     }
@@ -119,9 +119,9 @@ export const listenDeletedMessage = async (
         await notifyOwner(wa, `${text}:`, [from])
 
         // Forward the original message
-        if (!OWNER_NUMBER) return null
+        if (!OWNER_JID) return null
 
-        await wa.sendMessage(OWNER_NUMBER, {
+        await wa.sendMessage(OWNER_JID, {
             forward: {
                 key: originalMessage.key,
                 message: originalMessage.message,
@@ -191,8 +191,8 @@ export const listenEditedMessage = async (
             originalMessage.message?.conversation ||
             originalMessage.message?.extendedTextMessage?.text
 
-        if (originalText && OWNER_NUMBER) {
-            await wa.sendMessage(OWNER_NUMBER, {
+        if (originalText && OWNER_JID) {
+            await wa.sendMessage(OWNER_JID, {
                 text: originalText,
                 contextInfo: { forwardingScore: 2, isForwarded: true },
             })
@@ -233,7 +233,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
 
     const msgdata = `One view msg ${sumber}:`
 
-    await wa.sendMessage(process.env.OWNER_NUMBER!, {
+    await wa.sendMessage(process.env.OWNER_JID!, {
         text: msgdata,
         mentions: [from],
     })
@@ -247,7 +247,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
             'buffer',
             {}
         )
-        await wa.sendMessage(process.env.OWNER_NUMBER!, {
+        await wa.sendMessage(process.env.OWNER_JID!, {
             image: mediaData as Buffer,
             caption,
             contextInfo: { forwardingScore: 2, isForwarded: true },
@@ -259,7 +259,7 @@ export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
             'buffer',
             {}
         )
-        await wa.sendMessage(process.env.OWNER_NUMBER!, {
+        await wa.sendMessage(process.env.OWNER_JID!, {
             video: mediaData as Buffer,
             caption,
             contextInfo: { forwardingScore: 2, isForwarded: true },

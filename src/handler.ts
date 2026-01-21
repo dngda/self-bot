@@ -191,7 +191,7 @@ const noPrefixHandler = async (
             await handleReplyToContactStatusList(wa, msg, ctx)
             break
         case /1view/gi.test(body as string):
-            ctx.from = process.env.OWNER_NUMBER!
+            ctx.from = process.env.OWNER_JID!
             await actions['onev'](wa, msg, ctx)
             break
         default:
@@ -232,7 +232,7 @@ const storeStatusMessage = (msg: WAMessage) => {
 const storeUserPushName = (msg: WAMessage) => {
     if (msg.message?.protocolMessage) return null
     const jid = msg.key.participant || msg.key.remoteJid || ''
-    if (msg.key.fromMe && jid !== process.env.OWNER_NUMBER!) return null
+    if (msg.key.fromMe && jid !== process.env.OWNER_JID!) return null
 
     const name = msg.pushName || (jid ? '+' + jid.split('@')[0] : '')
     return storePushName(jid, name)

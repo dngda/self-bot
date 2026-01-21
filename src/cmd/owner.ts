@@ -18,6 +18,7 @@ export default () => {
     offline_Cmd()
     evalJSON_Cmd()
     getStatus_Cmd()
+    dumpMessage_Cmd()
     refreshBrowser_Cmd()
 }
 
@@ -283,4 +284,47 @@ export const handleSuperConfig = async (ctx: MessageContext) => {
             return ctx.reactSuccess()
     }
     return null
+}
+
+const dumpMessage_Cmd = () => {
+    stringId.dumpMessage = {
+        hint: '_Dump json quoted message into owner chat_',
+        error: {},
+        usage: (_: MessageContext) => '',
+    }
+
+    menu.push({
+        command: 'dump',
+        hint: stringId.dumpMessage.hint,
+        alias: 'd',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        dump: dumpMessageHandler,
+    })
+}
+
+const dumpMessageHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ctx.fromMe) return undefined
+    if (!ctx.contextInfo?.quotedMessage) {
+        return ctx.reply('Reply a message to dump its JSON')
+    }
+
+    const ownerJid = process.env.OWNER_JID
+    if (!ownerJid) {
+        return ctx.reply('OWNER_JID is not set in environment variables')
+    }
+
+    const dump = JSON.stringify(ctx.quotedMsg, null, 2)
+    await _wa.sendMessage(
+        ownerJid,
+        { text: '```json\n' + dump + '\n```' },
+        { quoted: _msg }
+    )
+    return ctx.reactSuccess()
 }

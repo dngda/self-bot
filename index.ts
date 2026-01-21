@@ -92,14 +92,14 @@ const displayQRCode = (qr: string): void => {
  * Send notification to owner
  */
 const notifyOwner = async (sock: WASocket, message: string): Promise<void> => {
-    const ownerNumber = process.env.OWNER_NUMBER
-    if (!ownerNumber) {
-        console.warn('OWNER_NUMBER not set in environment variables')
+    const ownerJid = process.env.OWNER_JID
+    if (!ownerJid) {
+        console.warn('OWNER_JID not set in environment variables')
         return
     }
 
     try {
-        await sock.sendMessage(ownerNumber, { text: message })
+        await sock.sendMessage(ownerJid, { text: message })
     } catch (error) {
         console.error('Failed to notify owner:', error)
     }
