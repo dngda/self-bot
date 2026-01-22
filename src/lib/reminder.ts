@@ -184,80 +184,129 @@ const cleanStaleReminders = async () => {
     }
 }
 
+// Helper: Calculate next run date for custom days
+const calculateNextCustomDayRun = (
+    currentDate: Date,
+    repeatDays: number[]
+): Date => {
+    const nextRun = new Date(currentDate)
+    const sortedDays = [...repeatDays].sort((a, b) => a - b)
+
+    // Start checking from tomorrow
+    nextRun.setDate(nextRun.getDate() + 1)
+
+    // Find next valid day (max 7 days ahead)
+    for (let i = 0; i < 7; i++) {
+        const dayOfWeek = nextRun.getDay()
+        if (sortedDays.includes(dayOfWeek)) {
+            return nextRun
+        }
+        nextRun.setDate(nextRun.getDate() + 1)
+    }
+
+    // Fallback: return tomorrow if no match found (shouldn't happen)
+    return new Date(currentDate.getTime() + 24 * 60 * 60 * 1000)
+}
+
+// Helper: Calculate next run date based on repeat type
+const calculateNextRun = (
+    currentRunDate: Date,
+    repeatType: string,
+    repeatInterval: number,
+    repeatDays: number[] | null
+): Date => {
+    const nextRun = new Date(currentRunDate)
+    const interval = repeatInterval || 1
+
+    switch (repeatType) {
+        case 'daily':
+            nextRun.setDate(nextRun.getDate() + interval)
+            break
+        case 'weekly':
+            nextRun.setDate(nextRun.getDate() + 7 * interval)
+            break
+        case 'monthly':
+            nextRun.setMonth(nextRun.getMonth() + interval)
+            break
+        case 'custom_days':
+            if (repeatDays && repeatDays.length > 0) {
+                return calculateNextCustomDayRun(currentRunDate, repeatDays)
+            }
+            // Fallback to daily if no days specified
+            nextRun.setDate(nextRun.getDate() + 1)
+            break
+        default:
+            nextRun.setDate(nextRun.getDate() + 1)
+    }
+
+    return nextRun
+}
+
+// Helper: Send reminder message
+const sendReminderMessage = async (
+    wa: WASocket,
+    reminder: ReminderAttributes
+): Promise<void> => {
+    await wa.sendMessage(reminder.from, {
+        text: `⏰ Reminder:\n${reminder.message}`,
+    })
+}
+
+// Helper: Process a triggered reminder
+const processTriggeredReminder = async (
+    wa: WASocket,
+    reminder: ReminderAttributes,
+    currentRunDate: Date
+): Promise<void> => {
+    // Send reminder message
+    await sendReminderMessage(wa, reminder)
+
+    // Update lastTriggeredAt
+    await Reminder.update(
+        { lastTriggeredAt: new Date() },
+        { where: { id: reminder.id } }
+    )
+
+    // Handle recurring vs one-time reminders
+    if (reminder.repeatType !== 'none') {
+        const nextRun = calculateNextRun(
+            currentRunDate,
+            reminder.repeatType,
+            reminder.repeatInterval,
+            reminder.repeatDays
+        )
+        await Reminder.update(
+            { nextRunAt: nextRun },
+            { where: { id: reminder.id } }
+        )
+    } else {
+        // Delete non-recurring reminders after triggering
+        await deleteReminder(reminder.id)
+    }
+}
+
+// Helper: Check if reminder should trigger now
+const shouldTriggerReminder = (nextRunAt: Date, now: Date): boolean => {
+    // Trigger if nextRunAt is in the past and within the last minute
+    return nextRunAt <= now && nextRunAt.getTime() > now.getTime() - 60000
+}
+
 export const initiateReminderCron = (_wa: WASocket) => {
     cleanStaleReminders()
 
     const job = new CronJob('*/1 * * * *', async () => {
         const now = new Date()
         const reminders = await getNextRemindersJob()
+
         if (!reminders || reminders.length === 0) return
 
         for (const reminder of reminders) {
             if (!reminder.nextRunAt) continue
+
             const nextRunAt = new Date(reminder.nextRunAt)
-            // Check if reminder should trigger (within the current minute)
-            if (
-                nextRunAt <= now &&
-                nextRunAt.getTime() > now.getTime() - 60000
-            ) {
-                // send reminder message to user
-                _wa.sendMessage(reminder.from, {
-                    text: `⏰ Reminder:\n${reminder.message}`,
-                })
 
-                // Update lastTriggeredAt
-                await Reminder.update(
-                    { lastTriggeredAt: now },
-                    { where: { id: reminder.id } }
-                )
-
-                // Handle recurring reminders
-                if (reminder.repeatType !== 'none') {
-                    const nextRun = new Date(nextRunAt)
-                    const interval = reminder.repeatInterval || 1
-
-                    switch (reminder.repeatType) {
-                        case 'daily':
-                            nextRun.setDate(nextRun.getDate() + interval)
-                            break
-                        case 'weekly':
-                            nextRun.setDate(nextRun.getDate() + 7 * interval)
-                            break
-                        case 'monthly':
-                            nextRun.setMonth(nextRun.getMonth() + interval)
-                            break
-                        case 'custom_days':
-                            // Find next valid day
-                            if (
-                                reminder.repeatDays &&
-                                reminder.repeatDays.length > 0
-                            ) {
-                                const sortedDays = [
-                                    ...reminder.repeatDays,
-                                ].sort((a, b) => a - b)
-                                let daysToAdd = 1
-                                let found = false
-
-                                while (!found && daysToAdd < 8) {
-                                    nextRun.setDate(nextRun.getDate() + 1)
-                                    const dayOfWeek = nextRun.getDay()
-                                    if (sortedDays.includes(dayOfWeek)) {
-                                        found = true
-                                    }
-                                    daysToAdd++
-                                }
-                            }
-                            break
-                    }
-
-                    await Reminder.update(
-                        { nextRunAt: nextRun },
-                        { where: { id: reminder.id } }
-                    )
-                } else {
-                    // Delete non-recurring reminders after triggering
-                    await deleteReminder(reminder.id)
-                }
+            if (shouldTriggerReminder(nextRunAt, now)) {
+                await processTriggeredReminder(_wa, reminder, nextRunAt)
             }
         }
     })
