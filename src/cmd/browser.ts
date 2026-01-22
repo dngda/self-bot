@@ -52,6 +52,10 @@ const citraRadarHandler: HandlerFunction = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
+    const webURL = 'https://sipora-yogya.bmkg.go.id/radar/'
+    return ctx.reply(
+        'Fitur sudah tidak tersedia karena Cloudflare Turnstile 😔\n' + webURL
+    )
     ctx.reactWait()
 
     const lastUpdateTime = new Date(LAST_UPDATE_TIME)
@@ -71,7 +75,6 @@ const citraRadarHandler: HandlerFunction = async (
         return result
     }
 
-    const webURL = 'http://sipora-yogya.bmkg.go.id/radar/'
     try {
         const r = await browser.takeScreenshot(
             webURL,
