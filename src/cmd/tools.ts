@@ -18,8 +18,8 @@ import {
     addReminder,
     deleteAllReminders,
     deleteReminder,
+    getAllReminders,
     getRemindersList,
-    ReminderAttributes,
 } from '../lib/reminder.js'
 
 export default () => {
@@ -628,24 +628,63 @@ const handleCreateReminder = async (
 
 // Handle: List reminders
 const handleListReminders = async (
-    ctx: MessageContext
+    ctx: MessageContext,
+    wa: WASocket
 ): Promise<WAMessage | undefined> => {
-    const { from, reply } = ctx
-    const reminders = await getRemindersList(from)
+    const { from, reply, expiration } = ctx
+
+    // Check if chat is in owner
+    const isOwner =
+        from === process.env.OWNER_JID || from === process.env.OWNER_LID
+
+    // Get reminders (all if owner, otherwise just for the user)
+    const reminders = isOwner
+        ? await getAllReminders()
+        : await getRemindersList(from)
 
     if (reminders.length === 0) {
         return reply(stringId.reminder.error.noReminders())
     }
 
-    let list = '⏰ *Your Reminders:*\n\n'
-    reminders.forEach((r: ReminderAttributes) => {
+    let list = isOwner ? '⏰ *All Reminders:*\n\n' : '⏰ *Your Reminders:*\n\n'
+    const mentions: string[] = []
+
+    for (const r of reminders) {
         const formattedDate = formatReminderDate(new Date(r.nextRunAt))
         const repeatInfo = formatRepeatInfo(r.repeatType, r.repeatDays)
 
         list += `*[ID ${r.id}]${repeatInfo}*\n`
         list += `📅 ${formattedDate}\n`
-        list += `💬 ${r.message}\n\n`
-    })
+        list += `💬 ${r.message}\n`
+
+        // Show from field for owner
+        if (isOwner) {
+            if (r.from.endsWith('@g.us')) {
+                try {
+                    const groupMetadata = await wa.groupMetadata(r.from)
+                    list += `👥 Group: ${groupMetadata.subject}\n`
+                } catch (error) {
+                    list += `👥 Group: ${r.from}\n`
+                }
+            } else {
+                list += `👤 From: @${r.from.split('@')[0]}\n`
+                if (!mentions.includes(r.from)) {
+                    mentions.push(r.from)
+                }
+            }
+        }
+
+        list += '\n'
+    }
+
+    // Send with mentions if owner and has mentions
+    if (isOwner && mentions.length > 0) {
+        return wa.sendMessage(
+            from,
+            { text: list.trim(), mentions },
+            { ephemeralExpiration: expiration! }
+        )
+    }
 
     return reply(list.trim())
 }
@@ -695,7 +734,7 @@ const reminderHandler: HandlerFunction = async (
             return handleCreateReminder(ctx)
 
         case 'reminders':
-            return handleListReminders(ctx)
+            return handleListReminders(ctx, _wa)
 
         case 'delreminder':
             return handleDeleteReminder(ctx)

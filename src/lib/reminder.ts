@@ -107,6 +107,13 @@ export async function getRemindersList(
     return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
 }
 
+export async function getAllReminders(): Promise<ReminderAttributes[]> {
+    const reminders = await Reminder.findAll({
+        order: [['nextRunAt', 'ASC']],
+    })
+    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+}
+
 export async function deleteReminder(id: number): Promise<boolean> {
     const result = await Reminder.destroy({ where: { id } }).catch((error) => {
         console.log('[ERR]', error)
