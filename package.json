@@ -8,20 +8,23 @@
         "build": "tsc",
         "start": "tsx index.ts",
         "dev": "nodemon -e ts --exec tsx index.ts",
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
     },
     "author": "",
     "license": "ISC",
     "devDependencies": {
         "@eslint/js": "^9.39.1",
+        "@types/jest": "^30.0.0",
         "@types/long": "^5.0.0",
         "@typescript-eslint/eslint-plugin": "^6.21.0",
         "@typescript-eslint/parser": "^6.21.0",
         "eslint": "^9.39.1",
         "eslint-config-prettier": "^8.10.2",
         "globals": "^15.15.0",
+        "jest": "^30.2.0",
         "nodemon": "^3.1.11",
         "prettier": "^2.8.8",
+        "ts-jest": "^29.4.6",
         "tsx": "^4.21.0",
         "typescript": "^5.9.3",
         "typescript-eslint": "^7.18.0"
@@ -78,6 +81,7 @@
             "protobufjs",
             "sharp",
             "sqlite3",
+            "unrs-resolver",
             "youtube-dl-exec"
         ]
     },

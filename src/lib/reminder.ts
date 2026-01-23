@@ -104,14 +104,26 @@ export async function getRemindersList(
         where: { from },
         order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+    return reminders.map((reminder) => {
+        const data = reminder.toJSON() as ReminderAttributes
+        if (typeof data.repeatDays === 'string') {
+            data.repeatDays = JSON.parse(data.repeatDays)
+        }
+        return data
+    })
 }
 
 export async function getAllReminders(): Promise<ReminderAttributes[]> {
     const reminders = await Reminder.findAll({
         order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+    return reminders.map((reminder) => {
+        const data = reminder.toJSON() as ReminderAttributes
+        if (typeof data.repeatDays === 'string') {
+            data.repeatDays = JSON.parse(data.repeatDays)
+        }
+        return data
+    })
 }
 
 export async function deleteReminder(id: number): Promise<boolean> {
@@ -159,7 +171,13 @@ export async function getAllRemindersList(): Promise<ReminderAttributes[]> {
     const reminders = await Reminder.findAll({
         order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+    return reminders.map((reminder) => {
+        const data = reminder.toJSON() as ReminderAttributes
+        if (typeof data.repeatDays === 'string') {
+            data.repeatDays = JSON.parse(data.repeatDays)
+        }
+        return data
+    })
 }
 
 async function getNextRemindersJob(): Promise<ReminderAttributes[]> {
@@ -171,7 +189,13 @@ async function getNextRemindersJob(): Promise<ReminderAttributes[]> {
         },
         order: [['nextRunAt', 'ASC']],
     })
-    return reminders.map((reminder) => reminder.toJSON() as ReminderAttributes)
+    return reminders.map((reminder) => {
+        const data = reminder.toJSON() as ReminderAttributes
+        if (typeof data.repeatDays === 'string') {
+            data.repeatDays = JSON.parse(data.repeatDays)
+        }
+        return data
+    })
 }
 
 const cleanStaleReminders = async () => {
