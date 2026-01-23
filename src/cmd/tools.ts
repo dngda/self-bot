@@ -352,6 +352,8 @@ const reminderCmd = () => {
             noReminders: () => '‼️ Tidak ada reminder yang aktif!',
             invalidDays: () =>
                 '‼️ Hari tidak valid! Gunakan: senin, selasa, rabu, kamis, jumat, sabtu, minggu',
+            ownerOnly: () => '‼️ Command ini hanya untuk owner!',
+            notFound: () => '‼️ Reminder tidak ditemukan!',
         },
         usage: (
             ctx: MessageContext
@@ -361,13 +363,14 @@ const reminderCmd = () => {
 ⏰ ➡️ ${ctx.prefix}remind every <senin,rabu,jumat> <HH:MM> <pesan>
 ⏰ ➡️ ${ctx.prefix}reminders
 ⏰ ➡️ ${ctx.prefix}delreminder <id>
-⏰ ➡️ ${ctx.prefix}delallreminders`,
+⏰ ➡️ ${ctx.prefix}delallreminders
+⏰ ➡️ ${ctx.prefix}updatereminder <id> [format sama seperti remind]`,
     }
 
     menu.push({
         command: 'remind',
         hint: stringId.reminder.hint,
-        alias: 'reminders, delreminder, delallreminders',
+        alias: 'reminders, delreminder, delallreminders, updatereminder',
         type: 'tools',
     })
 
@@ -565,6 +568,85 @@ const parseDateTimeReminder = (
     return { nextRunAt, message }
 }
 
+// Handle: Update reminder (owner only)
+const handleUpdateReminder = async (
+    ctx: MessageContext
+): Promise<WAMessage | undefined> => {
+    const { from, args, reply } = ctx
+
+    // Check if user is owner
+    const isOwner =
+        from === process.env.OWNER_JID || from === process.env.OWNER_LID
+
+    if (!isOwner) {
+        return reply(stringId.reminder.error.ownerOnly())
+    }
+
+    // Parse ID
+    const id = parseInt(args[0])
+    if (isNaN(id)) {
+        return reply(stringId.reminder.usage(ctx))
+    }
+
+    // Remove ID from args for parsing
+    const reminderArgs = args.slice(1)
+
+    let nextRunAt: Date
+    let repeatType: 'none' | 'daily' | 'weekly' | 'monthly' | 'custom_days' =
+        'none'
+    let repeatDays: number[] | null = null
+    let message: string
+
+    // Parse recurring reminder
+    if (reminderArgs[0]?.toLowerCase() === 'every') {
+        const parsed = parseRecurringReminder(reminderArgs)
+        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        ;({ nextRunAt, repeatType, repeatDays, message } = parsed)
+    }
+    // Parse time-only reminder
+    else if (/^\d{2}[:.]\d{2}$/.test(reminderArgs[0])) {
+        const parsed = parseTimeOnlyReminder(reminderArgs)
+        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        ;({ nextRunAt, message } = parsed)
+    }
+    // Parse date-time reminder
+    else if (/^\d{4}-\d{2}-\d{2}$/.test(reminderArgs[0])) {
+        const parsed = parseDateTimeReminder(reminderArgs)
+        if (!parsed) return reply(stringId.reminder.error.pastDate())
+        ;({ nextRunAt, message } = parsed)
+    }
+    // Invalid format
+    else {
+        return reply(stringId.reminder.error.invalidFormat())
+    }
+
+    // Update reminder
+    const { updateReminder } = await import('../lib/reminder.js')
+    const success = await updateReminder(
+        id,
+        message,
+        nextRunAt,
+        repeatType,
+        1,
+        repeatDays
+    )
+
+    if (!success) {
+        return reply(stringId.reminder.error.notFound())
+    }
+
+    // Format response
+    const formattedDate = formatReminderDate(nextRunAt)
+    const repeatInfo = formatRepeatInfo(repeatType, repeatDays)
+
+    return reply(
+        `✅ Reminder updated\n` +
+            `[ID: ${id}]${repeatInfo}\n` +
+            `📅 ${formattedDate}\n` +
+            `💬 ${message}`
+    )
+}
+
 // Handle: Create reminder
 const handleCreateReminder = async (
     ctx: MessageContext
@@ -741,6 +823,10 @@ const reminderHandler: HandlerFunction = async (
 
         case 'delallreminders':
             return handleDeleteAllReminders(ctx)
+
+        case 'updatereminder':
+            if (!arg) return reply(stringId.reminder.usage(ctx))
+            return handleUpdateReminder(ctx)
 
         default:
             return
