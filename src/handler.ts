@@ -10,6 +10,7 @@ import {
     handleAutoSticker,
     handleAddList,
     handleDeleteList,
+    handleEditList,
     handleMathEquation,
     handleNoteCommand,
     handleRepeatCommand,
@@ -150,7 +151,7 @@ const handleCommands = async (
         }
     }
 
-    universalHandler(waSocket, msg, ctx)
+    listHandler(waSocket, msg, ctx)
 }
 
 const handleError = (ctx: MessageContext, error: unknown) => {
@@ -202,7 +203,7 @@ const noPrefixHandler = async (
     }
 }
 
-const universalHandler = async (
+const listHandler = async (
     wa: WASocket,
     msg: WAMessage,
     ctx: MessageContext
@@ -212,6 +213,8 @@ const universalHandler = async (
         await handleAddList(wa, msg, ctx)
     } else if (/^-\d+/.test(body as string)) {
         await handleDeleteList(wa, msg, ctx)
+    } else if (/^e\d+/.test(body as string)) {
+        await handleEditList(wa, msg, ctx)
     }
 }
 

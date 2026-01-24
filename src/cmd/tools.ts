@@ -226,11 +226,11 @@ const gttsHandler: HandlerFunction = async (
 
 const collectListCmd = () => {
     stringId.collect_list = {
-        hint: '📝 _Collect list_',
+        hint: '📝 Buat Daftar_',
         error: {
             textOnly: () => '‼️ Hanya support text!',
         },
-        usage: (ctx: MessageContext) => `📝 Collect percakapan kedalam list.
+        usage: (ctx: MessageContext) => `📝 CRUD List.
 ➡️ ${ctx.prefix}${ctx.cmd} <nama list>`,
     }
 
@@ -288,7 +288,9 @@ setInterval(saveListMemory, 1000 * 60 * 15)
 
 export const renderList = (ctx: MessageContext) => {
     const list = ListMemory.get(ctx.from) || []
-    let listText = `📝 ${list[0]} 📝\n`
+    const title = list[0].charAt(0).toUpperCase() + list[0].slice(1)
+
+    let listText = `🧵 List: ${title}\n`
     list.forEach((l, i) => {
         if (i == 0) return
         listText += `${i}. ${l}\n`
@@ -314,7 +316,7 @@ const collectListHandler: HandlerFunction = async (
     if (arg == '') {
         const sent = await send(renderList(ctx))
         await send(
-            'Kirim `+(isi)` untuk menambahkan ke list\nKirim `-(nomor)` untuk menghapus dari list.'
+            'Reply list dengan\n`+(isi)` untuk add ke list\n`-(nomor)` untuk remove dari list\n`e(nomor)` untuk edit item di list'
         )
         reactSuccess()
 
@@ -322,18 +324,30 @@ const collectListHandler: HandlerFunction = async (
     }
 
     if (arg == 'end') {
+        if (list.length == 0) {
+            await reply('‼️ Tidak ada list yang sedang berjalan.')
+            return
+        }
+
         ListMemory.delete(ctx.from)
         reactSuccess()
-        return send(`✅ List ${list[0]} selesai!`)
+        return send(`🏁 List ${list[0]} selesai!`)
     }
 
-    const listName = arg
+    if (list.length > 0) {
+        return reply(
+            `‼️ List sudah dimulai dengan nama *${list[0]}*.\nKirim \`${ctx.prefix}list end\` untuk mengakhiri list sebelum memulai yang baru.`
+        )
+    }
+
+    const title = arg.replace(/list/i, '').trim()
+    const listName = title.charAt(0).toUpperCase() + title.slice(1)
     list.push(listName)
     ListMemory.set(ctx.from, list)
 
     reactSuccess()
     return reply(
-        `📝 ${listName} 📝 dibuat!\nKirim \`+ (isi)\` untuk menambahkan ke list!`
+        `🧵 ${listName}!\n1.\nReply list dengan \`+(isi)\` untuk add ke list\n\`-(nomor)\` untuk remove dari list.\n\`e(nomor)\` untuk edit item di list`
     )
 }
 

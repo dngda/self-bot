@@ -178,23 +178,6 @@ type MsgKeyForListType = Map<
 >
 const MsgKeyForList: MsgKeyForListType = new Map()
 
-export const handleAddList = async (
-    wa: WASocket,
-    _msg: WAMessage,
-    ctx: MessageContext
-) => {
-    if (!ListMemory.has(ctx.from)) return null
-
-    const list = ListMemory.get(ctx.from) || []
-    // add body to list
-    list.push(ctx.body!.slice(1).trim())
-    ListMemory.set(ctx.from, list)
-
-    await ctx.reactSuccess()
-
-    return sendList(ctx, wa)
-}
-
 async function sendList(ctx: MessageContext, wa: WASocket) {
     const existing = MsgKeyForList.get(ctx.from)
     if (existing) {
@@ -218,17 +201,40 @@ async function sendList(ctx: MessageContext, wa: WASocket) {
     return sent
 }
 
+export const handleAddList = async (
+    wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.quotedMsgBody?.includes('List:')) {
+        return null
+    }
+
+    const list = ListMemory.get(ctx.from) || []
+    // add body to list
+    list.push(ctx.body!.slice(1).trim())
+    ListMemory.set(ctx.from, list)
+
+    await ctx.reactSuccess()
+
+    return sendList(ctx, wa)
+}
+
 export const handleDeleteList = async (
     wa: WASocket,
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
     if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.quotedMsgBody?.includes('List:')) {
+        return null
+    }
 
     const list = ListMemory.get(ctx.from)
     if (!list) return null
 
-    const index = parseInt(ctx.body?.slice(1) ?? '1')
+    const index = parseInt(ctx.body?.slice(1) ?? '0')
 
     if (index > list.length || index < 1) {
         return await ctx.reply('Nomor tidak valid!')
@@ -236,6 +242,38 @@ export const handleDeleteList = async (
 
     // Index 0 stores the list title; items start from index 1
     list.splice(index, 1)
+    ListMemory.set(ctx.from, list)
+    await ctx.reactSuccess()
+
+    return sendList(ctx, wa)
+}
+
+export const handleEditList = async (
+    wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.quotedMsgBody?.includes('List:')) {
+        return null
+    }
+
+    const list = ListMemory.get(ctx.from)
+    if (!list) return null
+
+    const index = parseInt(ctx.body?.slice(1).trim().split(' ')[0] ?? '0')
+    const newValue = ctx.body?.trim().split(' ').slice(1).join(' ') ?? ''
+
+    if (index > list.length || index < 1) {
+        return await ctx.reply('Nomor tidak valid!')
+    }
+
+    if (newValue === '') {
+        return await ctx.reply('Nilai baru tidak boleh kosong!')
+    }
+
+    // Update the specified index with the new value
+    list[index] = newValue
     ListMemory.set(ctx.from, list)
     await ctx.reactSuccess()
 
