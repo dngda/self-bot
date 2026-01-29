@@ -96,7 +96,7 @@ const rollHandler: HandlerFunction = async (
             { ephemeralExpiration: ctx.expiration! }
         )
         await delay(700)
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i <= 3; i++) {
             random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
             await _wa.sendMessage(
                 ctx.from,
@@ -113,30 +113,30 @@ const rollHandler: HandlerFunction = async (
             { ephemeralExpiration: ctx.expiration! }
         )
     } else {
-        let roll = crypto.randomInt(6)
-        let roll2 = crypto.randomInt(6)
+        let roll1 = crypto.randomInt(6) + 1
+        let roll2 = crypto.randomInt(6) + 1
         const m_id = await _wa.sendMessage(
             ctx.from,
-            { text: `Rolling... ⏳ ${roll} ⏳ ${roll2}` },
+            { text: `Rolling... ⏳ ${roll1} ⏳ ${roll2}` },
             { ephemeralExpiration: ctx.expiration! }
         )
         await delay(700)
-        for (let i = 0; i < 3; i++) {
-            roll = crypto.randomInt(6)
-            roll2 = crypto.randomInt(6)
+        for (let i = 0; i <= 3; i++) {
+            roll1 = crypto.randomInt(6) + 1
+            roll2 = crypto.randomInt(6) + 1
             await _wa.sendMessage(
                 ctx.from,
-                { edit: m_id?.key, text: `Rolling... ⏳ ${roll} ⏳ ${roll2}` },
+                { edit: m_id?.key, text: `Rolling... ⏳ ${roll1} ⏳ ${roll2}` },
                 { ephemeralExpiration: ctx.expiration! }
             )
             await delay(700)
         }
 
-        roll = crypto.randomInt(6)
-        roll2 = crypto.randomInt(6)
+        roll1 = crypto.randomInt(6) + 1
+        roll2 = crypto.randomInt(6) + 1
         return _wa.sendMessage(
             ctx.from,
-            { edit: m_id?.key, text: `You rolled 🎲 ${roll} 🎲 ${roll2}` },
+            { edit: m_id?.key, text: `You rolled 🎲 ${roll1} 🎲 ${roll2}` },
             { ephemeralExpiration: ctx.expiration! }
         )
     }
