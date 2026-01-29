@@ -1,10 +1,4 @@
-type Menu = {
-    command: string
-    hint: string
-    alias: string
-    type: string
-    noprefix?: boolean
-}
+import { Menu } from './types'
 
 export const menu: Menu[] = []
 

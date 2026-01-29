@@ -24,6 +24,7 @@ const execScriptCmd = () => {
         hint: stringId.exec.hint,
         alias: 'run',
         type: 'script',
+        hidden: true,
     })
 
     Object.assign(actions, {

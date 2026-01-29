@@ -94,10 +94,16 @@ const menuHandler: HandlerFunction = (
     menuMsg += `\n_Active prefix:_ ${
         getPrefix().startsWith('[') ? 'regex: ' + getPrefix() : getPrefix()
     }\n`
-    const menus = getMenu()
+
+    let menus = getMenu()
+    if (!ctx.fromMe) {
+        menus = menus.filter((menu) => !menu.hidden)
+    }
+
     const menuTypes = menus.map((menu) => {
         return menu.type
     })
+
     let setMenuTypes = lodash.uniq(menuTypes)
     if (!ctx.fromMe)
         setMenuTypes = setMenuTypes.filter(

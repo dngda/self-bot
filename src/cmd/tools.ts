@@ -226,7 +226,7 @@ const gttsHandler: HandlerFunction = async (
 
 const collectListCmd = () => {
     stringId.collect_list = {
-        hint: '📝 Buat Daftar_',
+        hint: '📝 _CRUD Daftar/List_',
         error: {
             textOnly: () => '‼️ Hanya support text!',
         },

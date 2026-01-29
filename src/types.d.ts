@@ -12,6 +12,15 @@ export interface StickerCommand {
     arg: string
 }
 
+type Menu = {
+    command: string
+    hint: string
+    alias: string
+    type: string
+    noprefix?: boolean
+    hidden?: boolean
+}
+
 export interface BotConfig {
     allowed_chats: string[]
     sticker_commands: { [key: string]: StickerCommand }
