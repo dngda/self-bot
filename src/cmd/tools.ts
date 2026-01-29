@@ -382,14 +382,14 @@ const reminderCmd = () => {
     }
 
     menu.push({
-        command: 'remind',
+        command: 'reminders',
         hint: stringId.reminder.hint,
-        alias: 'reminders, delreminder, delallreminders, updatereminder',
+        alias: 'remind, delreminder, delallreminders, updatereminder',
         type: 'tools',
     })
 
     Object.assign(actions, {
-        remind: reminderHandler,
+        reminders: reminderHandler,
     })
 }
 
