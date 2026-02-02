@@ -136,7 +136,7 @@ export const handleReplyToContactStatusList = async (
         throw stringId.getStatus.error.invalidJid
     }
 
-    const statuses = await getStatus(jid)
+    const statuses = getStatus(jid)
     if (!statuses) {
         throw stringId.getStatus.error.notFound
     }

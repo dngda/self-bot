@@ -180,26 +180,30 @@ const noPrefixHandler = async (
 ) => {
     const { body } = ctx
 
-    switch (true) {
-        case /^#\w+$/.test(body as string):
-            await handleNoteCommand(ctx)
-            break
-        case /^-r$/.test(body as string):
-            await handleRepeatCommand(wa, msg, ctx)
-            break
-        case /^\d\d?\d?$/.test(body as string):
-            await handleReplyToStatusList(wa, msg, ctx)
-            await handleReplyToContactStatusList(wa, msg, ctx)
-            break
-        case /1view/gi.test(body as string):
-            ctx.from = process.env.OWNER_JID!
-            await actions['onev'](wa, msg, ctx)
-            break
-        default:
-            await handleMathEquation(ctx)
-            await handleStickerCommand(wa, msg, ctx)
-            await handleSuperConfig(ctx)
-            break
+    try {
+        switch (true) {
+            case /^#\w+$/.test(body as string):
+                await handleNoteCommand(ctx)
+                break
+            case /^-r$/.test(body as string):
+                await handleRepeatCommand(wa, msg, ctx)
+                break
+            case /^\d\d?\d?$/.test(body as string):
+                await handleReplyToStatusList(wa, msg, ctx)
+                await handleReplyToContactStatusList(wa, msg, ctx)
+                break
+            case /1view/gi.test(body as string):
+                ctx.from = process.env.OWNER_JID!
+                await actions['onev'](wa, msg, ctx)
+                break
+            default:
+                await handleMathEquation(ctx)
+                await handleStickerCommand(wa, msg, ctx)
+                await handleSuperConfig(ctx)
+                break
+        }
+    } catch (error: unknown) {
+        handleError(ctx, error)
     }
 }
 

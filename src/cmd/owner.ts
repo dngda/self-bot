@@ -226,26 +226,36 @@ const getStatusHandler: HandlerFunction = async (
 }
 
 export const getStatusListMessage = async (jid: string): Promise<string> => {
-    const status = getStatus(jid)
-    if (!status) throw new Error(stringId.getStatus.error.notFound())
+    const statuses = getStatus(jid)
+    if (!statuses) throw new Error(stringId.getStatus.error.notFound())
 
     let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
     let i = 1
-    for (const stat of status) {
-        const msg = stat.message
+    for (const status of statuses) {
+        const msg = status.message
         let mediaType: string
         if (msg?.imageMessage) mediaType = 'image'
         else if (msg?.videoMessage) mediaType = 'video'
         else if (msg?.audioMessage) mediaType = 'audio'
         else mediaType = 'text'
 
-        message += `${i}. (${mediaType}) ${
+        const date = new Date(
+            typeof status.timestamp === 'number'
+                ? status.timestamp * 1000
+                : Number(status.timestamp) * 1000
+        )
+
+        message += `${i}. [${date.toLocaleString(undefined, {
+            dateStyle: 'short',
+            timeStyle: 'short',
+        })}] (${mediaType}) ${
             msg?.conversation ||
             msg?.extendedTextMessage?.text ||
             msg?.imageMessage?.caption ||
             msg?.videoMessage?.caption ||
             '(no caption)'
         }\n`
+
         i++
     }
     message += `\nReply this message with number to download status`

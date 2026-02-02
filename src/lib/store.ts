@@ -116,7 +116,8 @@ setInterval(() => {
             typeof value.timestamp === 'number'
                 ? value.timestamp
                 : Number(value.timestamp)
-        if (now - ts * 1000 > 1000 * 60 * 60 * 3) {
+        if (now - ts * 1000 > 1000 * 60 * 60 * 6) {
+            // 6 hours
             MessageStore.delete(key)
             changed = true
         }
@@ -129,7 +130,8 @@ setInterval(() => {
     let changed = false
     StatusStore.forEach((value, key) => {
         const newMessages = value.filter(
-            (msg) => now - Number(msg.timestamp) * 1000 < 1000 * 60 * 60 * 24
+            (msg) => now - Number(msg.timestamp) * 1000 < 1000 * 60 * 60 * 36
+            // 36 hours
         )
         if (newMessages.length === 0) {
             StatusStore.delete(key)
