@@ -249,6 +249,7 @@ const toggleConfigCmd = () => {
 Config:
 - public: allow global chat to use bot
 - norevoke: The revoked message will be forwarded to the owner.
+- norevoke_status: The revoked status message will be forwarded to the owner.
 - oneview: The OneView message will be forwarded and showed to the owner.
 - autosticker: Auto convert image to sticker
 ➡️ Contoh: ${ctx.prefix}con norevoke`,
