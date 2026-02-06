@@ -26,15 +26,11 @@ export interface BotConfig {
     sticker_commands: { [key: string]: StickerCommand }
     norevoke: boolean
     norevoke_exceptions: string[]
+    norevoke_status: boolean
     disabled_chats: string[]
     autosticker: string[]
     oneview: boolean
     public: boolean
-    [key: string]:
-        | string
-        | boolean
-        | string[]
-        | { [key: string]: string | StickerCommand }
 }
 
 type snu = string | null | undefined

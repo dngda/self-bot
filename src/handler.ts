@@ -1,10 +1,9 @@
 import { MessageUpsertType, WAMessage, WASocket, proto } from 'baileys'
 import chalk from 'chalk'
-import fs from 'fs'
 import util from 'util'
 import { getCommand } from './menu.js'
 import loadCommands from './cmd/_index.js'
-import { BotConfig, HandlerFunction, MessageContext } from './types.js'
+import { HandlerFunction, MessageContext } from './types.js'
 import { storeMessage, storePushName, storeStatus } from './lib/_index.js'
 import {
     handleAutoSticker,
@@ -23,42 +22,41 @@ import {
     logCmd,
 } from './utils/_index.js'
 import { handleSuperConfig } from './cmd/owner.js'
+import { configManager } from './services/ConfigManager.js'
 
-export let config: BotConfig = {
-    allowed_chats: [],
-    sticker_commands: {},
-    norevoke: false,
-    norevoke_exceptions: [],
-    disabled_chats: [],
-    autosticker: [],
-    oneview: false,
-    public: false,
+// Initialize config manager
+configManager.initializeSync()
+
+/**
+ * @deprecated Use configManager directly instead
+ * This is kept for backward compatibility
+ */
+export const getConfig = () => configManager.getConfig()
+
+/**
+ * @deprecated Use configManager methods instead
+ * This is kept for backward compatibility
+ */
+export const updateConfig = async () => {
+    await configManager.forceSave()
 }
 
-if (fs.existsSync('./data/config.json')) {
-    try {
-        const conf = JSON.parse(
-            fs.readFileSync('./data/config.json', 'utf-8') || '{}'
-        )
-        config = {
-            allowed_chats: [],
-            sticker_commands: {},
-            norevoke: false,
-            norevoke_exceptions: [],
-            disabled_chats: [],
-            autosticker: [],
-            oneview: false,
-            public: false,
-            ...conf,
-        }
-    } catch (error) {
-        console.error(chalk.red('[ERROR]'), 'Failed to load config:', error)
-    }
-}
+/**
+ * @deprecated Use configManager directly instead
+ * Backward compatibility - returns current config state
+ */
+export const config = new Proxy({} as any, {
+    get: (_target, prop: string) => {
+        return configManager.get(prop as any)
+    },
+    set: (_target, prop: string, value: any) => {
+        configManager.set(prop as any, value)
+        return true
+    },
+})
 
-export const updateConfig = () => {
-    fs.promises.writeFile('./data/config.json', JSON.stringify(config, null, 2))
-}
+// Export configManager for modern usage
+export { configManager }
 
 // every handler must have 3 parameters:
 export const actions: { [index: string]: HandlerFunction } = {}
@@ -107,11 +105,11 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
     storeIncomingMessage(msg)
     storeStatusMessage(msg)
 
-    if (config.norevoke) listenDeletedMessage(waSocket, msg)
+    if (configManager.isNoRevoke()) listenDeletedMessage(waSocket, msg)
 
     listenEditedMessage(waSocket, msg)
     handleAutoSticker(waSocket, msg, ctx)
-    // if (config.oneview) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
+    // if (configManager.isOneView()) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
 }
 
 const logRawMessage = (msg: WAMessage) => {
@@ -132,7 +130,7 @@ const handleCommands = async (
         return
     }
 
-    if (msg.key.fromMe || isAllowedChat(ctx) || config.public) {
+    if (msg.key.fromMe || isAllowedChat(ctx) || configManager.isPublic()) {
         noPrefixHandler(waSocket, msg, ctx)
 
         const cmd = getCommand(ctx.cmd) as string
@@ -160,10 +158,10 @@ const handleError = (ctx: MessageContext, error: unknown) => {
     ctx.reactError()
 }
 const isDisabledChat = (ctx: MessageContext) =>
-    ctx.from ? (config?.disabled_chats ?? []).includes(ctx.from) : false
+    ctx.from ? configManager.isDisabledChat(ctx.from) : false
 
 const isAllowedChat = (ctx: MessageContext) =>
-    ctx.from ? (config?.allowed_chats ?? []).includes(ctx.from) : false
+    ctx.from ? configManager.isAllowedChat(ctx.from) : false
 
 const isHistorySync = (msg: WAMessage) =>
     msg.message?.protocolMessage?.type ==

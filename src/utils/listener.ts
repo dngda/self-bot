@@ -1,6 +1,6 @@
 import { WAMessage, WASocket, downloadMediaMessage, proto } from 'baileys'
 import { getMessage } from '../lib/_index.js'
-import { config } from '../handler.js'
+import { configManager } from '../handler.js'
 
 // Constants
 const OWNER_JID = process.env.OWNER_JID!
@@ -8,12 +8,19 @@ const STATUS_BROADCAST = 'status@broadcast'
 const WHATSAPP_LID_SUFFIX_PATTERN = /(@s.whatsapp.net)|(@lid)/g
 
 /**
- * Check if message should be ignored based on sender
+ * Check if message is from self or bot itself
  */
-const shouldIgnoreMessage = (wa: WASocket, msg: WAMessage): boolean => {
+const isMessageFromSelf = (wa: WASocket, msg: WAMessage): boolean => {
     if (msg.key.fromMe) return true
     if (wa.user?.lid?.replace(':47', '') === msg.key.participant) return true
     return false
+}
+
+/**
+ * Check if message is a status broadcast
+ */
+const isStatusMessage = (msg: WAMessage): boolean => {
+    return msg.key.remoteJid === STATUS_BROADCAST
 }
 
 /**
@@ -28,7 +35,7 @@ const formatMessageSource = async (
     const cleanNumber = from.replace(WHATSAPP_LID_SUFFIX_PATTERN, '')
 
     // Status update
-    if (msg.key.remoteJid === STATUS_BROADCAST) {
+    if (isStatusMessage(msg)) {
         return {
             text: `${prefix} status by @${from.replace(
                 WHATSAPP_LID_SUFFIX_PATTERN,
@@ -39,7 +46,7 @@ const formatMessageSource = async (
     }
 
     // Group message
-    if (msg.key.participant && msg.key.remoteJid !== STATUS_BROADCAST) {
+    if (msg.key.participant && !isStatusMessage(msg)) {
         try {
             const { subject } = await wa.groupMetadata(msg.key.remoteJid!)
             return {
@@ -86,12 +93,17 @@ export const listenDeletedMessage = async (
     msg: WAMessage
 ): Promise<boolean | null> => {
     // Skip if chat is in exceptions list
-    if (config.norevoke_exceptions.includes(msg.key.remoteJid!)) {
+    if (configManager.isNoRevokeException(msg.key.remoteJid!)) {
+        return null
+    }
+
+    // Skip if no revoke status is enabled and this is a status message
+    if (configManager.isNoRevokeStatus() && isStatusMessage(msg)) {
         return null
     }
 
     // Skip own messages
-    if (shouldIgnoreMessage(wa, msg)) {
+    if (isMessageFromSelf(wa, msg)) {
         return null
     }
 
@@ -144,12 +156,12 @@ export const listenEditedMessage = async (
     msg: WAMessage
 ): Promise<boolean | null> => {
     // Skip own messages
-    if (shouldIgnoreMessage(wa, msg)) {
+    if (isMessageFromSelf(wa, msg)) {
         return null
     }
 
     // Skip status broadcasts
-    if (msg.key.remoteJid === STATUS_BROADCAST) {
+    if (isStatusMessage(msg)) {
         return null
     }
 
@@ -209,8 +221,9 @@ export const listenEditedMessage = async (
  * This function is no longer usable due to WhatsApp restrictions on view-once messages
  */
 export const listenOneViewMessage = async (wa: WASocket, msg: WAMessage) => {
-    if (msg.key.fromMe) return null
-    if (wa.user?.lid?.replace(':47', '') === msg.key.participant) return null
+    if (!configManager.isPeekOneView()) return null
+    if (isMessageFromSelf(wa, msg)) return null
+
     const viewOnce =
         msg.message?.viewOnceMessage ||
         msg.message?.viewOnceMessageV2 ||

@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from 'baileys'
-import { actions, config, updateConfig } from '../handler.js'
+import { actions, configManager } from '../handler.js'
 import stringId from '../language.js'
 import { findMenu, menu } from '../menu.js'
 import { getPrefix, resetPrefix, setPrefix } from '../utils/_index.js'
@@ -43,22 +43,21 @@ const toggleAllowHandler: HandlerFunction = async (
     ctx: MessageContext
 ) => {
     if (!ctx.fromMe) throw stringId.allow.error.notSelf()
-    let isAllowed = config.allowed_chats.includes(ctx.from)
+
+    let isAllowed = configManager.isAllowedChat(ctx.from)
+
     if (ctx.cmd !== 'allow') {
         if (isAllowed) {
-            config.allowed_chats = config.allowed_chats.filter(
-                (x: string) => x !== ctx.from
-            )
+            configManager.removeAllowedChat(ctx.from)
             isAllowed = false
         }
     } else {
         if (!isAllowed) {
-            config.allowed_chats.push(ctx.from)
+            configManager.addAllowedChat(ctx.from)
             isAllowed = true
         }
     }
 
-    updateConfig()
     return ctx.reply(stringId.allow.info?.(isAllowed, ctx.prefix) ?? '')
 }
 
@@ -96,7 +95,9 @@ const stickerAsCommandCmd = () => {
 }
 
 const listStickerCommands = (ctx: MessageContext) => {
-    const entries = Object.entries(config.sticker_commands)
+    const stickerCommands = configManager.getAllStickerCommands()
+    const entries = Object.entries(stickerCommands)
+
     if (entries.length === 0) {
         return ctx.reply('‼️ Tidak ada sticker command yang terdaftar')
     }
@@ -112,14 +113,15 @@ const listStickerCommands = (ctx: MessageContext) => {
 }
 
 const deleteStickerCommand = async (sha: string, ctx: MessageContext) => {
-    if (!(sha in config.sticker_commands)) {
+    const stickerCmd = configManager.getStickerCommand(sha)
+
+    if (!stickerCmd) {
         await ctx.reactError()
         return ctx.reply(stringId.stickerCmd.error.notExist())
     }
 
-    const { cmd, arg } = config.sticker_commands[sha]
-    delete config.sticker_commands[sha]
-    updateConfig()
+    const { cmd, arg } = stickerCmd
+    configManager.deleteStickerCommand(sha)
     await ctx.reactSuccess()
     return ctx.reply(stringId.stickerCmd.info?.(`${cmd} ${arg}`) ?? '')
 }
@@ -131,14 +133,12 @@ const addStickerCommand = async (stickerSha: string, ctx: MessageContext) => {
     if (!cmd) return ctx.reply(stringId.stickerCmd.usage(ctx))
     if (!findMenu(cmd)) return ctx.reply(stringId.stickerCmd.error.invalidCmd())
 
-    if (stickerSha in config.sticker_commands) {
-        return ctx.reply(
-            stringId.stickerCmd.error.exist(config.sticker_commands[stickerSha])
-        )
+    if (configManager.hasStickerCommand(stickerSha)) {
+        const existingCmd = configManager.getStickerCommand(stickerSha)!
+        return ctx.reply(stringId.stickerCmd.error.exist(existingCmd))
     }
 
-    config.sticker_commands[stickerSha] = { cmd, arg }
-    updateConfig()
+    configManager.setStickerCommand(stickerSha, { cmd, arg })
     await ctx.reactSuccess()
     return ctx.reply(stringId.stickerCmd.success?.(`${cmd} ${arg}`) ?? '')
 }
@@ -284,7 +284,15 @@ const configHandler: HandlerFunction = async (
         return
     }
 
-    if (!(configName in config)) {
+    const validConfigs = [
+        'public',
+        'norevoke',
+        'norevoke_status',
+        'oneview',
+        'autosticker',
+    ]
+
+    if (!validConfigs.includes(configName)) {
         ctx.reply(stringId.toggleConfig.usage(ctx))
         return
     }
@@ -296,12 +304,24 @@ const configHandler: HandlerFunction = async (
         toggleGlobalConfig(configName, status)
     }
 
-    updateConfig()
     return ctx.reactSuccess()
 }
 
 const toggleGlobalConfig = (configName: string, status: boolean) => {
-    config[configName] = status
+    switch (configName) {
+        case 'public':
+            configManager.setPublic(status)
+            break
+        case 'norevoke':
+            configManager.setNoRevoke(status)
+            break
+        case 'oneview':
+            configManager.setPeekOneView(status)
+            break
+        case 'norevoke_status':
+            configManager.setNoRevokeStatus(status)
+            break
+    }
 }
 
 const toggleChatSpecificConfig = (
@@ -310,16 +330,20 @@ const toggleChatSpecificConfig = (
     chatId: string
 ) => {
     const isNorevoke = configName === 'norevoke'
-    const key = isNorevoke ? 'norevoke_exceptions' : 'autosticker'
-    const targetList = config[key] as string[]
-
     const shouldRemove = isNorevoke ? status : !status
 
-    if (shouldRemove) {
-        config[key] = targetList.filter((x: string) => x !== chatId)
+    if (isNorevoke) {
+        if (shouldRemove) {
+            configManager.removeNoRevokeException(chatId)
+        } else {
+            configManager.addNoRevokeException(chatId)
+        }
     } else {
-        if (!targetList.includes(chatId)) {
-            targetList.push(chatId)
+        // autosticker
+        if (shouldRemove) {
+            configManager.disableAutoSticker(chatId)
+        } else {
+            configManager.enableAutoSticker(chatId)
         }
     }
 }

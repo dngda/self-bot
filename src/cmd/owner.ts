@@ -6,7 +6,7 @@ import {
 } from '../lib/_index.js'
 import { WAMessage, WASocket } from 'baileys'
 import stringId from '../language.js'
-import { actions, config } from '../handler.js'
+import { actions, configManager } from '../handler.js'
 import { menu } from '../menu.js'
 import { browser } from '../../index.js'
 import chalk from 'chalk'
@@ -285,12 +285,10 @@ export const handleSuperConfig = async (ctx: MessageContext) => {
     if (!body) return null
     switch (true) {
         case 'disb' == body:
-            config.disabled_chats.push(ctx.from)
+            configManager.addDisabledChat(ctx.from)
             return ctx.reactSuccess()
         case 'ensb' == body:
-            config.disabled_chats = config.disabled_chats.filter(
-                (x: string) => x !== ctx.from
-            )
+            configManager.removeDisabledChat(ctx.from)
             return ctx.reactSuccess()
     }
     return null

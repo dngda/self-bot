@@ -4,7 +4,7 @@ import fs from 'fs'
 import * as math from 'mathjs'
 import { logCmd } from './_index.js'
 import { getStatusListMessage } from '../cmd/owner.js'
-import { actions, config } from '../handler.js'
+import { actions, configManager } from '../handler.js'
 import stringId from '../language.js'
 import { getNote, getStatus } from '../lib/_index.js'
 import { getCommand } from '../menu.js'
@@ -87,9 +87,10 @@ export const handleStickerCommand = async (
         : ''
 
     try {
-        if (stickerSha in config.sticker_commands) {
-            ctx.cmd = config.sticker_commands[stickerSha].cmd
-            ctx.arg = config.sticker_commands[stickerSha].arg
+        const stickerCmd = configManager.getStickerCommand(stickerSha)
+        if (stickerCmd) {
+            ctx.cmd = stickerCmd.cmd
+            ctx.arg = stickerCmd.arg
             ctx.args = ctx.arg.split(' ')
             const cmd = getCommand(ctx.cmd)
             logCmd(_msg, ctx)
@@ -285,7 +286,7 @@ export const handleAutoSticker = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
-    if (!config.autosticker.includes(ctx.from)) return null
+    if (!configManager.isAutoStickerEnabled(ctx.from)) return null
     if (getCommand(ctx.cmd) === 'sticker') return null
 
     if (ctx.isImage || ctx.isVideo) {
