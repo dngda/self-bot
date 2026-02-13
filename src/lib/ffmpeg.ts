@@ -146,25 +146,7 @@ export const apngToWebp = async (buffer: Buffer): Promise<Buffer> => {
     fs.writeFileSync(inputPath, buffer)
 
     return new Promise((resolve, reject) => {
-        const ffmpeg = spawn('ffmpeg', [
-            '-y',
-            '-i',
-            inputPath,
-            '-vcodec',
-            'libwebp',
-            '-lossless',
-            '0',
-            '-q:v',
-            '80',
-            '-loop',
-            '0',
-            '-preset',
-            'picture',
-            '-an',
-            '-vsync',
-            '0',
-            outputPath,
-        ])
+        const ffmpeg = spawn('ffmpeg', ['-y', '-i', inputPath, outputPath])
         ffmpeg.on('close', (code) => {
             fs.unlink(inputPath, () => {})
             if (code === 0) {
