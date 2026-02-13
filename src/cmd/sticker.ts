@@ -14,6 +14,7 @@ import {
     quotly,
     getPushName,
     EmojiApi,
+    apngToWebp,
 } from '../lib/_index.js'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
@@ -75,22 +76,74 @@ const stickerHandler: HandlerFunction = async (
     } = ctx
     let { isVideo, isImage } = ctx
 
-    if (!isMedia) throw new Error(stringId.sticker.usage(ctx))
-    ctx.reactWait()
-    let mediaData = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
-    if (isQuotedSticker) {
-        const isAnimated = mediaData.toString('utf-8').includes('ANMF')
-        if (isAnimated) {
-            const gif = await sharp(mediaData, { animated: true })
-                .gif()
-                .toBuffer()
-            const path = await gifToMp4(gif)
-            mediaData = fs.readFileSync(path)
-            fs.unlinkSync(path)
-            isVideo = true
-        } else {
-            mediaData = await sharp(mediaData).png().toBuffer()
-            isImage = true
+    let mediaData!: Buffer
+    let isFromUrl = false
+
+    // Check if arg contains a URL when there's no media or quote
+    if (!isMedia && !isQuoted && arg) {
+        const urlRegex = /https?:\/\/[^\s]+/i
+        const urlMatch = arg.match(urlRegex)
+
+        if (urlMatch) {
+            isFromUrl = true
+            ctx.reactWait()
+            try {
+                const url = urlMatch[0]
+                const response = await fetch(url)
+                if (!response.ok) throw new Error(`HTTP ${response.status}`)
+                const arrayBuffer = await response.arrayBuffer()
+                mediaData = Buffer.from(arrayBuffer)
+
+                // Determine media type from content-type header
+                const contentType = response.headers.get('content-type') || ''
+                if (contentType.includes('video')) {
+                    isVideo = true
+                } else if (contentType.includes('image')) {
+                    isImage = true
+
+                    // Check if PNG is actually APNG (animated PNG)
+                    if (
+                        contentType.includes('png') ||
+                        url.toLowerCase().endsWith('.png')
+                    ) {
+                        const isAPNG = mediaData
+                            .toString('utf-8')
+                            .includes('acTL')
+                        if (isAPNG) {
+                            // Convert APNG to animated WebP
+                            mediaData = await apngToWebp(mediaData)
+                        }
+                    }
+                }
+            } catch (error) {
+                throw new Error(
+                    `Failed to fetch from URL: ${
+                        error instanceof Error ? error.message : error
+                    }`
+                )
+            }
+        }
+    }
+
+    if (!isMedia && !isFromUrl) throw new Error(stringId.sticker.usage(ctx))
+
+    if (!isFromUrl) {
+        ctx.reactWait()
+        mediaData = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
+        if (isQuotedSticker) {
+            const isAnimated = mediaData.toString('utf-8').includes('ANMF')
+            if (isAnimated) {
+                const gif = await sharp(mediaData, { animated: true })
+                    .gif()
+                    .toBuffer()
+                const path = await gifToMp4(gif)
+                mediaData = fs.readFileSync(path)
+                fs.unlinkSync(path)
+                isVideo = true
+            } else {
+                mediaData = await sharp(mediaData).png().toBuffer()
+                isImage = true
+            }
         }
     }
 
@@ -107,7 +160,11 @@ const stickerHandler: HandlerFunction = async (
         })
         mediaData = Buffer.from(res.base64img, 'base64')
     }
-    const argMeta = arg.replace(/-r|-c|-nobg/g, '').trim()
+    const argMeta = arg
+        .replace(/-r|-c|-nobg/g, '')
+        .replace(/https?:\/\/[^\s]+/gi, '')
+        .trim()
+
     const packname = argMeta.split('|')[0] || process.env.PACKNAME!
     const author = argMeta.split('|')[1] || process.env.AUTHOR!
 

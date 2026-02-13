@@ -135,3 +135,44 @@ export const gifToMp4 = async (buffer: Buffer): Promise<string> => {
         ffmpeg.on('error', reject)
     })
 }
+
+// create a function to convert apng buffer to webp buffer using ffmpeg
+export const apngToWebp = async (buffer: Buffer): Promise<Buffer> => {
+    ensureTmpDir('tmp')
+    let i = 1
+    while (fs.existsSync(`tmp/sticker${i}.png`)) i++
+    const inputPath = `tmp/sticker${i}.png`
+    const outputPath = `tmp/sticker${i}.webp`
+    fs.writeFileSync(inputPath, buffer)
+
+    return new Promise((resolve, reject) => {
+        const ffmpeg = spawn('ffmpeg', [
+            '-y',
+            '-i',
+            inputPath,
+            '-vcodec',
+            'libwebp',
+            '-lossless',
+            '0',
+            '-q:v',
+            '80',
+            '-loop',
+            '0',
+            '-preset',
+            'picture',
+            '-an',
+            '-vsync',
+            '0',
+            outputPath,
+        ])
+        ffmpeg.on('close', (code) => {
+            fs.unlink(inputPath, () => {})
+            if (code === 0) {
+                const webpBuffer = fs.readFileSync(outputPath)
+                fs.unlink(outputPath, () => {})
+                resolve(webpBuffer)
+            } else reject(new Error(`ffmpeg exited with code ${code}`))
+        })
+        ffmpeg.on('error', reject)
+    })
+}
