@@ -204,33 +204,33 @@ No Revoke: ${this.config.norevoke}
 No Revoke Status: ${this.config.norevoke_status}
 Peek OneView: ${this.config.oneview}
 
-Allowed Chats: ${
+Allowed Chats: \n${
             this.config.allowed_chats.length > 0
-                ? this.config.allowed_chats.join(', ')
+                ? this.config.allowed_chats.join('\n')
                 : 'None'
         }
-Disabled Chats: ${
+Disabled Chats: \n${
             this.config.disabled_chats.length > 0
-                ? this.config.disabled_chats.join(', ')
+                ? this.config.disabled_chats.join('\n')
                 : 'None'
         }
-AutoSticker Chats: ${
+AutoSticker Chats: \n${
             this.config.autosticker.length > 0
-                ? this.config.autosticker.join(', ')
+                ? this.config.autosticker.join('\n')
                 : 'None'
         }
-No Revoke Exceptions: ${
+No Revoke Exceptions: \n${
             this.config.norevoke_exceptions.length > 0
-                ? this.config.norevoke_exceptions.join(', ')
+                ? this.config.norevoke_exceptions.join('\n')
                 : 'None'
         }
-Sticker Commands: ${
+Sticker Commands: \n${
             Object.keys(this.config.sticker_commands).length > 0
                 ? Object.entries(this.config.sticker_commands)
                       .map(
                           ([sha, cmd]) => `${cmd.cmd} ${cmd.arg} (SHA: ${sha})`
                       )
-                      .join('; ')
+                      .join('\n')
                 : 'None'
         }
         `.trim()
