@@ -114,9 +114,8 @@ const menuHandler: HandlerFunction = (
             c.toUpperCase()
         )} 〙 ✪`
         for (const sub of menus.filter((menu) => menu.type === type)) {
-            const alias = sub.alias
-                .split(/, ?| ,/)
-                .concat(sub.command)
+            const alias = [sub.command]
+                .concat((sub.alias || '').split(/, ?| ,/).filter((a) => a))
                 .map((a: string) => {
                     if (sub.noprefix) return m(a).replace(ctx.prefix, '')
                     return m(a)

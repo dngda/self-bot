@@ -15,8 +15,8 @@ export interface StickerCommand {
 type Menu = {
     command: string
     hint: string
-    alias: string
     type: string
+    alias?: string
     noprefix?: boolean
     hidden?: boolean
 }

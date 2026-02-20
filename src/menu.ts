@@ -6,7 +6,7 @@ export const findMenu = (cmd: string) => {
     return (
         menu.find(
             (m) =>
-                m.alias
+                (m.alias ?? '')
                     .split(/, ?| ,/)
                     .concat(m.command)
                     .indexOf(cmd) !== -1

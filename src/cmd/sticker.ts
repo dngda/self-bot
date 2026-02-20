@@ -272,14 +272,14 @@ const textToStickerCmd = () => {
     }
 
     menu.push({
-        command: 'makec',
+        command: 'make',
         hint: stringId.tts.hint,
-        alias: 'make',
+        alias: 'makec',
         type: 'sticker',
     })
 
     Object.assign(actions, {
-        makec: ttpHandler,
+        make: ttpHandler,
     })
 }
 
@@ -540,9 +540,9 @@ const quotlyHandler: HandlerFunction = async (
 
 const emojiKitchenCmd = () => {
     stringId.emojiKitchen = {
-        hint: '🍔 _Create sticker from 2 emojis_',
+        hint: '🍔 _Create sticker from two emojis_',
         error: {
-            notEmoji: () => `‼️ Please use 2 emojis`,
+            notEmoji: () => `‼️ Please use two emojis`,
         },
         usage: (ctx: MessageContext) =>
             `Add 2 emojis with ${ctx.prefix}${ctx.cmd} <emoji1><emoji2>\n` +
@@ -550,14 +550,14 @@ const emojiKitchenCmd = () => {
     }
 
     menu.push({
-        command: 'emojik',
+        command: 'combine',
         hint: stringId.emojiKitchen.hint,
         alias: 'c',
         type: 'sticker',
     })
 
     Object.assign(actions, {
-        emojik: emojiKitchenHandler,
+        combine: emojiKitchenHandler,
     })
 }
 

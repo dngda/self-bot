@@ -362,7 +362,6 @@ const getConfigCmd = () => {
     menu.push({
         command: 'conf',
         hint: stringId.getConfig.hint,
-        alias: '',
         type: 'config',
     })
 
