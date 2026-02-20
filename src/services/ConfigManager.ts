@@ -199,31 +199,35 @@ class ConfigManager {
      */
     public getConfigSummary(): string {
         return `
-Public Mode: ${this.config.public}
-No Revoke: ${this.config.norevoke}
-No Revoke Status: ${this.config.norevoke_status}
-Peek OneView: ${this.config.oneview}
+Public Mode: ${this.config.public ? '✅ Enabled' : '❌ Disabled'}
+No Revoke: ${this.config.norevoke ? '✅ Enabled' : '❌ Disabled'}
+No Revoke Status: ${this.config.norevoke_status ? '✅ Enabled' : '❌ Disabled'}
+Peek OneView: ${this.config.oneview ? '✅ Enabled' : '❌ Disabled'}
 
 Allowed Chats: \n${
             this.config.allowed_chats.length > 0
                 ? this.config.allowed_chats.join('\n')
                 : 'None'
         }
+
 Disabled Chats: \n${
             this.config.disabled_chats.length > 0
                 ? this.config.disabled_chats.join('\n')
                 : 'None'
         }
+
 AutoSticker Chats: \n${
             this.config.autosticker.length > 0
                 ? this.config.autosticker.join('\n')
                 : 'None'
         }
+
 No Revoke Exceptions: \n${
             this.config.norevoke_exceptions.length > 0
                 ? this.config.norevoke_exceptions.join('\n')
                 : 'None'
         }
+
 Sticker Commands: \n${
             Object.keys(this.config.sticker_commands).length > 0
                 ? Object.entries(this.config.sticker_commands)
