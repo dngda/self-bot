@@ -97,8 +97,8 @@ export const listenDeletedMessage = async (
         return null
     }
 
-    // Skip if no revoke status is enabled and this is a status message
-    if (configManager.isNoRevokeStatus() && isStatusMessage(msg)) {
+    // Skip if no revoke status is disabled and this is a status message
+    if (!configManager.isNoRevokeStatus() && isStatusMessage(msg)) {
         return null
     }
 
