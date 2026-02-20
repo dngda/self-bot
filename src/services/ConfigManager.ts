@@ -195,6 +195,48 @@ class ConfigManager {
     }
 
     /**
+     * Get complete config string (for display purposes)
+     */
+    public getConfigSummary(): string {
+        return `
+Public Mode: ${this.config.public}
+No Revoke: ${this.config.norevoke}
+No Revoke Status: ${this.config.norevoke_status}
+Peek OneView: ${this.config.oneview}
+
+Allowed Chats: ${
+            this.config.allowed_chats.length > 0
+                ? this.config.allowed_chats.join(', ')
+                : 'None'
+        }
+Disabled Chats: ${
+            this.config.disabled_chats.length > 0
+                ? this.config.disabled_chats.join(', ')
+                : 'None'
+        }
+AutoSticker Chats: ${
+            this.config.autosticker.length > 0
+                ? this.config.autosticker.join(', ')
+                : 'None'
+        }
+No Revoke Exceptions: ${
+            this.config.norevoke_exceptions.length > 0
+                ? this.config.norevoke_exceptions.join(', ')
+                : 'None'
+        }
+Sticker Commands: ${
+            Object.keys(this.config.sticker_commands).length > 0
+                ? Object.entries(this.config.sticker_commands)
+                      .map(
+                          ([sha, cmd]) => `${cmd.cmd} ${cmd.arg} (SHA: ${sha})`
+                      )
+                      .join('; ')
+                : 'None'
+        }
+        `.trim()
+    }
+
+    /**
      * Get specific config value
      */
     public get<K extends keyof BotConfig>(key: K): BotConfig[K] {

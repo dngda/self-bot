@@ -24,7 +24,7 @@ export default () => {
 
 const evalJSON_Cmd = () => {
     stringId.evalJSON = {
-        hint: '_Evaluate JSON code_',
+        hint: '🧮 _Evaluate JSON code_',
         error: {},
         usage: (_: MessageContext) => '',
     }
@@ -49,7 +49,7 @@ const evalJSON = async (_w: WASocket, _m: WAMessage, _c: MessageContext) => {
 
 const evalJS_Cmd = () => {
     stringId.eval = {
-        hint: '_Evaluate JS code_',
+        hint: '🧮 _Evaluate JS code_',
         error: {},
         usage: (_: MessageContext) => '',
     }
@@ -93,7 +93,7 @@ export const executeSavedScriptInNote = async (_w: WASocket) => {
 
 const offline_Cmd = () => {
     stringId.offline = {
-        hint: '_Mark bot as offline_',
+        hint: '🫆 _Mark bot as offline_',
         error: {},
         usage: (_: MessageContext) => '',
     }
@@ -123,7 +123,7 @@ const offlineHandler: HandlerFunction = async (
 
 const refreshBrowser_Cmd = () => {
     stringId.refreshBrowser = {
-        hint: '_Refresh playwright browser context._',
+        hint: '🔄 _Refresh playwright browser context._',
         error: {},
         usage: (_: MessageContext) => '',
     }
@@ -153,7 +153,7 @@ const refreshBrowserHandler: HandlerFunction = async (
 
 const getStatus_Cmd = () => {
     stringId.getStatus = {
-        hint: '_Get status from contact._',
+        hint: '📑 _Get status from contact._',
         usage: (ctx: MessageContext) =>
             `📑 Get list status: ${ctx.prefix}gls
       \n📑 Get status: ${ctx.prefix}gs <number> atau reply contact`,
@@ -264,7 +264,7 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
 
 const super_Cmd = () => {
     stringId.superconfig = {
-        hint: '_Toggle bot in chat_',
+        hint: '🫆 _Toggle bot in chat_',
         error: {},
         usage: (_: MessageContext) => '',
     }
@@ -296,7 +296,7 @@ export const handleSuperConfig = async (ctx: MessageContext) => {
 
 const dumpMessage_Cmd = () => {
     stringId.dumpMessage = {
-        hint: '_Dump json quoted message into owner chat_',
+        hint: '🚮 _Dump json quoted message into owner chat_',
         error: {},
         usage: (_: MessageContext) => '',
     }

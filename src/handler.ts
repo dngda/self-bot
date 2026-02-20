@@ -27,34 +27,6 @@ import { configManager } from './services/ConfigManager.js'
 // Initialize config manager
 configManager.initializeSync()
 
-/**
- * @deprecated Use configManager directly instead
- * This is kept for backward compatibility
- */
-export const getConfig = () => configManager.getConfig()
-
-/**
- * @deprecated Use configManager methods instead
- * This is kept for backward compatibility
- */
-export const updateConfig = async () => {
-    await configManager.forceSave()
-}
-
-/**
- * @deprecated Use configManager directly instead
- * Backward compatibility - returns current config state
- */
-export const config = new Proxy({} as any, {
-    get: (_target, prop: string) => {
-        return configManager.get(prop as any)
-    },
-    set: (_target, prop: string, value: any) => {
-        configManager.set(prop as any, value)
-        return true
-    },
-})
-
 // Export configManager for modern usage
 export { configManager }
 

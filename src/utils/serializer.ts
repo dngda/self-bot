@@ -8,7 +8,6 @@ import {
     downloadContentFromMessage,
 } from 'baileys'
 import dotenv from 'dotenv'
-import { config } from '../handler.js'
 import { MessageContext } from '../types.js'
 import { findMenu } from '../menu.js'
 dotenv.config()
@@ -311,8 +310,6 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         })
     }
 
-    ctx.config = config
-
     const hiddenProps = [
         'quotedMsg',
         'download',
@@ -328,7 +325,6 @@ export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
         'reactError',
         'quoteReply',
         'quoteReplyContent',
-        'config',
     ]
     for (const prop of hiddenProps) {
         Object.defineProperty(ctx, prop, {

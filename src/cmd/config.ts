@@ -10,6 +10,7 @@ export default () => {
     toggleConfigCmd()
     toggleAllowChatCmd()
     stickerAsCommandCmd()
+    getConfigCmd()
 }
 
 const toggleAllowChatCmd = () => {
@@ -347,4 +348,36 @@ const toggleChatSpecificConfig = (
             configManager.enableAutoSticker(chatId)
         }
     }
+}
+
+const getConfigCmd = () => {
+    stringId.getConfig = {
+        hint: '⚙️ _Get current config_',
+        error: {},
+        usage: (_) => '',
+        success: (configSummary: string) =>
+            `📋 Current Config:\n\n${configSummary}`,
+    }
+
+    menu.push({
+        command: 'conf',
+        hint: stringId.getConfig.hint,
+        alias: '',
+        type: 'config',
+    })
+
+    Object.assign(actions, {
+        conf: getConfigHandler,
+    })
+}
+
+const getConfigHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ctx.fromMe) return undefined
+
+    const configSummary = configManager.getConfigSummary()
+    return ctx.reply(stringId.getConfig.success?.(configSummary) ?? '')
 }
