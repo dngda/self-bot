@@ -8,7 +8,7 @@ import { HandlerFunction, MessageContext } from '../types.js'
 import ytdl, { Payload } from 'youtube-dl-exec'
 import axios from 'axios'
 
-export default () => {
+export default function registerDownloaderCommands() {
     searchPinterestCmd()
     downloadSocialVideoCmd()
 }

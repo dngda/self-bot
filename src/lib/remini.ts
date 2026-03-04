@@ -9,7 +9,7 @@
 // Thanks For : Fahmi-XD
 // Coverted to TypeScript by: dngda
 
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import axios, { AxiosRequestConfig } from 'axios'
 import FormData from 'form-data'
 import {

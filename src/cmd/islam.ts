@@ -5,11 +5,11 @@ import { actions } from '../handler.js'
 import { mp3ToOpus, storeMessage } from '../lib/_index.js'
 import { menu } from '../menu.js'
 import axios, { AxiosError } from 'axios'
-import fs from 'fs'
+import fs from 'node:fs'
 import { Surah, SurahRepo } from '../raw/surah'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerIslamCommands() {
     surahCmd()
     jadwalSholatCmd()
 }
@@ -71,7 +71,7 @@ const jadwalSholatHandler: HandlerFunction = async (
         let kodek = ''
         try {
             kodek = cariKota.data[0].id
-        } catch (err) {
+        } catch {
             throw stringId.jsholat.error.notFound(ctx)
         }
         const tgl = moment((msg.messageTimestamp as number) * 1000).format(
@@ -154,7 +154,7 @@ const surahHandler: HandlerFunction = async (
         return handleDaftar(ctx)
     }
 
-    const surahNumber = isNaN(Number(args[0]))
+    const surahNumber = Number.isNaN(Number(args[0]))
         ? getSurahNumberByName(args[0])
         : Number(args[0])
 
@@ -194,7 +194,7 @@ const getSurahNumberByName = (name: string) => {
                 .includes(name.toLowerCase())
         )
     })
-    return index != -1 ? surahArr[index].number : null
+    return index == -1 ? null : surahArr[index].number
 }
 
 const getTotalVerses = (surahNumber: number): number => {
@@ -220,7 +220,7 @@ const processMultipleAyat = async (
     const ayatFrom = Number(ayatNumbers[0])
     const ayatTo = Number(ayatNumbers[1])
 
-    if (isNaN(ayatFrom) || isNaN(ayatTo)) {
+    if (Number.isNaN(ayatFrom) || Number.isNaN(ayatTo)) {
         throw stringId.surah.error.invalidAyat(ctx)
     }
 
@@ -249,7 +249,9 @@ const processSingleAyat = async (
     surahNumber: number,
     cmd: string
 ) => {
-    const ayatNumber = isNaN(Number(ctx.args[1])) ? 1 : Number(ctx.args[1])
+    const ayatNumber = Number.isNaN(Number(ctx.args[1]))
+        ? 1
+        : Number(ctx.args[1])
     return getAyatSurahDataAndSend(ctx, surahNumber, ayatNumber, cmd)
 }
 
@@ -288,16 +290,19 @@ const getAyatSurahDataAndSend = async (
     cmd: string
 ) => {
     try {
-        const result = (await get(
+        const result = await get(
             `https://api.quran.gading.dev/surah/${surahNumber}/${ayatNumber}`
-        )) as { data: SurahResponse }
-        const sdata = result.data.data
+        )
+        const surahData = result.data.data as SurahResponse['data']
 
         if (cmd === 'recite') {
-            const path = `./tmp/ayat/${sdata.number.inQuran}.mp3`
-            const pathConverted = `./tmp/ayat/${sdata.number.inQuran}.opus`
-            if (!fs.existsSync(pathConverted)) {
-                const audio = await get(sdata.audio.primary, {
+            const path = `./tmp/ayat/${surahData.number.inQuran}.mp3`
+            const pathConverted = `./tmp/ayat/${surahData.number.inQuran}.opus`
+            if (fs.existsSync(pathConverted)) {
+                const sent = await ctx.replyVoiceNote(pathConverted)
+                if (sent) storeMessage(sent)
+            } else {
+                const audio = await get(surahData.audio.primary, {
                     responseType: 'arraybuffer',
                 })
                 fs.writeFileSync(path, audio.data)
@@ -307,13 +312,10 @@ const getAyatSurahDataAndSend = async (
                 const sent = await ctx.replyVoiceNote(opus)
                 if (sent) storeMessage(sent)
                 fs.unlink(path, () => {})
-            } else {
-                const sent = await ctx.replyVoiceNote(pathConverted)
-                if (sent) storeMessage(sent)
             }
         }
 
-        const message = `${q3}${sdata.text.arab}${q3}\n\n_${sdata.translation.id}_\n\nQS. ${sdata.surah.name.transliteration.id} : ${sdata.number.inSurah}`
+        const message = `${q3}${surahData.text.arab}${q3}\n\n_${surahData.translation.id}_\n\nQS. ${surahData.surah.name.transliteration.id} : ${surahData.number.inSurah}`
         return ctx.send(message)
     } catch (err: unknown) {
         ctx.reactError()

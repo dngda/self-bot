@@ -5,9 +5,10 @@ import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
 
 export class PlaywrightBrowser {
+    private static readonly DEFAULT_VIEWPORT = { width: 1920, height: 1080 }
     private ctx!: BrowserContext
     private browser!: Browser
-    private headless: boolean
+    private readonly headless: boolean
     private initialized = false
 
     private constructor(headless: boolean) {
@@ -43,7 +44,7 @@ export class PlaywrightBrowser {
     async takeScreenshot(
         url: string,
         filePath: string,
-        viewPort = { width: 1920, height: 1080 },
+        viewPort = PlaywrightBrowser.DEFAULT_VIEWPORT,
         delay = 0,
         extraStep?: (page: Page) => Promise<void>
     ): Promise<boolean> {
@@ -74,7 +75,7 @@ export class PlaywrightBrowser {
         url: string,
         selector: string,
         filePath: string,
-        viewPort = { width: 1920, height: 1080 },
+        viewPort = PlaywrightBrowser.DEFAULT_VIEWPORT,
         extraStep?: (page: Page) => Promise<void>
     ): Promise<boolean> {
         this.ensureInitialized()

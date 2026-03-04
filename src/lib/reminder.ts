@@ -292,7 +292,10 @@ const processTriggeredReminder = async (
     )
 
     // Handle recurring vs one-time reminders
-    if (reminder.repeatType !== 'none') {
+    if (reminder.repeatType == 'none') {
+        // Delete non-recurring reminders after triggering
+        await deleteReminder(reminder.id)
+    } else {
         const nextRun = calculateNextRun(
             currentRunDate,
             reminder.repeatType,
@@ -303,9 +306,6 @@ const processTriggeredReminder = async (
             { nextRunAt: nextRun },
             { where: { id: reminder.id } }
         )
-    } else {
-        // Delete non-recurring reminders after triggering
-        await deleteReminder(reminder.id)
     }
 }
 

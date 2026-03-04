@@ -1,5 +1,5 @@
 import { WAMessage, WASocket } from 'baileys'
-import { existsSync, readFileSync, unlink, writeFileSync } from 'fs'
+import { existsSync, readFileSync, unlink, writeFileSync } from 'node:fs'
 import { actions } from '../handler.js'
 import stringId from '../language.js'
 import {
@@ -20,9 +20,10 @@ import {
     deleteReminder,
     getAllReminders,
     getRemindersList,
+    ReminderAttributes,
 } from '../lib/reminder.js'
 
-export default () => {
+export default function registerToolsCommands() {
     initDatabase()
 
     gttsCmd()
@@ -248,7 +249,7 @@ const collectListCmd = () => {
 
 // [jid][title][content]
 export const LIST_MEMORY_PATH = 'data/list_memory.json'
-export let ListMemory = new Map<string, string[]>()
+export const ListMemory = new Map<string, string[]>()
 
 // Ensure file exists and load data
 if (!existsSync(LIST_MEMORY_PATH)) {
@@ -260,16 +261,12 @@ try {
     if (data) {
         const parsedData = JSON.parse(data)
         // Convert values to arrays if needed
-        ListMemory = new Map(
-            Object.entries(parsedData).map(([k, v]) => [
-                k,
-                Array.isArray(v) ? v : [],
-            ])
-        )
+        Object.entries(parsedData).forEach(([k, v]) => {
+            ListMemory.set(k, Array.isArray(v) ? v : [])
+        })
     }
 } catch (e) {
-    // Handle corrupted JSON gracefully
-    ListMemory = new Map()
+    console.error('Error loading list memory:', e)
 }
 
 const saveListMemory = () => {
@@ -413,14 +410,13 @@ const parseDayNames = (daysStr: string): number[] | null => {
     const dayNumbers: number[] = []
 
     for (const day of days) {
-        if (dayMap[day] !== undefined) {
-            dayNumbers.push(dayMap[day])
-        } else {
+        if (dayMap[day] === undefined) {
             return null
         }
+        dayNumbers.push(dayMap[day])
     }
 
-    return [...new Set(dayNumbers)].sort()
+    return [...new Set(dayNumbers)].sort((a, b) => a - b)
 }
 
 // Helper: Format date for display
@@ -526,11 +522,9 @@ const parseRecurringReminder = (
 
     if (repeatType === 'custom_days' && repeatDays && repeatDays.length > 0) {
         nextRunAt = calculateNextCustomDay(nextRunAt, repeatDays)
-    } else {
+    } else if (nextRunAt <= new Date()) {
         // For daily/weekly/monthly, if time already passed today, set to tomorrow
-        if (nextRunAt <= new Date()) {
-            nextRunAt.setDate(nextRunAt.getDate() + 1)
-        }
+        nextRunAt.setDate(nextRunAt.getDate() + 1)
     }
 
     return { nextRunAt, repeatType, repeatDays, message }
@@ -597,8 +591,8 @@ const handleUpdateReminder = async (
     }
 
     // Parse ID
-    const id = parseInt(args[0])
-    if (isNaN(id)) {
+    const id = Number.parseInt(args[0])
+    if (Number.isNaN(id)) {
         return reply(stringId.reminder.usage(ctx))
     }
 
@@ -614,19 +608,25 @@ const handleUpdateReminder = async (
     // Parse recurring reminder
     if (reminderArgs[0]?.toLowerCase() === 'every') {
         const parsed = parseRecurringReminder(reminderArgs)
-        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        if (!parsed) {
+            return reply(stringId.reminder.error.invalidFormat())
+        }
         ;({ nextRunAt, repeatType, repeatDays, message } = parsed)
     }
     // Parse time-only reminder
     else if (/^\d{2}[:.]\d{2}$/.test(reminderArgs[0])) {
         const parsed = parseTimeOnlyReminder(reminderArgs)
-        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        if (!parsed) {
+            return reply(stringId.reminder.error.invalidFormat())
+        }
         ;({ nextRunAt, message } = parsed)
     }
     // Parse date-time reminder
     else if (/^\d{4}-\d{2}-\d{2}$/.test(reminderArgs[0])) {
         const parsed = parseDateTimeReminder(reminderArgs)
-        if (!parsed) return reply(stringId.reminder.error.pastDate())
+        if (!parsed) {
+            return reply(stringId.reminder.error.pastDate())
+        }
         ;({ nextRunAt, message } = parsed)
     }
     // Invalid format
@@ -676,19 +676,25 @@ const handleCreateReminder = async (
     // Parse recurring reminder
     if (args[0].toLowerCase() === 'every') {
         const parsed = parseRecurringReminder(args)
-        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        if (!parsed) {
+            return reply(stringId.reminder.error.invalidFormat())
+        }
         ;({ nextRunAt, repeatType, repeatDays, message } = parsed)
     }
     // Parse time-only reminder
     else if (/^\d{2}[:.]\d{2}$/.test(args[0])) {
         const parsed = parseTimeOnlyReminder(args)
-        if (!parsed) return reply(stringId.reminder.error.invalidFormat())
+        if (!parsed) {
+            return reply(stringId.reminder.error.invalidFormat())
+        }
         ;({ nextRunAt, message } = parsed)
     }
     // Parse date-time reminder
     else if (/^\d{4}-\d{2}-\d{2}$/.test(args[0])) {
         const parsed = parseDateTimeReminder(args)
-        if (!parsed) return reply(stringId.reminder.error.pastDate())
+        if (!parsed) {
+            return reply(stringId.reminder.error.pastDate())
+        }
         ;({ nextRunAt, message } = parsed)
     }
     // Invalid format
@@ -722,6 +728,40 @@ const handleCreateReminder = async (
     )
 }
 
+// Helper: Format reminder entry for list display
+const formatReminderEntry = async (
+    r: ReminderAttributes,
+    isOwner: boolean,
+    wa: WASocket,
+    mentions: string[]
+): Promise<string> => {
+    const formattedDate = formatReminderDate(new Date(r.nextRunAt))
+    const repeatInfo = formatRepeatInfo(r.repeatType, r.repeatDays)
+
+    let entry = `*[ID ${r.id}]${repeatInfo}*\n`
+    entry += `📅 ${formattedDate}\n`
+    entry += `💬 ${r.message}\n`
+
+    if (isOwner) {
+        if (r.from.endsWith('@g.us')) {
+            try {
+                const groupMetadata = await wa.groupMetadata(r.from)
+                entry += `👥 Group: ${groupMetadata.subject}\n`
+            } catch {
+                entry += `👥 Group: ${r.from}\n`
+            }
+        } else {
+            entry += `👤 From: @${r.from.split('@')[0]}\n`
+            if (!mentions.includes(r.from)) {
+                mentions.push(r.from)
+            }
+        }
+    }
+
+    entry += '\n'
+    return entry
+}
+
 // Handle: List reminders
 const handleListReminders = async (
     ctx: MessageContext,
@@ -729,11 +769,9 @@ const handleListReminders = async (
 ): Promise<WAMessage | undefined> => {
     const { from, reply, expiration } = ctx
 
-    // Check if chat is in owner
     const isOwner =
         from === process.env.OWNER_JID || from === process.env.OWNER_LID
 
-    // Get reminders (all if owner, otherwise just for the user)
     const reminders = isOwner
         ? await getAllReminders()
         : await getRemindersList(from)
@@ -746,34 +784,9 @@ const handleListReminders = async (
     const mentions: string[] = []
 
     for (const r of reminders) {
-        const formattedDate = formatReminderDate(new Date(r.nextRunAt))
-        const repeatInfo = formatRepeatInfo(r.repeatType, r.repeatDays)
-
-        list += `*[ID ${r.id}]${repeatInfo}*\n`
-        list += `📅 ${formattedDate}\n`
-        list += `💬 ${r.message}\n`
-
-        // Show from field for owner
-        if (isOwner) {
-            if (r.from.endsWith('@g.us')) {
-                try {
-                    const groupMetadata = await wa.groupMetadata(r.from)
-                    list += `👥 Group: ${groupMetadata.subject}\n`
-                } catch (error) {
-                    list += `👥 Group: ${r.from}\n`
-                }
-            } else {
-                list += `👤 From: @${r.from.split('@')[0]}\n`
-                if (!mentions.includes(r.from)) {
-                    mentions.push(r.from)
-                }
-            }
-        }
-
-        list += '\n'
+        list += await formatReminderEntry(r, isOwner, wa, mentions)
     }
 
-    // Send with mentions if owner and has mentions
     if (isOwner && mentions.length > 0) {
         return wa.sendMessage(
             from,
@@ -790,9 +803,9 @@ const handleDeleteReminder = async (
     ctx: MessageContext
 ): Promise<WAMessage | undefined> => {
     const { arg, reply } = ctx
-    const id = parseInt(arg)
+    const id = Number.parseInt(arg)
 
-    if (isNaN(id)) return reply(stringId.reminder.usage(ctx))
+    if (Number.isNaN(id)) return reply(stringId.reminder.usage(ctx))
 
     const success = await deleteReminder(id)
     return reply(

@@ -15,7 +15,7 @@ console.log(
 )
 const GeniusClient = new Client(process.env.GENIUS_API_KEY as string)
 
-export default () => {
+export default function registerBrowserCommands() {
     googleSearchCmd()
     citraRadarJogjaCmd()
     duckduckgoSearchCmd()
@@ -45,84 +45,15 @@ const citraRadarJogjaCmd = () => {
     })
 }
 
-// Sabtu 17 Januari 2026 19:00 WIB
-let LAST_UPDATE_TIME = ''
 const citraRadarHandler: HandlerFunction = async (
-    waSocket: WASocket,
-    msg: WAMessage,
+    _waSocket: WASocket,
+    _msg: WAMessage,
     ctx: MessageContext
 ) => {
     const webURL = 'https://sipora-yogya.bmkg.go.id/radar/'
     return ctx.reply(
         'Fitur sudah tidak tersedia karena Cloudflare Turnstile 😔\n' + webURL
     )
-    ctx.reactWait()
-
-    const lastUpdateTime = new Date(LAST_UPDATE_TIME)
-    const now = new Date()
-    const diffMins = (now.getTime() - lastUpdateTime.getTime()) / 60000
-    if (diffMins >= 0 && diffMins <= 10 && LAST_UPDATE_TIME !== '') {
-        const result = await waSocket.sendMessage(
-            ctx.from,
-            {
-                image: { url: 'tmp/radar.png' },
-                caption: `🌐 Citra Radar Jogja\n🕒 ${LAST_UPDATE_TIME}`,
-            },
-            { quoted: msg, ephemeralExpiration: ctx.expiration! }
-        )
-
-        ctx.reactSuccess()
-        return result
-    }
-
-    try {
-        const r = await browser.takeScreenshot(
-            webURL,
-            'tmp/radar.png',
-            { width: 1200, height: 1000 },
-            0,
-            async (page) => {
-                await page.click('a.leaflet-control-zoom-in')
-                await page.waitForTimeout(1000)
-                await page.click('a.leaflet-control-zoom-in')
-                await page.waitForTimeout(3000)
-                const updateTimeEl = await page.$('#updatetime')
-                if (updateTimeEl) {
-                    const updateTimeText = await page.evaluate(
-                        (el) => el.textContent,
-                        updateTimeEl
-                    )
-                    if (
-                        updateTimeText &&
-                        updateTimeText.trim() !== LAST_UPDATE_TIME
-                    ) {
-                        LAST_UPDATE_TIME = updateTimeText.trim()
-                    }
-                }
-            }
-        )
-
-        if (!r) {
-            ctx.reactError()
-            return ctx.reply(stringId.crjogja.error.timeOut())
-        }
-
-        const result = await waSocket.sendMessage(
-            ctx.from,
-            {
-                image: { url: 'tmp/radar.png' },
-                caption: `🌐 Citra Radar Jogja\n🕒 ${LAST_UPDATE_TIME}`,
-            },
-            { quoted: msg, ephemeralExpiration: ctx.expiration! }
-        )
-
-        ctx.reactSuccess()
-        return result
-    } catch (e) {
-        console.log(e)
-        ctx.reactError()
-        return ctx.reply(stringId.crjogja.error.timeOut())
-    }
 }
 
 const duckduckgoSearchCmd = () => {
@@ -174,8 +105,7 @@ const ddgSearchHandler: HandlerFunction = async (
             { image: { url: 'tmp/ddg.png' } },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
         )
-    } catch (e) {
-        console.log(e)
+    } catch {
         ctx.reactError()
         return ctx.reply(stringId.ddg.error.timeOut())
     }
@@ -230,8 +160,7 @@ const googleSearchHandler: HandlerFunction = async (
             { image: { url: 'tmp/google.png' } },
             { quoted: msg, ephemeralExpiration: ctx.expiration! }
         )
-    } catch (e) {
-        console.log(e)
+    } catch {
         ctx.reactError()
         return ctx.reply(stringId.gs.error.timeOut())
     }

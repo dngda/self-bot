@@ -12,7 +12,7 @@ import { browser } from '../../index.js'
 import chalk from 'chalk'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerOwnerCommands() {
     super_Cmd()
     evalJS_Cmd()
     offline_Cmd()
@@ -208,11 +208,11 @@ const getStatusHandler: HandlerFunction = async (
     }
 
     let jid = ctx.arg
-    jid = jid.replace(' ', '').replace(/-/g, '')
+    jid = jid.replaceAll(' ', '').replaceAll('-', '')
 
     const vcard = ctx.contextInfo?.quotedMessage?.contactMessage?.vcard ?? ''
     if (vcard) {
-        const _jid = vcard.match(/waid=(\d+)/)?.[1]
+        const _jid = /waid=(\d+)/.exec(vcard)?.[1]
         if (!_jid) return ctx.reply(stringId.getStatus.error.invalidJId())
         jid = _jid
     }

@@ -1,5 +1,5 @@
 import { WAMessage, WASocket, proto } from 'baileys'
-import fs from 'fs'
+import fs from 'node:fs'
 import lodash from 'lodash'
 import { removeBackgroundFromImageBase64 } from 'remove.bg'
 import sharp from 'sharp'
@@ -19,7 +19,7 @@ import {
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerStickerCommands() {
     textToStickerCmd()
     stickerCreatorCmd()
     addTextToImageCmd()
@@ -60,6 +60,149 @@ const stickerCreatorCmd = () => {
     })
 }
 
+const fetchMediaFromUrl = async (
+    url: string
+): Promise<{ mediaData: Buffer; isVideo: boolean; isImage: boolean }> => {
+    const response = await fetch(url)
+    if (!response.ok) throw new Error(`HTTP ${response.status}`)
+    const arrayBuffer = await response.arrayBuffer()
+    let mediaData = Buffer.from(arrayBuffer)
+
+    const contentType = response.headers.get('content-type') || ''
+    const isVideo = contentType.includes('video')
+    const isImage = contentType.includes('image')
+
+    if (
+        isImage &&
+        (contentType.includes('png') || url.toLowerCase().endsWith('.png'))
+    ) {
+        const isAPNG = mediaData.toString('utf-8').includes('acTL')
+        if (isAPNG) {
+            mediaData = await apngToWebp(mediaData)
+        }
+    }
+
+    return { mediaData, isVideo, isImage }
+}
+
+const processQuotedSticker = async (
+    mediaData: Buffer
+): Promise<{ mediaData: Buffer; isVideo: boolean; isImage: boolean }> => {
+    const isAnimated = mediaData.toString('utf-8').includes('ANMF')
+    if (isAnimated) {
+        const gif = await sharp(mediaData, { animated: true }).gif().toBuffer()
+        const path = await gifToMp4(gif)
+        mediaData = fs.readFileSync(path)
+        fs.unlinkSync(path)
+        return { mediaData, isVideo: true, isImage: false }
+    }
+    mediaData = await sharp(mediaData).png().toBuffer()
+    return { mediaData, isVideo: false, isImage: true }
+}
+
+const removeBackgroundIfNeeded = async (
+    mediaData: Buffer,
+    arg: string,
+    isImage: boolean,
+    isQuotedImage: boolean
+): Promise<Buffer> => {
+    if (arg.includes('-nobg') && (isImage || isQuotedImage)) {
+        const base64 = mediaData.toString('base64')
+        const res = await removeBackgroundFromImageBase64({
+            base64img: base64,
+            apiKey: lodash.sample(
+                process.env.REMOVEBG_APIKEY!.split(', ')
+            ) as string,
+            size: 'auto',
+        })
+        return Buffer.from(res.base64img, 'base64')
+    }
+    return mediaData
+}
+
+const getStickerType = (arg: string): StickerTypes => {
+    if (arg.includes('-c')) return StickerTypes.CROPPED
+    if (arg.includes('-r')) return StickerTypes.ROUNDED
+    return StickerTypes.FULL
+}
+
+const fetchMediaFromUrlIfNeeded = async (
+    ctx: MessageContext,
+    isMedia: boolean,
+    isQuoted: boolean,
+    arg: string
+): Promise<{
+    mediaData: Buffer | undefined
+    isVideo: boolean
+    isImage: boolean
+    isFromUrl: boolean
+}> => {
+    if (isMedia || isQuoted || !arg) {
+        return {
+            mediaData: undefined,
+            isVideo: false,
+            isImage: false,
+            isFromUrl: false,
+        }
+    }
+
+    const urlRegex = /https?:\/\/[^\s]+/i
+    const urlMatch = urlRegex.exec(arg)
+
+    if (!urlMatch) {
+        return {
+            mediaData: undefined,
+            isVideo: false,
+            isImage: false,
+            isFromUrl: false,
+        }
+    }
+
+    ctx.reactWait()
+    try {
+        const url = urlMatch[0]
+        const result = await fetchMediaFromUrl(url)
+        return {
+            mediaData: result.mediaData,
+            isVideo: result.isVideo,
+            isImage: result.isImage,
+            isFromUrl: true,
+        }
+    } catch (error) {
+        throw new Error(
+            `Failed to fetch from URL: ${
+                error instanceof Error ? error.message : error
+            }`
+        )
+    }
+}
+
+const downloadMediaIfNeeded = async (
+    ctx: MessageContext,
+    isFromUrl: boolean,
+    isQuoted: boolean,
+    isQuotedSticker: boolean
+): Promise<{
+    mediaData: Buffer
+    isVideo: boolean
+    isImage: boolean
+}> => {
+    if (isFromUrl) {
+        throw new Error('Media already fetched from URL')
+    }
+
+    ctx.reactWait()
+    const mediaData = isQuoted
+        ? await ctx.downloadQuoted()
+        : await ctx.download()
+
+    if (isQuotedSticker) {
+        return await processQuotedSticker(mediaData)
+    }
+
+    return { mediaData, isVideo: false, isImage: false }
+}
+
 const stickerHandler: HandlerFunction = async (
     wa: WASocket,
     msg: WAMessage,
@@ -76,93 +219,47 @@ const stickerHandler: HandlerFunction = async (
     } = ctx
     let { isVideo, isImage } = ctx
 
-    let mediaData!: Buffer
-    let isFromUrl = false
+    const urlResult = await fetchMediaFromUrlIfNeeded(
+        ctx,
+        isMedia ?? false,
+        isQuoted ?? false,
+        arg
+    )
+    let mediaData = urlResult.mediaData
+    const isFromUrl = urlResult.isFromUrl
 
-    // Check if arg contains a URL when there's no media or quote
-    if (!isMedia && !isQuoted && arg) {
-        const urlRegex = /https?:\/\/[^\s]+/i
-        const urlMatch = arg.match(urlRegex)
-
-        if (urlMatch) {
-            isFromUrl = true
-            ctx.reactWait()
-            try {
-                const url = urlMatch[0]
-                const response = await fetch(url)
-                if (!response.ok) throw new Error(`HTTP ${response.status}`)
-                const arrayBuffer = await response.arrayBuffer()
-                mediaData = Buffer.from(arrayBuffer)
-
-                // Determine media type from content-type header
-                const contentType = response.headers.get('content-type') || ''
-                if (contentType.includes('video')) {
-                    isVideo = true
-                } else if (contentType.includes('image')) {
-                    isImage = true
-
-                    // Check if PNG is actually APNG (animated PNG)
-                    if (
-                        contentType.includes('png') ||
-                        url.toLowerCase().endsWith('.png')
-                    ) {
-                        const isAPNG = mediaData
-                            .toString('utf-8')
-                            .includes('acTL')
-                        if (isAPNG) {
-                            // Convert APNG to animated WebP
-                            mediaData = await apngToWebp(mediaData)
-                        }
-                    }
-                }
-            } catch (error) {
-                throw new Error(
-                    `Failed to fetch from URL: ${
-                        error instanceof Error ? error.message : error
-                    }`
-                )
-            }
-        }
+    if (urlResult.isFromUrl) {
+        isVideo = urlResult.isVideo
+        isImage = urlResult.isImage
     }
 
     if (!isMedia && !isFromUrl) throw new Error(stringId.sticker.usage(ctx))
 
     if (!isFromUrl) {
-        ctx.reactWait()
-        mediaData = isQuoted ? await ctx.downloadQuoted() : await ctx.download()
+        const downloadResult = await downloadMediaIfNeeded(
+            ctx,
+            isFromUrl,
+            isQuoted ?? false,
+            isQuotedSticker ?? false
+        )
+        mediaData = downloadResult.mediaData
         if (isQuotedSticker) {
-            const isAnimated = mediaData.toString('utf-8').includes('ANMF')
-            if (isAnimated) {
-                const gif = await sharp(mediaData, { animated: true })
-                    .gif()
-                    .toBuffer()
-                const path = await gifToMp4(gif)
-                mediaData = fs.readFileSync(path)
-                fs.unlinkSync(path)
-                isVideo = true
-            } else {
-                mediaData = await sharp(mediaData).png().toBuffer()
-                isImage = true
-            }
+            isVideo = downloadResult.isVideo
+            isImage = downloadResult.isImage
         }
     }
 
-    let Stype = arg.includes('-r') ? StickerTypes.ROUNDED : StickerTypes.FULL
-    Stype = arg.includes('-c') ? StickerTypes.CROPPED : Stype
-    if (arg.includes('-nobg') && (isImage || isQuotedImage)) {
-        const base64 = mediaData.toString('base64')
-        const res = await removeBackgroundFromImageBase64({
-            base64img: base64,
-            apiKey: lodash.sample(
-                process.env.REMOVEBG_APIKEY!.split(', ')
-            ) as string,
-            size: 'auto',
-        })
-        mediaData = Buffer.from(res.base64img, 'base64')
-    }
+    const Stype = getStickerType(arg)
+    mediaData = await removeBackgroundIfNeeded(
+        mediaData!,
+        arg,
+        isImage ?? false,
+        isQuotedImage ?? false
+    )
+
     const argMeta = arg
-        .replace(/-r|-c|-nobg/g, '')
-        .replace(/https?:\/\/[^\s]+/gi, '')
+        .replaceAll(/-r|-c|-nobg/g, '')
+        .replaceAll(/https?:\/\/[^\s]+/gi, '')
         .trim()
 
     const packname = argMeta.split('|')[0] || process.env.PACKNAME!
@@ -217,7 +314,16 @@ const processVideo = async (
     let msgKey: proto.IMessageKey | undefined
     const STICKER_ANIMATED_LIMIT = 1024 * 1024 // WA limit only max 1 MB for animated sticker
     while (resultBuffer.length > STICKER_ANIMATED_LIMIT) {
-        if (!isSendNotif) {
+        if (isSendNotif) {
+            const trash =
+                quality == 30
+                    ? '. At this point, the sticker may look like trash.'
+                    : ''
+            wa.sendMessage(ctx.from, {
+                edit: msgKey,
+                text: stringId.sticker.error.q(quality) + trash,
+            })
+        } else {
             const msgInfo = await wa.sendMessage(
                 ctx.from,
                 {
@@ -229,15 +335,6 @@ const processVideo = async (
             )
             msgKey = msgInfo?.key
             isSendNotif = true
-        } else {
-            const trash =
-                quality == 30
-                    ? '. At this point, the sticker may look like trash.'
-                    : ''
-            wa.sendMessage(ctx.from, {
-                edit: msgKey,
-                text: stringId.sticker.error.q(quality) + trash,
-            })
         }
 
         if (quality == 5) throw new Error(stringId.sticker.error.fail())
@@ -466,51 +563,43 @@ const quotlyStickerCmd = () => {
     })
 }
 
-const quotlyHandler: HandlerFunction = async (
-    _wa: WASocket,
-    _msg: WAMessage,
-    ctx: MessageContext
-) => {
-    const { arg, isQuoted, replySticker, isQuotedImage, isQuotedSticker } = ctx
-    if ((!arg && !isQuoted) || arg.length > 100)
-        throw new Error(stringId.quote.usage(ctx))
-    ctx.reactWait()
-    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsgBody || ''
-    if (!text && !isQuotedImage && !isQuotedSticker)
-        throw new Error(stringId.quote.error.noText())
-    if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))
-
-    let participant =
-        ctx.contextInfo?.participant || ctx.participant || ctx.from
-
+const getQuotlyParticipant = (ctx: MessageContext): string => {
     if (ctx.fromMe && !ctx.isQuoted) {
-        participant = process.env.OWNER_JID!
+        return process.env.OWNER_JID!
     }
+    return ctx.contextInfo?.participant || ctx.participant || ctx.from
+}
 
-    const pushname =
-        arg?.split('|')[1]?.trim() ||
-        getPushName(participant) ||
-        `+${participant.split('@')[0]}`
-
-    let avatar = ''
+const getQuotlyAvatar = async (
+    wa: WASocket,
+    participant: string
+): Promise<string> => {
     try {
-        avatar = (await _wa.profilePictureUrl(participant)) || ''
-    } catch (error) {
-        avatar = 'https://i.ibb.co.com/zTtYZSQR/pl.png'
+        return (
+            (await wa.profilePictureUrl(participant)) ||
+            'https://i.ibb.co.com/zTtYZSQR/pl.png'
+        )
+    } catch {
+        // Profile picture not available, use default
+        return 'https://i.ibb.co.com/zTtYZSQR/pl.png'
     }
+}
 
-    const media = isQuotedImage
-        ? await ctx.downloadQuoted()
-        : isQuotedSticker
-        ? await ctx.downloadSticker()
-        : null
-
-    let mediaUrl = ''
-    if (media) {
-        mediaUrl = await uploadImage(media)
+const getQuotlyMedia = async (
+    ctx: MessageContext,
+    isQuotedImage: boolean,
+    isQuotedSticker: boolean
+): Promise<Buffer | null> => {
+    if (isQuotedImage) {
+        return await ctx.downloadQuoted()
     }
+    if (isQuotedSticker) {
+        return await ctx.downloadSticker()
+    }
+    return null
+}
 
-    const maxLength = 20
+const wrapText = (text: string, maxLength: number): string => {
     const lines: string[] = []
     let currentLine = ''
 
@@ -524,7 +613,43 @@ const quotlyHandler: HandlerFunction = async (
     }
 
     lines.push(currentLine)
-    const formattedText = lines.join('\n')
+    return lines.join('\n')
+}
+
+const quotlyHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const { arg, isQuoted, replySticker, isQuotedImage, isQuotedSticker } = ctx
+    if ((!arg && !isQuoted) || arg.length > 100)
+        throw new Error(stringId.quote.usage(ctx))
+    ctx.reactWait()
+
+    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsgBody || ''
+    if (!text && !isQuotedImage && !isQuotedSticker)
+        throw new Error(stringId.quote.error.noText())
+    if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))
+
+    const participant = getQuotlyParticipant(ctx)
+    const pushname =
+        arg?.split('|')[1]?.trim() ||
+        getPushName(participant) ||
+        `+${participant.split('@')[0]}`
+
+    const avatar = await getQuotlyAvatar(_wa, participant)
+    const media = await getQuotlyMedia(
+        ctx,
+        isQuotedImage ?? false,
+        isQuotedSticker ?? false
+    )
+
+    let mediaUrl = ''
+    if (media) {
+        mediaUrl = await uploadImage(media)
+    }
+
+    const formattedText = wrapText(text, 20)
 
     const quoteRes = await quotly(pushname, formattedText, avatar, mediaUrl)
     const sticker = await new Sticker(Buffer.from(quoteRes.image, 'base64'), {

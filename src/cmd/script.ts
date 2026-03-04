@@ -3,9 +3,9 @@ import { actions } from '../handler.js'
 import stringId from '../language.js'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
-import { exec } from 'child_process'
+import { exec } from 'node:child_process'
 
-export default () => {
+export default function registerScriptCommands() {
     execScriptCmd()
 }
 

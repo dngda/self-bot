@@ -2,11 +2,11 @@ import { WAMessage, WASocket, delay } from 'baileys'
 import stringId from '../language.js'
 import { actions } from '../handler.js'
 import { menu } from '../menu.js'
-import crypto from 'crypto'
+import crypto from 'node:crypto'
 import axios from 'axios'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerRandomCommands() {
     rollCmd()
     getMemeCmd()
 }
@@ -89,7 +89,7 @@ const rollHandler: HandlerFunction = async (
     ctx: MessageContext
 ) => {
     if (ctx.arg) {
-        let random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
+        let random = crypto.randomInt(1, Number.parseInt(ctx.arg) + 1)
         const m_id = await _wa.sendMessage(
             ctx.from,
             { text: `⏳ Rolling... ${random}` },
@@ -97,7 +97,7 @@ const rollHandler: HandlerFunction = async (
         )
         await delay(700)
         for (let i = 0; i <= 3; i++) {
-            random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
+            random = crypto.randomInt(1, Number.parseInt(ctx.arg) + 1)
             await _wa.sendMessage(
                 ctx.from,
                 { edit: m_id?.key, text: `⏳ Rolling... ${random}` },
@@ -106,7 +106,7 @@ const rollHandler: HandlerFunction = async (
             await delay(700)
         }
 
-        random = crypto.randomInt(1, parseInt(ctx.arg) + 1)
+        random = crypto.randomInt(1, Number.parseInt(ctx.arg) + 1)
         return _wa.sendMessage(
             ctx.from,
             { edit: m_id?.key, text: `🎲 You rolled a ${random}` },

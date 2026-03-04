@@ -6,7 +6,7 @@ import { getMenu, menu } from '../menu.js'
 import stringId from '../language.js'
 import lodash from 'lodash'
 
-export default () => {
+export default function registerGeneralCommands() {
     pingCmd()
     menuCmd()
     hideTagCmd()
@@ -84,10 +84,10 @@ const menuHandler: HandlerFunction = (
     let menuMsg = `
 !------------ Help - Usage ------------!\n`
 
-    menuMsg += `${q3} ___              ___      _
+    menuMsg += String.raw`${q3} ___              ___      _
 / __| ___ _ _ ___| _ ) ___| |_
-\\__ \\/ -_) '_/ _ \\ _ \\/ _ \\  _|
-|___/\\___|_| \\___/___/\\___/\\__|${q3}
+\__ \/ -_) '_/ _ \ _ \/ _ \  _|
+|___\___|_| \___/___\___\__|${q3}
 `
 
     menuMsg += `\u200E`.repeat(2000) // Add spoiler tag (read more button)
@@ -107,7 +107,7 @@ const menuHandler: HandlerFunction = (
     let setMenuTypes = lodash.uniq(menuTypes)
     if (!ctx.fromMe)
         setMenuTypes = setMenuTypes.filter(
-            (type) => !type.match(/owner|config/i)
+            (type) => !/owner|config/i.exec(type)
         )
     for (const type of setMenuTypes) {
         menuMsg += `\n✪ 〘 ${type.replace(/^\w/, (c: string) =>
@@ -115,7 +115,7 @@ const menuHandler: HandlerFunction = (
         )} 〙 ✪`
         for (const sub of menus.filter((menu) => menu.type === type)) {
             const alias = [sub.command]
-                .concat((sub.alias || '').split(/, ?| ,/).filter((a) => a))
+                .concat((sub.alias || '').split(/, ?| ,/).filter(Boolean))
                 .map((a: string) => {
                     if (sub.noprefix) return m(a).replace(ctx.prefix, '')
                     return m(a)

@@ -26,7 +26,8 @@ export const pinterest = {
         try {
             new URL(str)
             return true
-        } catch (_) {
+        } catch {
+            // Invalid URL format, return false
             return false
         }
     },
@@ -40,8 +41,8 @@ export const pinterest = {
             /^https?:\/\/pin\.it\/[\w.-]+/,
             /^https?:\/\/(?:www\.)?pinterest\.com\/amp\/pin\/[\w.-]+/,
             /^https?:\/\/(?:[a-z]{2}|www)\.pinterest\.com\/pin\/[\w.-]+/,
-            /^https?:\/\/(?:www\.)?pinterest\.com\/pin\/[\d]+(?:\/)?$/,
-            /^https?:\/\/(?:www\.)?pinterest\.[\w.]+\/pin\/[\d]+(?:\/)?$/,
+            /^https?:\/\/(?:www\.)?pinterest\.com\/pin\/\d+(?:\/)?$/,
+            /^https?:\/\/(?:www\.)?pinterest\.[\w.]+\/pin\/\d+(?:\/)?$/,
             /^https?:\/\/(?:www\.)?pinterestcn\.com\/pin\/[\w.-]+/,
             /^https?:\/\/(?:www\.)?pinterest\.com\.[\w.]+\/pin\/[\w.-]+/,
         ]

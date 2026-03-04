@@ -5,7 +5,7 @@ import { findMenu, menu } from '../menu.js'
 import { getPrefix, resetPrefix, setPrefix } from '../utils/_index.js'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerConfigCommands() {
     setPrefixCmd()
     toggleConfigCmd()
     toggleAllowChatCmd()
@@ -47,16 +47,14 @@ const toggleAllowHandler: HandlerFunction = async (
 
     let isAllowed = configManager.isAllowedChat(ctx.from)
 
-    if (ctx.cmd !== 'allow') {
-        if (isAllowed) {
-            configManager.removeAllowedChat(ctx.from)
-            isAllowed = false
-        }
-    } else {
+    if (ctx.cmd === 'allow') {
         if (!isAllowed) {
             configManager.addAllowedChat(ctx.from)
             isAllowed = true
         }
+    } else if (isAllowed) {
+        configManager.removeAllowedChat(ctx.from)
+        isAllowed = false
     }
 
     return ctx.reply(stringId.allow.info?.(isAllowed, ctx.prefix) ?? '')
@@ -340,13 +338,10 @@ const toggleChatSpecificConfig = (
         } else {
             configManager.addNoRevokeException(chatId)
         }
+    } else if (shouldRemove) {
+        configManager.disableAutoSticker(chatId)
     } else {
-        // autosticker
-        if (shouldRemove) {
-            configManager.disableAutoSticker(chatId)
-        } else {
-            configManager.enableAutoSticker(chatId)
-        }
+        configManager.enableAutoSticker(chatId)
     }
 }
 

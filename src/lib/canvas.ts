@@ -8,7 +8,7 @@ export const textToPicture = async (
 ): Promise<Buffer> =>
     new Promise((resolve, reject) => {
         try {
-            text = text.replace(/\s/g, '\n')
+            text = text.replaceAll(/\s/g, '\n')
             const canvas = createCanvas(512, 512)
             const ctx = canvas.getContext('2d')
             const textData = text.split('\n')
@@ -44,8 +44,7 @@ function combineShortWords(textData: string[]) {
         s = textData.findIndex((n) => n.length < 5)
         let isDepan = false
         if (s > 0 && s != textData.length - 1 && s != -1) {
-            isDepan =
-                textData[s - 1].length < textData[s + 1].length ? true : false
+            isDepan = textData[s - 1].length < textData[s + 1].length
         }
         if (s > 0 && s != textData.length - 1 && isDepan && s != -1) {
             const gabungan = `${textData[s - 1]} ${textData[s]}`
@@ -77,7 +76,7 @@ function calculateStartingPositionY(
     let posisiY = 256
     const longest = textData.reduce((a, b) => {
         return a.length > b.length ? a : b
-    })
+    }, '')
     const inpText = ctx.measureText(longest)
     const ukuranFont = 150 - inpText.width - textData.length * 5
     const lineHeight = inpText.actualBoundingBoxAscent + ukuranFont
@@ -88,7 +87,7 @@ function calculateStartingPositionY(
 function calculateFontSize(ctx: CanvasRenderingContext2D, textData: string[]) {
     const longest = textData.reduce((a, b) => {
         return a.length > b.length ? a : b
-    })
+    }, '')
     const inpText = ctx.measureText(longest)
     return 150 - inpText.width - textData.length * 5
 }
@@ -108,13 +107,13 @@ function setCanvasStyles(
     ctx.font = `${ukuranFont}px Nimbus Sans`
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
-    if (secondaryColor != '') {
+    if (secondaryColor === '') {
+        ctx.fillStyle = primaryColor
+    } else {
         const grd = ctx.createLinearGradient(0, 0, 500, 0)
         grd.addColorStop(0, primaryColor)
         grd.addColorStop(1, secondaryColor)
         ctx.fillStyle = grd
-    } else {
-        ctx.fillStyle = primaryColor
     }
     ctx.strokeStyle = strokeColor
     ctx.lineWidth = 4

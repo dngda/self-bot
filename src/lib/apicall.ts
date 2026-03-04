@@ -1,7 +1,7 @@
 import axios from 'axios'
 import FormData from 'form-data'
 import ocrApi from 'ocr-space-api-wrapper'
-import fs from 'fs'
+import fs from 'node:fs'
 
 export type LyricsApiResponse = {
     status: boolean
@@ -125,18 +125,18 @@ export async function memegen(
 ): Promise<Buffer> {
     const topText = top
         .trim()
-        .replace(/\s/g, '_')
-        .replace(/\?/g, '~q')
-        .replace(/%/g, '~p')
-        .replace(/#/g, '~h')
-        .replace(/\//g, '~s')
+        .replaceAll(' ', '_')
+        .replaceAll('?', '~q')
+        .replaceAll('%', '~p')
+        .replaceAll('#', '~h')
+        .replaceAll('/', '~s')
     const bottomText = bottom
         .trim()
-        .replace(/\s/g, '_')
-        .replace(/\?/g, '~q')
-        .replace(/%/g, '~p')
-        .replace(/#/g, '~h')
-        .replace(/\//g, '~s')
+        .replaceAll(' ', '_')
+        .replaceAll('?', '~q')
+        .replaceAll('%', '~p')
+        .replaceAll('#', '~h')
+        .replaceAll('/', '~s')
     const url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${image}`
     const res = await axios.get(url, { responseType: 'arraybuffer' })
     return Buffer.from(res.data)

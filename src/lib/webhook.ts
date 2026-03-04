@@ -23,7 +23,7 @@ app.get('/send', async (c) => {
 app.post('/send', async (c) => {
     const data = await c.req.json()
 
-    if (!waSocket || !waSocket.isReady) {
+    if (!waSocket?.isReady) {
         return c.json(
             { ok: false, error: 'WhatsApp socket not initialized' },
             503

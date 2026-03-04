@@ -12,7 +12,7 @@ import image from './image.js'
 import media from './media.js'
 
 // Urutan pemanggilan akan menentukan urutan menu
-export default () => {
+export default function registerCommands() {
     general()
     sticker()
     islam()

@@ -6,13 +6,13 @@ import { HandlerFunction, MessageContext } from '../types.js'
 import { OcrSpaceLanguages } from 'ocr-space-api-wrapper'
 import { ocr } from '../lib/apicall.js'
 import { splitVideo, videoToMp3 } from '../lib/ffmpeg.js'
-import { unlink } from 'fs'
+import { unlink } from 'node:fs'
 import getVideoDurationInSeconds from 'get-video-duration'
 import { storeMessage } from '../lib/store.js'
 import _ from 'lodash'
-import { Readable } from 'stream'
+import { Readable } from 'node:stream'
 
-export default () => {
+export default function registerMediaCommands() {
     ocrCmd()
     getOneViewCmd()
     videoToMp3Cmd()
@@ -50,7 +50,7 @@ const oneViewHandler: HandlerFunction = async (
         ctx.quotedMsg?.imageMessage?.viewOnce ||
         ctx.quotedMsg?.videoMessage?.viewOnce ||
         ctx.quotedMsg?.audioMessage?.viewOnce
-    if (!isQuotedOneView) throw new Error(stringId.onev.error.noOneView())
+    if (!isQuotedOneView) return undefined
     const mediaData = await ctx.downloadQuoted()
 
     if (ctx.isQuotedImage) {
@@ -66,15 +66,14 @@ const oneViewHandler: HandlerFunction = async (
             seconds: ctx.quotedMsg?.videoMessage?.seconds ?? 0,
             mimetype: 'video/mp4',
         })
-    } else if (ctx.isQuoted) {
-        return ctx.replyContent({
-            audio: mediaData,
-            seconds: ctx.quotedMsg?.audioMessage?.seconds ?? 0,
-            mimetype: 'audio/mp4',
-        })
     }
 
-    return undefined
+    // Assume it's audio if not image or video
+    return ctx.replyContent({
+        audio: mediaData,
+        seconds: ctx.quotedMsg?.audioMessage?.seconds ?? 0,
+        mimetype: 'audio/mp4',
+    })
 }
 
 const ocrCmd = () => {

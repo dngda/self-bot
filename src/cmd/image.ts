@@ -14,7 +14,7 @@ import { Settings } from '../lib/types'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
 
-export default () => {
+export default function registerImageCommands() {
     flipImageCmd()
     reminiCmd()
     upscaleImageCmd()

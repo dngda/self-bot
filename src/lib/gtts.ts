@@ -1,13 +1,13 @@
 import axios from 'axios'
 import { getRandom } from 'random-useragent'
-import fs from 'fs'
+import fs from 'node:fs'
 
 const escapeStringRegexp = (str: string) => {
     if (typeof str !== 'string') {
         throw new TypeError('Expected a string')
     }
 
-    return str.replace(/[|\\{}()[\]^$+*?.]/g, '\\$&').replace(/-/g, '\\x2d')
+    return str.replaceAll(/[|\\{}()[\]^$+*?.]/g, String.raw`\$&`).replaceAll('-', String.raw`\x2d`)
 }
 
 const GOOGLE_TTS_URL = 'https://translate.google.com/translate_tts'

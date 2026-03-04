@@ -1,6 +1,6 @@
 import { MessageUpsertType, WAMessage, WASocket, proto } from 'baileys'
 import chalk from 'chalk'
-import util from 'util'
+import util from 'node:util'
 import { getCommand } from './menu.js'
 import loadCommands from './cmd/_index.js'
 import { HandlerFunction, MessageContext } from './types.js'
@@ -28,7 +28,7 @@ import { configManager } from './services/ConfigManager.js'
 configManager.initializeSync()
 
 // Export configManager for modern usage
-export { configManager }
+export { configManager } from './services/ConfigManager.js'
 
 // every handler must have 3 parameters:
 export const actions: { [index: string]: HandlerFunction } = {}
@@ -105,7 +105,7 @@ const handleCommands = async (
     if (msg.key.fromMe || isAllowedChat(ctx) || configManager.isPublic()) {
         noPrefixHandler(waSocket, msg, ctx)
 
-        const cmd = getCommand(ctx.cmd) as string
+        const cmd = getCommand(ctx.cmd)
         if (ctx.isCmd && cmd in actions) {
             console.log(
                 chalk.green('[CTX]'),

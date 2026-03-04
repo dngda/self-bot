@@ -1,6 +1,6 @@
 import { proto, WAMessage } from 'baileys'
-import fs from 'fs/promises'
-import path from 'path'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 
 interface StoredMessage {
     timestamp: number | Long
@@ -60,15 +60,12 @@ async function saveStore() {
     }
 }
 
-ensureFiles()
-    .then(() => {
-        loadStore().catch((err) => {
-            console.error('Error loading store:', err)
-        })
-    })
-    .catch((err) => {
-        console.error('Error initializing store:', err)
-    })
+try {
+    await ensureFiles()
+    await loadStore()
+} catch (err) {
+    console.error('Error initializing store:', err)
+}
 
 export const storeMessage = (msg: WAMessage) => {
     const { key, message, messageTimestamp } = msg
