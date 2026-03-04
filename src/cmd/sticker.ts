@@ -78,7 +78,7 @@ const fetchMediaFromUrl = async (
     ) {
         const isAPNG = mediaData.toString('utf-8').includes('acTL')
         if (isAPNG) {
-            mediaData = await apngToWebp(mediaData)
+            mediaData = (await apngToWebp(mediaData)) as Buffer<ArrayBuffer>
         }
     }
 

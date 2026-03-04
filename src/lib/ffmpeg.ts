@@ -6,9 +6,7 @@ const ensureTmpDir = (dir: string) => {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true })
 }
 
-export const videoToMp3 = async (
-    buffer: Buffer<ArrayBufferLike>
-): Promise<string> => {
+export const videoToMp3 = async (buffer: Buffer): Promise<string> => {
     ensureTmpDir('tmp')
     let i = 1
     while (fs.existsSync(`tmp/video${i}.mp4`)) i++
@@ -37,7 +35,7 @@ export const videoToMp3 = async (
 
 export const splitVideo = async (
     id: string,
-    buffer: Buffer<ArrayBufferLike>
+    buffer: Buffer
 ): Promise<string[]> => {
     ensureTmpDir('tmp')
     ensureTmpDir('tmp/vs')
@@ -110,9 +108,7 @@ export const mp3ToOpus = async (
     })
 }
 
-export const gifToMp4 = async (
-    buffer: Buffer<ArrayBufferLike>
-): Promise<string> => {
+export const gifToMp4 = async (buffer: Buffer): Promise<string> => {
     ensureTmpDir('tmp')
     let i = 1
     while (fs.existsSync(`tmp/sticker${i}.gif`)) i++
@@ -141,9 +137,7 @@ export const gifToMp4 = async (
 }
 
 // create a function to convert apng buffer to webp buffer using ffmpeg
-export const apngToWebp = async (
-    buffer: Buffer<ArrayBufferLike>
-): Promise<Buffer<ArrayBufferLike>> => {
+export const apngToWebp = async (buffer: Buffer): Promise<Buffer> => {
     ensureTmpDir('tmp')
     let i = 1
     while (fs.existsSync(`tmp/sticker${i}.png`)) i++
