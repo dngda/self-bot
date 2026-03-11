@@ -40,7 +40,7 @@
         "@types/sharp": "^0.31.1",
         "@types/sqlite3": "^3.1.11",
         "axios": "^1.13.6",
-        "baileys": "github:whiskeysockets/baileys#fa2a837",
+        "baileys": "github:whiskeysockets/baileys",
         "canvas": "^2.11.2",
         "chalk": "4.1.2",
         "cheerio": "1.0.0-rc.12",
@@ -73,6 +73,7 @@
     "pnpm": {
         "onlyBuiltDependencies": [
             "@ffprobe-installer/darwin-arm64",
+            "@ffprobe-installer/linux-x64",
             "baileys",
             "canvas",
             "es5-ext",
@@ -82,7 +83,10 @@
             "sqlite3",
             "unrs-resolver",
             "youtube-dl-exec"
-        ]
+        ],
+        "overrides": {
+            "whatsapp-rust-bridge": "file:../whatsapp-rust-bridge"
+        }
     },
     "trustedDependencies": [
         "protobufjs"
