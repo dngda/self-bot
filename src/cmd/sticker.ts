@@ -522,8 +522,7 @@ const downloadStickerHandler: HandlerFunction = async (
     ctx.reactWait()
     let sticker = await ctx.downloadQuoted()
 
-    const isAnimated = sticker.toString('utf-8').includes('ANMF')
-    if (isAnimated) {
+    if (ctx.quotedMsg?.stickerMessage?.isAnimated) {
         const gif = await sharp(sticker, { animated: true }).gif().toBuffer()
         const mp4 = await gifToMp4(gif)
 
