@@ -22,7 +22,7 @@ const toggleAllowChatCmd = () => {
         usage: (_: MessageContext) => '',
         info: (isAllowed: boolean, prefix: string) =>
             isAllowed
-                ? `🍻 Chat allowed, semua partisipan akan direspon bot!\n-> Cmd: *${prefix}help*`
+                ? `🍻 Chat allowed! Send *${prefix}help* to start`
                 : `🤳🏼 Self-mode aktif`,
     }
 

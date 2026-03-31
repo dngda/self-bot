@@ -9,6 +9,7 @@ import { HandlerFunction, MessageContext } from '../types.js'
 export default function registerRandomCommands() {
     rollCmd()
     getMemeCmd()
+    pickCmd()
 }
 
 const getMemeCmd = () => {
@@ -140,4 +141,48 @@ const rollHandler: HandlerFunction = async (
             { ephemeralExpiration: ctx.expiration! }
         )
     }
+}
+
+const pickCmd = () => {
+    stringId.pick = {
+        hint: '🔀 _Randomly pick one from list_',
+        error: {
+            noList: () =>
+                'Berikan daftar yang ingin dipilih, pisahkan dengan newline.',
+        },
+        usage: (_: MessageContext) =>
+            `Quote pesan dengan daftar, bot akan memilih satu secara acak!`,
+    }
+
+    menu.push({
+        command: 'pick',
+        hint: stringId.pick.hint,
+        type: 'random',
+    })
+
+    Object.assign(actions, {
+        pick: pickHandler,
+    })
+}
+
+const pickHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ctx.quotedMsg || !ctx.quotedMsgBody) {
+        throw new Error(stringId.pick.usage(ctx))
+    }
+
+    const list = ctx.quotedMsgBody
+        .split('\n')
+        .filter((item) => item.trim() !== '')
+    if (list?.length === 0) {
+        throw new Error(stringId.pick.error.noList())
+    }
+
+    const randomIndex = crypto.randomInt(list.length)
+    const pickedItem = list[randomIndex]
+
+    return ctx.reply(`🔀 I picked: ${pickedItem}`)
 }
