@@ -23,6 +23,31 @@ import {
     ReminderAttributes,
 } from '../lib/reminder.js'
 
+export type ListItem = {
+    text: string
+    checked: boolean
+}
+
+type ListMemoryType = Map<string, ListItem[]>
+
+type ListMessageKey = {
+    key: WAMessage['key']
+    timestamp: number
+}
+
+const ListMessageKeyCache = new Map<string, ListMessageKey>()
+
+export const storeListMessageKey = (from: string, sent?: WAMessage) => {
+    if (!sent?.key || !sent.messageTimestamp) return
+
+    ListMessageKeyCache.set(from, {
+        key: sent.key,
+        timestamp: Number(sent.messageTimestamp),
+    })
+}
+
+export const getListMessageKey = (from: string) => ListMessageKeyCache.get(from)
+
 export default function registerToolsCommands() {
     initDatabase()
 
@@ -249,7 +274,7 @@ const collectListCmd = () => {
 
 // [jid][title][content]
 export const LIST_MEMORY_PATH = 'data/list_memory.json'
-export const ListMemory = new Map<string, string[]>()
+export const ListMemory: ListMemoryType = new Map()
 
 // Ensure file exists and load data
 if (!existsSync(LIST_MEMORY_PATH)) {
@@ -260,9 +285,33 @@ try {
     const data = readFileSync(LIST_MEMORY_PATH, 'utf-8')
     if (data) {
         const parsedData = JSON.parse(data)
-        // Convert values to arrays if needed
         Object.entries(parsedData).forEach(([k, v]) => {
-            ListMemory.set(k, Array.isArray(v) ? v : [])
+            if (!Array.isArray(v)) {
+                ListMemory.set(k, [])
+                return
+            }
+
+            ListMemory.set(
+                k,
+                v.map((item) => {
+                    if (typeof item === 'string') {
+                        return { text: item, checked: false }
+                    }
+
+                    if (item && typeof item === 'object') {
+                        const text =
+                            'text' in item && typeof item.text === 'string'
+                                ? item.text
+                                : ''
+                        const checked =
+                            'checked' in item ? Boolean(item.checked) : false
+
+                        return { text, checked }
+                    }
+
+                    return { text: '', checked: false }
+                })
+            )
         })
     }
 } catch (e) {
@@ -270,7 +319,7 @@ try {
 }
 
 const saveListMemory = () => {
-    const obj: Record<string, string[]> = Object.fromEntries(ListMemory)
+    const obj: Record<string, ListItem[]> = Object.fromEntries(ListMemory)
     writeFileSync(LIST_MEMORY_PATH, JSON.stringify(obj, null, 2), 'utf-8')
 }
 
@@ -285,12 +334,13 @@ setInterval(saveListMemory, 1000 * 60 * 15)
 
 export const renderList = (ctx: MessageContext) => {
     const list = ListMemory.get(ctx.from) || []
-    const title = list[0].charAt(0).toUpperCase() + list[0].slice(1)
+    const titleText = list[0]?.text || ''
+    const title = titleText.charAt(0).toUpperCase() + titleText.slice(1)
 
     let listText = `🧵 List: ${title}\n`
     list.forEach((l, i) => {
         if (i == 0) return
-        listText += `${i}. ${l}\n`
+        listText += `${l.checked ? '☒' : '☐'} ${i}. ${l.text}\n`
     })
 
     if (list.length == 0) {
@@ -312,8 +362,9 @@ const collectListHandler: HandlerFunction = async (
 
     if (arg == '') {
         const sent = await send(renderList(ctx))
+        storeListMessageKey(ctx.from, sent)
         await send(
-            'Reply list dengan\n`+(isi)` untuk add ke list\n`-(nomor)` untuk remove dari list\n`e(nomor)` untuk edit item di list'
+            'Reply list dengan\n`+(isi)` untuk add ke list\n`-(nomor)` untuk remove dari list\n`e(nomor)` untuk edit item di list\n`x(nomor)` untuk check/uncheck item'
         )
         reactSuccess()
 
@@ -328,23 +379,31 @@ const collectListHandler: HandlerFunction = async (
 
         ListMemory.delete(ctx.from)
         reactSuccess()
-        return send(`🏁 List ${list[0]} selesai!`)
+        return send(`🏁 List ${list[0]?.text ?? ''} selesai!`)
     }
 
     if (list.length > 0) {
         return reply(
-            `‼️ List sudah dimulai dengan nama *${list[0]}*.\nKirim \`${ctx.prefix}list end\` untuk mengakhiri list sebelum memulai yang baru.`
+            `‼️ List sudah dimulai dengan nama *${
+                list[0]?.text ?? ''
+            }*.\nKirim \`${
+                ctx.prefix
+            }list end\` untuk mengakhiri list sebelum memulai yang baru.`
         )
     }
 
     const title = arg.replace(/list/i, '').trim()
     const listName = title.charAt(0).toUpperCase() + title.slice(1)
-    list.push(listName)
+    list.push({ text: listName, checked: false })
     ListMemory.set(ctx.from, list)
 
     reactSuccess()
-    return reply(
-        `🧵 ${listName}!\n1.\nReply list dengan \`+(isi)\` untuk add ke list\n\`-(nomor)\` untuk remove dari list.\n\`e(nomor)\` untuk edit item di list`
+
+    const sent = await send(`🧵 List: ${listName}!\n☐ 1.\n`)
+
+    storeListMessageKey(ctx.from, sent)
+    return await reply(
+        `Reply list dengan\n\`+(isi)\` untuk add ke list\n\`-(nomor)\` untuk remove dari list.\n\`e(nomor)\` untuk edit item di list\n\`x(nomor)\` untuk check/uncheck item`
     )
 }
 

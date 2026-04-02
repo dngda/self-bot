@@ -1,4 +1,4 @@
-import { AnyMessageContent, WAMessage, WASocket, proto } from 'baileys'
+import { AnyMessageContent, WAMessage, WASocket } from 'baileys'
 import chalk from 'chalk'
 import fs from 'fs'
 import * as math from 'mathjs'
@@ -10,7 +10,12 @@ import { getNote, getStatus } from '../lib/_index.js'
 import { getCommand } from '../menu.js'
 import { MessageContext } from '../types.js'
 import { serializeMessage } from './serializer.js'
-import { ListMemory, renderList } from '../cmd/tools.js'
+import {
+    getListMessageKey,
+    ListMemory,
+    renderList,
+    storeListMessageKey,
+} from '../cmd/tools.js'
 
 export const handleNoteCommand = async (ctx: MessageContext) => {
     const { fromMe, participant, from, body } = ctx
@@ -172,15 +177,8 @@ export const handleReplyToStatusList = async (
     return wa.sendMessage(ctx.from, { text: message, mentions: [jid] })
 }
 
-// msg key and timestamp
-type MsgKeyForListType = Map<
-    string,
-    { key: proto.IMessageKey; timestamp: number }
->
-const MsgKeyForList: MsgKeyForListType = new Map()
-
 async function sendList(ctx: MessageContext, wa: WASocket) {
-    const existing = MsgKeyForList.get(ctx.from)
+    const existing = getListMessageKey(ctx.from)
     if (existing) {
         const timeDiff = Date.now() - existing.timestamp * 1000
 
@@ -194,11 +192,7 @@ async function sendList(ctx: MessageContext, wa: WASocket) {
     }
 
     const sent = await ctx.send(renderList(ctx))
-
-    MsgKeyForList.set(ctx.from, {
-        key: sent?.key as proto.IMessageKey,
-        timestamp: sent?.messageTimestamp as number,
-    })
+    storeListMessageKey(ctx.from, sent)
     return sent
 }
 
@@ -214,7 +208,7 @@ export const handleAddList = async (
 
     const list = ListMemory.get(ctx.from) || []
     // add body to list
-    list.push(ctx.body!.slice(1).trim())
+    list.push({ text: ctx.body!.slice(1).trim(), checked: false })
     ListMemory.set(ctx.from, list)
 
     await ctx.reactSuccess()
@@ -237,11 +231,10 @@ export const handleDeleteList = async (
 
     const index = parseInt(ctx.body?.slice(1) ?? '0')
 
-    if (index > list.length || index < 1) {
+    if (index >= list.length || index < 1) {
         return await ctx.reply('Nomor tidak valid!')
     }
 
-    // Index 0 stores the list title; items start from index 1
     list.splice(index, 1)
     ListMemory.set(ctx.from, list)
     await ctx.reactSuccess()
@@ -265,7 +258,7 @@ export const handleEditList = async (
     const index = parseInt(ctx.body?.slice(1).trim().split(' ')[0] ?? '0')
     const newValue = ctx.body?.trim().split(' ').slice(1).join(' ') ?? ''
 
-    if (index > list.length || index < 1) {
+    if (index >= list.length || index < 1) {
         return await ctx.reply('Nomor tidak valid!')
     }
 
@@ -273,8 +266,33 @@ export const handleEditList = async (
         return await ctx.reply('Nilai baru tidak boleh kosong!')
     }
 
-    // Update the specified index with the new value
-    list[index] = newValue
+    list[index].text = newValue
+    ListMemory.set(ctx.from, list)
+    await ctx.reactSuccess()
+
+    return sendList(ctx, wa)
+}
+
+export const handleToggleList = async (
+    wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.quotedMsgBody?.includes('List:')) {
+        return null
+    }
+
+    const list = ListMemory.get(ctx.from)
+    if (!list) return null
+
+    const index = parseInt(ctx.body?.slice(1) ?? '0')
+
+    if (index >= list.length || index < 1) {
+        return await ctx.reply('Nomor tidak valid!')
+    }
+
+    list[index].checked = !list[index].checked
     ListMemory.set(ctx.from, list)
     await ctx.reactSuccess()
 

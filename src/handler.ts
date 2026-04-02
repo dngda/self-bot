@@ -16,6 +16,7 @@ import {
     handleReplyToContactStatusList,
     handleReplyToStatusList,
     handleStickerCommand,
+    handleToggleList,
     listenDeletedMessage,
     listenEditedMessage,
     serializeMessage,
@@ -189,6 +190,8 @@ const listHandler = async (
         await handleDeleteList(wa, msg, ctx)
     } else if (/^e\d+/.test(body as string)) {
         await handleEditList(wa, msg, ctx)
+    } else if (/^x\d+/.test(body as string)) {
+        await handleToggleList(wa, msg, ctx)
     }
 }
 
