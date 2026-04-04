@@ -188,9 +188,10 @@ const getStatusHandler: HandlerFunction = async (
         let msg = 'List Status Update:\n'
         const mentions: string[] = []
         list.forEach((el) => {
-            msg += `${i}. @${el.key?.replace('@s.whatsapp.net', '')} (${
-                el.length
-            })\n`
+            msg += `${i}. @${el.key?.replace(
+                /(@s.whatsapp.net)|(@lid)/,
+                ''
+            )} (${el.length})\n`
             mentions.push(el.key)
             i++
         })
