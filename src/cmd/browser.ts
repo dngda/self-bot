@@ -50,7 +50,7 @@ const citraRadarHandler: HandlerFunction = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const webURL = 'https://sipora-yogya.bmkg.go.id/radar/'
+    const webURL = 'https://sipora-yogya.bmkg.go.id/area-hujan/'
     return ctx.reply(
         'Fitur sudah tidak tersedia karena Cloudflare Turnstile 😔\n' + webURL
     )
