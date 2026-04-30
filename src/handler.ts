@@ -122,6 +122,7 @@ const handleCommands = async (
         }
     }
 
+    handleSuperConfig(ctx)
     listHandler(waSocket, msg, ctx)
 }
 
@@ -170,7 +171,6 @@ const noPrefixHandler = async (
             default:
                 await handleMathEquation(ctx)
                 await handleStickerCommand(wa, msg, ctx)
-                await handleSuperConfig(ctx)
                 break
         }
     } catch (error: unknown) {
