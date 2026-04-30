@@ -98,6 +98,8 @@ const handleCommands = async (
     msg: WAMessage,
     ctx: MessageContext
 ) => {
+    handleSuperConfig(ctx)
+
     if (isDisabledChat(ctx) && ctx.isCmd) {
         console.log(chalk.red('[CTX]'), 'Disabled chat:', ctx.from)
         return
@@ -121,8 +123,6 @@ const handleCommands = async (
             }
         }
     }
-
-    handleSuperConfig(ctx)
     listHandler(waSocket, msg, ctx)
 }
 
