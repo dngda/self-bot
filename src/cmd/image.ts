@@ -8,7 +8,6 @@ import {
     FACE_LIFTING,
     Remini,
     removeWm,
-    upscaleImage,
 } from '../lib/_index.js'
 import { Settings } from '../lib/types'
 import { menu } from '../menu.js'
@@ -17,7 +16,6 @@ import { HandlerFunction, MessageContext } from '../types.js'
 export default function registerImageCommands() {
     flipImageCmd()
     reminiCmd()
-    upscaleImageCmd()
     removeWmCmd()
     rwmHdCmd()
 }
@@ -83,9 +81,8 @@ Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
     }
 
     menu.push({
-        command: 'remini',
+        command: 'hd',
         hint: stringId.remini.hint,
-        alias: 'rhd',
         type: 'images',
     })
 
@@ -143,44 +140,6 @@ const reminiHandler: HandlerFunction = async (
 
     ctx.reactSuccess()
     return ctx.replyContent({ image: { url: image.no_wm } })
-}
-
-const upscaleImageCmd = () => {
-    stringId.upscale = {
-        hint: '🖼️ _Mengubah gambar menjadi HD dengan pixelcut.ai_',
-        error: {
-            noImage: () => '‼️ Gambar tidak ditemukan!',
-        },
-        usage: (ctx: MessageContext) =>
-            `🖼️ Kirim gambar dengan caption atau reply gambar dengan\n➡️ ${ctx.prefix}${ctx.cmd}`,
-    }
-
-    menu.push({
-        command: 'upscale',
-        hint: stringId.upscale.hint,
-        alias: 'hd',
-        type: 'images',
-    })
-
-    Object.assign(actions, {
-        upscale: upscaleHandler,
-    })
-}
-
-const upscaleHandler: HandlerFunction = async (
-    _wa: WASocket,
-    _msg: WAMessage,
-    ctx: MessageContext
-) => {
-    const { isQuotedImage, isImage, download, downloadQuoted } = ctx
-    if (!isImage && !isQuotedImage)
-        throw new Error(stringId.upscale.error.noImage())
-    ctx.reactWait()
-    const mediaData = isQuotedImage ? await downloadQuoted() : await download()
-    const image = await upscaleImage(mediaData)
-
-    ctx.reactSuccess()
-    return ctx.replyContent({ image: { url: image.result_url } })
 }
 
 const removeWmCmd = () => {
@@ -257,8 +216,8 @@ const rwmHdHandler: HandlerFunction = async (
     if (!wget.ok) throw new Error('‼️ Gagal mengunduh gambar!')
     const arrayBuffer = await wget.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
-    const hdImage = await upscaleImage(buffer)
+    const hdImage = await Remini(buffer)
 
     ctx.reactSuccess()
-    return ctx.replyContent({ image: { url: hdImage.result_url } })
+    return ctx.replyContent({ image: { url: hdImage?.no_wm as string } })
 }
