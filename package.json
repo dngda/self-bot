@@ -83,10 +83,7 @@
             "sqlite3",
             "unrs-resolver",
             "youtube-dl-exec"
-        ],
-        "overrides": {
-            "whatsapp-rust-bridge": "file:../whatsapp-rust-bridge"
-        }
+        ]
     },
     "trustedDependencies": [
         "protobufjs"
