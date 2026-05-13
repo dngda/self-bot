@@ -85,7 +85,11 @@ export const EmojiApi = {
         })
 
         // --- handle error ---
-        if (res.headers['content-type']?.includes('application/json')) {
+        const contentType = res.headers['content-type']
+        if (
+            typeof contentType === 'string' &&
+            contentType.includes('application/json')
+        ) {
             const err = JSON.parse(Buffer.from(res.data).toString())
             return { status: false, data: err }
         }
