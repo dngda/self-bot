@@ -5,12 +5,39 @@ import { actions } from '../handler.js'
 import { getMenu, menu } from '../menu.js'
 import stringId from '../language.js'
 import lodash from 'lodash'
+import fs from 'node:fs'
 
 export default function registerGeneralCommands() {
     pingCmd()
     menuCmd()
     hideTagCmd()
+    extCmd()
 }
+
+type RsaEntry = {
+    type: 'entry'
+    name: string
+    value: string | null
+}
+
+type RsaGroup = {
+    type: 'group'
+    name: string
+}
+
+type RsaSection = {
+    id: string
+    title: string
+    rows: Array<RsaEntry | RsaGroup>
+}
+
+type RsaRepo = {
+    sections: RsaSection[]
+}
+
+const rsaRepo = JSON.parse(
+    fs.readFileSync('./data/rsa.json', 'utf-8')
+) as RsaRepo
 
 const pingCmd = () => {
     stringId.ping = {
@@ -158,6 +185,71 @@ const hideTagCmd = () => {
     Object.assign(actions, {
         tag: hideTagHandler,
     })
+}
+
+const extCmd = () => {
+    stringId.ext = {
+        hint: '📞 _Cari ekstensi dari data RSA_ ',
+        error: {
+            noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
+            notFound: (ctx: MessageContext) =>
+                `‼️ Tidak ada data ext yang cocok untuk "${ctx.arg}".`,
+        },
+        usage: (ctx: MessageContext) =>
+            `📞 Cari ekstensi dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <kata kunci>
+⚠️ Bisa cari berdasarkan nama, ext, atau bagian nama section
+⚠️ Contoh: ${ctx.prefix}${ctx.cmd} farmasi`,
+    }
+
+    menu.push({
+        command: 'ext',
+        hint: stringId.ext.hint,
+        alias: 'extension',
+        type: 'general',
+    })
+
+    Object.assign(actions, {
+        ext: extHandler,
+    })
+}
+
+const extHandler: HandlerFunction = async (_wa, _msg, ctx) => {
+    if (!ctx.arg || ctx.arg.trim() === '') throw stringId.ext.usage(ctx)
+
+    const queryTokens = ctx.arg
+        .trim()
+        .toLowerCase()
+        .split(/\s+/)
+        .filter(Boolean)
+    const matches = rsaRepo.sections
+        .map((section) => ({
+            sectionTitle: section.title,
+            rows: section.rows.filter((row): row is RsaEntry => {
+                if (row.type !== 'entry' || !row.value) return false
+
+                const searchable = [section.title, row.name, row.value]
+                    .join(' ')
+                    .toLowerCase()
+
+                return queryTokens.every((token) => searchable.includes(token))
+            }),
+        }))
+        .filter((section) => section.rows.length > 0)
+
+    if (matches.length === 0) throw stringId.ext.error.notFound(ctx)
+
+    ctx.reactWait()
+
+    let message = `Query: ${ctx.arg}\n`
+    for (const section of matches) {
+        message += `- ${section.sectionTitle}\n`
+        for (const row of section.rows) {
+            message += `${row.name} : ${row.value}\n`
+        }
+    }
+
+    ctx.reactSuccess()
+    return ctx.reply(message)
 }
 
 const hideTagHandler: HandlerFunction = async (
