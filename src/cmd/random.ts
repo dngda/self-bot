@@ -184,5 +184,5 @@ const pickHandler: HandlerFunction = async (
     const randomIndex = crypto.randomInt(list.length)
     const pickedItem = list[randomIndex]
 
-    return ctx.reply(`🔀 I picked: ${pickedItem}`)
+    return ctx.reply(`💭 Bot picked: ${pickedItem}`)
 }
