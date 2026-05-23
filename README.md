@@ -63,6 +63,7 @@ Setup your `.env` files
 
 or copy paste `.env.sample` and rename to `.env`
 and fill it with your related data!
+- set `EXPOSED_API_KEY` for the exposed HTTP endpoint auth
 - get remove.bg apikey - [here](https://www.remove.bg/tools-api/api-commandline)
 - get ocr.space apikey - [here](https://ocr.space/ocrapi)
 

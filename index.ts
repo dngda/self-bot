@@ -27,7 +27,7 @@ import {
     initiateReminderCron,
 } from './src/lib/_index.js'
 import { executeSavedScriptInNote } from './src/cmd/owner.js'
-import app from './src/lib/webhook.js'
+import app from './src/lib/exposed.js'
 import { rmdirSync } from 'fs'
 
 // Types
@@ -37,7 +37,7 @@ interface WASocket extends _WASocket {
 
 // Constants
 const AUTH_DIR = './env/baileys_auth_info'
-const WEBHOOK_PORT = 3333
+const EXPOSED_PORT = 3333
 const GROUP_CACHE_TTL = 5 * 60 // 5 minutes
 
 // Global state
@@ -270,17 +270,17 @@ const startSock = async (): Promise<void> => {
 }
 
 /**
- * Start the webhook server
+ * Start the exposure server
  */
-const startWebhookServer = (): void => {
+const startExposedServer = (): void => {
     serve(
         {
             fetch: app.fetch,
-            port: WEBHOOK_PORT,
+            port: EXPOSED_PORT,
         },
         (info) => {
             console.log(
-                `Webhook Server is running on http://localhost:${info.port}`
+                `Exposure Server is running on http://localhost:${info.port}`
             )
         }
     )
@@ -292,7 +292,7 @@ const startWebhookServer = (): void => {
 const main = async (): Promise<void> => {
     try {
         await startSock()
-        startWebhookServer()
+        startExposedServer()
     } catch (error) {
         console.error('Fatal error during startup:', error)
         process.exit(1)
