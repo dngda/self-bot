@@ -87,7 +87,7 @@ Color Enhance: golden, steady, balanced, orange, silky, muted, teal, softwarm
     })
 
     Object.assign(actions, {
-        remini: reminiHandler,
+        hd: reminiHandler,
     })
 }
 
