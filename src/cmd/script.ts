@@ -3,7 +3,7 @@ import { actions } from '../handler.js'
 import stringId from '../language.js'
 import { menu } from '../menu.js'
 import { HandlerFunction, MessageContext } from '../types.js'
-import { exec } from 'node:child_process'
+import { spawn } from 'node:child_process'
 
 export default function registerScriptCommands() {
     execScriptCmd()
@@ -16,7 +16,7 @@ const execScriptCmd = () => {
             internal: () => 'Terjadi error, coba lagi.',
         },
         usage: (ctx: MessageContext) =>
-            `Gunakan _${ctx.prefix}${ctx.cmd} [script]_`,
+            `Gunakan _${ctx.prefix}${ctx.cmd} [php script]_`,
     }
 
     menu.push({
@@ -40,9 +40,9 @@ const execHandler: HandlerFunction = async (
     validateInput(ctx)
 
     validateCommand(ctx.arg)
-    const script = buildScriptCommand(ctx.arg)
+    const spec = buildScriptCommand(ctx.arg)
 
-    executeScript(script, ctx)
+    await executeScript(spec, ctx)
 
     return undefined
 }
@@ -57,16 +57,32 @@ const validateInput = (ctx: MessageContext) => {
     }
 }
 
-const buildScriptCommand = (arg: string): string => {
-    const scriptDir = process.env.EXT_SCRIPT_PATH
-    let script = arg
+type ScriptSpec = { cmd: string; args: string[]; cwd?: string }
 
-    if (script.includes('.php')) {
-        script = script.startsWith('php') ? script : `php ${script}`
-        script = `cd ${scriptDir} && /bin/${script}`
+const buildScriptCommand = (arg: string): ScriptSpec => {
+    const scriptDir = process.env.EXT_SCRIPT_PATH || ''
+
+    if (arg.includes('.php')) {
+        if (!scriptDir) throw new Error('EXT_SCRIPT_PATH not configured')
+
+        const parts = arg.trim().split(/\s+/)
+        const filename = parts.find((p) => p.endsWith('.php')) || ''
+
+        if (!filename) throw new Error('Invalid script name')
+        if (
+            filename.includes('..') ||
+            filename.includes('/') ||
+            filename.includes('\\')
+        ) {
+            throw new Error('Invalid script path')
+        }
+
+        return { cmd: 'php', args: [filename], cwd: scriptDir }
     }
 
-    return script
+    // For non-php (owner-only), run as single executable without shell
+    const parts = arg.trim().split(/\s+/)
+    return { cmd: parts[0], args: parts.slice(1) }
 }
 
 const validateCommand = (script: string) => {
@@ -75,26 +91,54 @@ const validateCommand = (script: string) => {
         'sudo', 'rm', 'mv', 'cp', 'nano', 'vim', 'vi', 'chmod', 'chown',
         'dd', 'mkfs', 'shutdown', 'reboot', 'kill', 'pkill', 'init',
         'halt', 'poweroff', 'wget', 'curl', 'cd', 'git', 'npm', 'yarn',
-        'pnpm', 'docker', 'systemctl', 'apt', 'ls', 'cat',
+        'pnpm', 'docker', 'systemctl', 'apt', 'ls', 'less', 'more',
+        'head', 'tail', 'cat', 'echo', 'env', 'export',
     ])
 
-    if (script.split(' ').some((cmd) => forbiddenCommands.has(cmd))) {
+    const tokens = script.split(/\s+/)
+    if (tokens.some((cmd) => forbiddenCommands.has(cmd))) {
         throw new Error('Tidak diizinkan menjalankan command tersebut.')
+    }
+
+    // Reject shell metacharacters to avoid accidental shell interpretation
+    if (/[;&|$`<>]/.test(script)) {
+        throw new Error('Invalid characters in command')
     }
 }
 
-const executeScript = (script: string, ctx: MessageContext) => {
-    const childProcess = exec(script, (err, _stdout, stderr) => {
-        if (err) {
-            console.error(err)
-            return
-        }
-        if (stderr) {
-            ctx.reply(`${stderr.trim()}`)
-        }
-    })
+const executeScript = (
+    spec: ScriptSpec,
+    ctx: MessageContext
+): Promise<void> => {
+    return new Promise((resolve) => {
+        try {
+            const child = spawn(spec.cmd, spec.args, {
+                cwd: spec.cwd,
+                stdio: ['ignore', 'pipe', 'pipe'],
+                shell: false,
+            })
 
-    childProcess.stdout?.on('data', (data) => {
-        ctx.send(data.trim())
+            child.stdout?.on('data', (chunk) => {
+                const text = chunk.toString().trim()
+                if (text) ctx.send(text)
+            })
+
+            child.stderr?.on('data', (chunk) => {
+                const text = chunk.toString().trim()
+                if (text) ctx.reply(text)
+            })
+
+            child.on('error', (err) => {
+                console.error('Script execution error:', err)
+                ctx.reply('Error executing script')
+                resolve()
+            })
+
+            child.on('close', () => resolve())
+        } catch (err) {
+            console.error('Failed to spawn script:', err)
+            ctx.reply('Failed to execute script')
+            resolve()
+        }
     })
 }

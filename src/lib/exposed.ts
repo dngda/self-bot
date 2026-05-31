@@ -4,8 +4,6 @@ import { AnyMessageContent } from 'baileys'
 import { waSocket } from '../../index.js'
 
 const app = new Hono()
-const EXPOSED_API_KEY = process.env.EXPOSED_API_KEY
-
 const isValidContent = (content: unknown): content is AnyMessageContent => {
     return typeof content === 'object' && content !== null
 }
@@ -20,6 +18,7 @@ const getBearerToken = (authorization: string | undefined): string | null => {
 }
 
 const requireAuth = (c: Context) => {
+    const EXPOSED_API_KEY = process.env.EXPOSED_API_KEY
     if (!EXPOSED_API_KEY) {
         return c.json(
             { ok: false, error: 'EXPOSED_API_KEY is not configured' },
@@ -63,32 +62,63 @@ app.post('/send', async (c) => {
         return authResponse
     }
 
-    const data = await c.req.json()
+    const requestId = Math.random().toString(36).slice(2, 10)
 
-    if (!waSocket?.isReady) {
+    let data: unknown
+    try {
+        data = await c.req.json()
+    } catch (err) {
         return c.json(
-            { ok: false, error: 'WhatsApp socket not initialized' },
-            503
-        )
-    }
-
-    if (typeof data.jid !== 'string' || typeof data.content !== 'object') {
-        return c.json(
-            { ok: false, error: 'Invalid jid or content format' },
+            { ok: false, error: 'Invalid JSON payload', requestId },
             400
         )
     }
 
-    if (!isValidContent(data.content)) {
-        return c.json({ ok: false, error: 'Invalid content format' }, 400)
+    if (!waSocket?.isReady) {
+        return c.json(
+            { ok: false, error: 'WhatsApp socket not initialized', requestId },
+            503
+        )
     }
 
-    const msg = await waSocket.sendMessage(
-        data.jid,
-        data.content,
-        data.options || {}
-    )
-    return c.json({ ok: true, msg })
+    if (!data || typeof data !== 'object') {
+        return c.json({ ok: false, error: 'Invalid payload', requestId }, 400)
+    }
+
+    const payload = data as {
+        jid?: unknown
+        content?: unknown
+        options?: unknown
+    }
+
+    if (typeof payload.jid !== 'string') {
+        return c.json(
+            { ok: false, error: 'Invalid or missing jid', requestId },
+            400
+        )
+    }
+
+    if (!isValidContent(payload.content)) {
+        return c.json(
+            { ok: false, error: 'Invalid content format', requestId },
+            400
+        )
+    }
+
+    try {
+        const msg = await waSocket.sendMessage(
+            payload.jid,
+            payload.content as AnyMessageContent,
+            (payload.options as Record<string, unknown>) || {}
+        )
+        return c.json({ ok: true, msg, requestId })
+    } catch (err) {
+        console.error('Exposed API send error:', err)
+        return c.json(
+            { ok: false, error: 'Failed to send message', requestId },
+            500
+        )
+    }
 })
 
 export default app

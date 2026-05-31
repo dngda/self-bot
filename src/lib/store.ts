@@ -43,20 +43,24 @@ async function loadStore() {
 }
 
 async function saveStore() {
-    if (dirty.message) {
-        const messageObj = Object.fromEntries(MessageStore)
-        await fs.writeFile(MESSAGE_FILE, JSON.stringify(messageObj), 'utf-8')
-        dirty.message = false
-    }
-    if (dirty.status) {
-        const statusObj = Object.fromEntries(StatusStore)
-        await fs.writeFile(STATUS_FILE, JSON.stringify(statusObj), 'utf-8')
-        dirty.status = false
-    }
-    if (dirty.pushname) {
-        const pushnameObj = Object.fromEntries(PushNameStore)
-        await fs.writeFile(PUSHNAME_FILE, JSON.stringify(pushnameObj), 'utf-8')
-        dirty.pushname = false
+    try {
+        if (dirty.message) {
+            const messageObj = Object.fromEntries(MessageStore)
+            await fs.writeFile(MESSAGE_FILE, JSON.stringify(messageObj), 'utf-8')
+            dirty.message = false
+        }
+        if (dirty.status) {
+            const statusObj = Object.fromEntries(StatusStore)
+            await fs.writeFile(STATUS_FILE, JSON.stringify(statusObj), 'utf-8')
+            dirty.status = false
+        }
+        if (dirty.pushname) {
+            const pushnameObj = Object.fromEntries(PushNameStore)
+            await fs.writeFile(PUSHNAME_FILE, JSON.stringify(pushnameObj), 'utf-8')
+            dirty.pushname = false
+        }
+    } catch (err) {
+        console.error('Failed to save store:', err)
     }
 }
 
@@ -142,5 +146,5 @@ setInterval(() => {
 
 // Save only if dirty every 15 minutes
 setInterval(() => {
-    saveStore()
+    saveStore().catch((err) => console.error('Periodic saveStore failed:', err))
 }, 1000 * 60 * 15)

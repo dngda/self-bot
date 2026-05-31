@@ -46,9 +46,22 @@ export const mainMessageProcessor = async (
     const { type, messages } = event
     if (type === 'append') return false
 
-    for (const msg of messages) {
-        await processMessage(waSocket, msg)
-    }
+    // Process messages with bounded concurrency to avoid blocking
+    const CONCURRENCY = 3
+    const queue = messages.slice()
+    const workers = Array.from({ length: CONCURRENCY }).map(async () => {
+        while (queue.length > 0) {
+            const msg = queue.shift()
+            if (!msg) break
+            try {
+                await processMessage(waSocket, msg)
+            } catch (err) {
+                console.error('Error processing message:', err)
+            }
+        }
+    })
+
+    await Promise.all(workers)
 
     return true
 }
@@ -82,10 +95,17 @@ const processMessage = async (waSocket: WASocket, msg: WAMessage) => {
 
     listenEditedMessage(waSocket, msg)
     handleAutoSticker(waSocket, msg, ctx)
-    // if (configManager.isOneView()) listenOneViewMessage(waSocket, msg) NOT WORKING (Prevented by WA)
+    // if (configManager.isOneView()) listenOneViewMessage(waSocket, msg)
+    // NOT WORKING (Prevented by WA to only send one view msg to Mobile client)
 }
 
 const logRawMessage = (msg: WAMessage) => {
+    const lifecycle = process.env.npm_lifecycle_event
+    const debugRaw = (process.env.DEBUG_RAW || '').toLowerCase()
+
+    // Allow raw logging when running dev or when DEBUG_RAW is enabled
+    if (debugRaw !== 'true' && debugRaw !== '1' && lifecycle !== 'dev') return
+
     console.log(
         chalk.green('[LOG]'),
         'RAW Message Received',
@@ -113,7 +133,7 @@ const handleCommands = async (
             console.log(
                 chalk.green('[CTX]'),
                 'Serialized CMD Message Context:',
-                util.inspect(ctx, false, null, true)
+                util.inspect(ctx, false, 2, true)
             )
             logCmd(msg, ctx)
             const sent = await actions[cmd](waSocket, msg, ctx)

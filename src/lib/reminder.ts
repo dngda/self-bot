@@ -55,7 +55,7 @@ Reminder.init(
             defaultValue: 1,
         },
         repeatDays: {
-            type: DataTypes.JSONB, // Store as JSON array
+            type: DataTypes.JSON, // Use JSON for sqlite portability
             allowNull: true,
         },
         lastTriggeredAt: {
@@ -316,22 +316,37 @@ const shouldTriggerReminder = (nextRunAt: Date, now: Date): boolean => {
 }
 
 export const initiateReminderCron = (_wa: WASocket) => {
-    cleanStaleReminders()
+    // Clean stale reminders safely
+    cleanStaleReminders().catch((err) =>
+        console.error('cleanStaleReminders failed:', err)
+    )
 
     const job = new CronJob('*/1 * * * *', async () => {
-        const now = new Date()
-        const reminders = await getNextRemindersJob()
+        try {
+            const now = new Date()
+            const reminders = await getNextRemindersJob()
 
-        if (!reminders || reminders.length === 0) return
+            if (!reminders || reminders.length === 0) return
 
-        for (const reminder of reminders) {
-            if (!reminder.nextRunAt) continue
+            for (const reminder of reminders) {
+                if (!reminder.nextRunAt) continue
 
-            const nextRunAt = new Date(reminder.nextRunAt)
+                const nextRunAt = new Date(reminder.nextRunAt)
 
-            if (shouldTriggerReminder(nextRunAt, now)) {
-                await processTriggeredReminder(_wa, reminder, nextRunAt)
+                if (shouldTriggerReminder(nextRunAt, now)) {
+                    try {
+                        await processTriggeredReminder(_wa, reminder, nextRunAt)
+                    } catch (err) {
+                        console.error(
+                            'Failed to process reminder',
+                            reminder.id,
+                            err
+                        )
+                    }
+                }
             }
+        } catch (err) {
+            console.error('Reminder cron job failed:', err)
         }
     })
 

@@ -28,7 +28,7 @@ import {
 } from './src/lib/_index.js'
 import { executeSavedScriptInNote } from './src/cmd/owner.js'
 import app from './src/lib/exposed.js'
-import { rmdirSync } from 'fs'
+import { rmSync } from 'fs'
 
 // Types
 interface WASocket extends _WASocket {
@@ -45,6 +45,8 @@ export let browser: PlaywrightBrowser
 export let waSocket: WASocket = undefined as unknown as WASocket
 
 let lastDisconnectReason = ''
+let isStarting = false
+let reconnectAttempts = 0
 
 // Initialize environment and logger
 dotenv.config()
@@ -127,13 +129,17 @@ const handleConnectionUpdate =
             if (shouldReconnect) {
                 lastDisconnectReason =
                     lastDisconnect?.error?.message || lastDisconnectReason
-                console.log('Connection closed. Reconnecting...')
-                startSock()
+                console.log('Connection closed. Scheduling reconnect...')
+                scheduleReconnect()
             } else {
                 console.log('Connection closed. You are logged out.')
                 // delete auth files and restart
-                rmdirSync(AUTH_DIR)
-                startSock()
+                try {
+                    rmSync(AUTH_DIR, { recursive: true, force: true })
+                } catch (err) {
+                    console.error('Failed to remove auth dir:', err)
+                }
+                scheduleReconnect()
             }
         }
 
@@ -148,6 +154,9 @@ const handleConnectionUpdate =
 
             await notifyOwner(sock, notificationMessage)
             lastDisconnectReason = ''
+
+            // reset reconnect attempts on successful connect
+            reconnectAttempts = 0
 
             executeSavedScriptInNote(sock)
 
@@ -227,6 +236,18 @@ const createSocket = async (
     return sock as WASocket
 }
 
+const scheduleReconnect = () => {
+    if (isStarting) return
+    const delay = Math.min(30000, 1000 * 2 ** reconnectAttempts)
+    reconnectAttempts += 1
+    console.log(`Scheduling reconnect in ${delay}ms (attempt ${reconnectAttempts})`)
+    setTimeout(() => {
+        startSock().catch((err) => {
+            console.error('Reconnect attempt failed:', err)
+        })
+    }, delay)
+}
+
 /**
  * Register event handlers for the socket
  */
@@ -245,8 +266,10 @@ const registerEventHandlers = (
  * Main function to start WhatsApp socket connection
  */
 const startSock = async (): Promise<void> => {
+    if (isStarting) return
+    isStarting = true
     try {
-        initializeBrowser()
+        await initializeBrowser()
 
         const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR)
         const versionInfo = await fetchLatestBaileysVersion()
