@@ -122,6 +122,8 @@ const handleConnectionUpdate =
         console.log('Connection update:', update)
 
         if (connection === 'close') {
+            isStarting = false
+
             const shouldReconnect =
                 (lastDisconnect?.error as Boom)?.output?.statusCode !==
                 DisconnectReason.loggedOut
@@ -144,6 +146,7 @@ const handleConnectionUpdate =
         }
 
         if (connection === 'open') {
+            isStarting = false
             console.log(
                 chalk.yellow('!---------------BOT IS ONLINE---------------!')
             )
@@ -157,7 +160,6 @@ const handleConnectionUpdate =
 
             // reset reconnect attempts on successful connect
             reconnectAttempts = 0
-            isStarting = false
 
             executeSavedScriptInNote(sock)
 
