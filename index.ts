@@ -157,6 +157,7 @@ const handleConnectionUpdate =
 
             // reset reconnect attempts on successful connect
             reconnectAttempts = 0
+            isStarting = false
 
             executeSavedScriptInNote(sock)
 
@@ -240,7 +241,9 @@ const scheduleReconnect = () => {
     if (isStarting) return
     const delay = Math.min(30000, 1000 * 2 ** reconnectAttempts)
     reconnectAttempts += 1
-    console.log(`Scheduling reconnect in ${delay}ms (attempt ${reconnectAttempts})`)
+    console.log(
+        `Scheduling reconnect in ${delay}ms (attempt ${reconnectAttempts})`
+    )
     setTimeout(() => {
         startSock().catch((err) => {
             console.error('Reconnect attempt failed:', err)
