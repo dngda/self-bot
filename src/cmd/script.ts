@@ -66,9 +66,10 @@ const buildScriptCommand = (arg: string): ScriptSpec => {
         if (!scriptDir) throw new Error('EXT_SCRIPT_PATH not configured')
 
         const parts = arg.trim().split(/\s+/)
-        const filename = parts.find((p) => p.endsWith('.php')) || ''
+        const scriptIndex = parts.findIndex((p) => p.endsWith('.php'))
+        const filename = parts[scriptIndex] || ''
 
-        if (!filename) throw new Error('Invalid script name')
+        if (scriptIndex < 0 || !filename) throw new Error('Invalid script name')
         if (
             filename.includes('..') ||
             filename.includes('/') ||
@@ -77,7 +78,11 @@ const buildScriptCommand = (arg: string): ScriptSpec => {
             throw new Error('Invalid script path')
         }
 
-        return { cmd: 'php', args: [filename], cwd: scriptDir }
+        return {
+            cmd: 'php',
+            args: [filename, ...parts.slice(scriptIndex + 1)],
+            cwd: scriptDir,
+        }
     }
 
     // For non-php (owner-only), run as single executable without shell
