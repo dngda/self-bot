@@ -3,12 +3,15 @@ import stealthPlugin from 'puppeteer-extra-plugin-stealth'
 import { chromium } from 'playwright-extra'
 import { getRandom } from 'random-useragent'
 import chalk from 'chalk'
+import { existsSync } from 'fs'
 
 export class PlaywrightBrowser {
     private static readonly DEFAULT_VIEWPORT = { width: 1920, height: 1080 }
+    private static readonly STORAGE_STATE_PATH = './env/playwright_state.json'
     private ctx!: BrowserContext
     private browser!: Browser
     private readonly headless: boolean
+    private readonly userAgent = getRandom()
     private initialized = false
 
     private constructor(headless: boolean) {
@@ -26,11 +29,30 @@ export class PlaywrightBrowser {
 
         chromium.use(stealthPlugin())
         this.browser = await chromium.launch({ headless: this.headless })
-        this.ctx = await this.browser.newContext({
-            userAgent: getRandom(),
-        })
+        this.ctx = await this.createContext()
         this.initialized = true
         console.log(chalk.green('Browser initialized!'))
+    }
+
+    private async createContext(): Promise<BrowserContext> {
+        const storageState = existsSync(PlaywrightBrowser.STORAGE_STATE_PATH)
+            ? PlaywrightBrowser.STORAGE_STATE_PATH
+            : undefined
+
+        return this.browser.newContext({
+            userAgent: this.userAgent,
+            storageState,
+        })
+    }
+
+    private async persistStorageState(): Promise<void> {
+        try {
+            await this.ctx.storageState({
+                path: PlaywrightBrowser.STORAGE_STATE_PATH,
+            })
+        } catch (error) {
+            console.error(chalk.red('Failed to persist browser state:'), error)
+        }
     }
 
     private ensureInitialized() {
@@ -121,8 +143,9 @@ export class PlaywrightBrowser {
             this.browser = await chromium.launch({ headless: this.headless })
         }
 
+        await this.persistStorageState()
         await this.ctx.close()
-        this.ctx = await this.browser.newContext({ userAgent: getRandom() })
+        this.ctx = await this.createContext()
         console.log(chalk.green('Browser context refreshed!'))
     }
 
@@ -130,6 +153,7 @@ export class PlaywrightBrowser {
         if (!this.initialized) return
 
         try {
+            await this.persistStorageState()
             await this.ctx?.close()
             await this.browser?.close()
             this.initialized = false
