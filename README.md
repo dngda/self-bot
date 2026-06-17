@@ -1,30 +1,55 @@
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/35982346/123402400-e57d3000-d5d1-11eb-84c0-6881b56ad370.png" height="128"/>
-</p>
-<p align="center">
-  <a href="https://github.com/dngda/self-bot"><img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge"></a>
-    <br>
-  🤖 Typescript - Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library<hr>
-</p>
-<h3 align="center">Made with ❤️</h3>
-<p align="center">
-  <a href="https://github.com/dngda/"><img title="Author" src="https://img.shields.io/badge/author-dngda-blue?style=for-the-badge&logo=github"></a>
+  <img
+    src="https://user-images.githubusercontent.com/35982346/123402400-e57d3000-d5d1-11eb-84c0-6881b56ad370.png"
+    height="128"
+  />
 </p>
 
 <p align="center">
-  <a href="https://github.com/dngda/followers"><img title="Followers" src="https://img.shields.io/github/followers/dngda?color=blue&style=flat-square"></a>
-  <a href="https://github.com/dngda/self-bot/stargazers/"><img title="Stars" src="https://img.shields.io/github/stars/dngda/self-bot?color=red&style=flat-square"></a>
-  <a href="https://github.com/dngda/self-bot/network/members"><img title="Forks" src="https://img.shields.io/github/forks/dngda/self-bot?color=red&style=flat-square"></a>
-  <a href="https://github.com/dngda/self-bot/watchers"><img title="Watching" src="https://img.shields.io/github/watchers/dngda/self-bot?label=watchers&color=blue&style=flat-square"></a>
+  <a href="https://github.com/dngda/self-bot">
+  <img title="Whatsapp-Bot" src="https://img.shields.io/badge/Sero Whatsapp Bot-blue?colorB=%23ffd700&style=for-the-badge">
+  </a>
     <br>
+  🤖 Typescript - Lightweight WhatsApp bot using <a href="https://github.com/WhiskeySockets/Baileys">Baileys</a> Library
+  <hr>
+</p>
+<p align="center">
+  <a href="https://github.com/dngda/">
+    <img title="Author" src="https://img.shields.io/badge/author-dngda-blue?style=for-the-badge&logo=github" />
+  </a>
+</p>
+<p align="center">
+  <a href="https://github.com/dngda/followers">
+    <img title="Followers" src="https://img.shields.io/github/followers/dngda?color=blue&style=plastic" />
+  </a>
+  <a href="https://github.com/dngda/self-bot/stargazers/">
+    <img title="Stars" src="https://img.shields.io/github/stars/dngda/self-bot?color=red&style=plastic" />
+  </a>
+  <a href="https://github.com/dngda/self-bot/network/members">
+    <img title="Forks" src="https://img.shields.io/github/forks/dngda/self-bot?color=red&style=plastic" />
+  </a>
+  <a href="https://github.com/dngda/self-bot/watchers">
+    <img
+      title="Watching"
+      src="https://img.shields.io/github/watchers/dngda/self-bot?label=watchers&color=blue&style=plastic"
+    />
+  </a>
+  <br />
   <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=alert_status" alt="Quality Gate Status">
+    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=alert_status" alt="Quality
+    Gate Status"
   </a>
   <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=code_smells" alt="Code Smells">
+    <img
+      src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=code_smells"
+      alt="Code Smells"
+    />
   </a>
   <a href="https://sonarcloud.io/summary/new_code?id=dngda_self-bot">
-    <img src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=security_rating" alt="Security Rating">
+    <img
+      src="https://sonarcloud.io/api/project_badges/measure?project=dngda_self-bot&metric=security_rating"
+      alt="Security Rating"
+    />
   </a>
 </p>
 
@@ -35,9 +60,9 @@
 
 ## Prerequisite
 
--   Star this repository 🌟
--   Minimum Node.js version `v14` as this project works well in `v16`
--   Need to install `ffmpeg` globally to be able use animated sticker converter
+- Star this repository 🌟
+- Minimum Node.js version `v14` as this project works well in `v16`
+- Need to install `ffmpeg` globally to be able use animated sticker converter
 
 ### How to
 
@@ -63,6 +88,7 @@ Setup your `.env` files
 
 or copy paste `.env.sample` and rename to `.env`
 and fill it with your related data!
+
 - set `EXPOSED_API_KEY` for the exposed HTTP endpoint auth
 - get remove.bg apikey - [here](https://www.remove.bg/tools-api/api-commandline)
 - get ocr.space apikey - [here](https://ocr.space/ocrapi)
@@ -86,24 +112,24 @@ After running it you need to scan the QR
 
 ## Features
 
--   Text to sticker
--   Search Pinterest image
--   Sticker Creator using [WA-Sticker-Formatter](https://github.com/AlenVelocity/wa-sticker-formatter)
--   Note database with sqlite [Sequelize](https://sequelize.org/)
--   Add caption to image with [memegen](https://api.memegen.link) and make sticker of it
--   Browser related such as screenshot web or search ddg/ggl
--   Social media video downloader using ssyoutube.com
--   Split long video to 30s for WA Status
--   Jadwal sholat kabupaten based
--   Anti-delete msg/status
--   Quran + audio per-ayah
--   Get one-view media
--   Sticker commands
--   Video to mp3
+- Text to sticker
+- Search Pinterest image
+- Sticker Creator using [WA-Sticker-Formatter](https://github.com/AlenVelocity/wa-sticker-formatter)
+- Note database with sqlite [Sequelize](https://sequelize.org/)
+- Add caption to image with [memegen](https://api.memegen.link) and make sticker of it
+- Browser related such as screenshot web or search ddg/ggl
+- Social media video downloader using ssyoutube.com
+- Split long video to 30s for WA Status
+- Jadwal sholat kabupaten based
+- Anti-delete msg/status
+- Quran + audio per-ayah
+- Get one-view media
+- Sticker commands
+- Video to mp3
 
 💡 Leave any feature ideas out in this [discussion](https://github.com/dngda/self-bot/discussions) 🙏
 
 ## Thanks to
 
--   [`Baileys`](https://github.com/WhiskeySockets/Baileys)
--   [`WA-Sticker-Formatter`](https://github.com/AlenVelocity/wa-sticker-formatter)
+- [`Baileys`](https://github.com/WhiskeySockets/Baileys)
+- [`WA-Sticker-Formatter`](https://github.com/AlenVelocity/wa-sticker-formatter)
