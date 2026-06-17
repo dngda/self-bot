@@ -26,7 +26,10 @@ export const getPrefix = () => {
     return prefix
 }
 
-export const serializeMessage = async (waSocket: WASocket, msg: WAMessage) => {
+export const serializeMessage = async (
+    waSocket: WASocket,
+    msg: WAMessage
+): Promise<MessageContext> => {
     const getBody = () => {
         return (
             msg?.message?.conversation ||
