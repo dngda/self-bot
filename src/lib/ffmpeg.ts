@@ -98,6 +98,16 @@ export const mp3ToOpus = async (
             inputPath,
             '-c:a',
             'libopus',
+            '-b:a',
+            '64k',
+            '-application',
+            'voip',
+            '-avoid_negative_ts',
+            'make_zero',
+            '-map_metadata',
+            '-1',
+            '-f',
+            'ogg',
             _target,
         ])
         ffmpeg.on('close', (code) => {
