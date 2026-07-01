@@ -216,7 +216,7 @@ const pickHandler: HandlerFunction = async (
     // Final reveal with flourish
     const result = await _wa.sendMessage(
         ctx.from,
-        { edit: m_id?.key, text: `🎯 Pilihan Bot: ${pickedItem}` },
+        { edit: m_id?.key, text: `🎯 Bot picked: ${pickedItem}` },
         { ephemeralExpiration: ctx.expiration! }
     )
 
