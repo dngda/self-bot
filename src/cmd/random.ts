@@ -173,7 +173,6 @@ const pickHandler: HandlerFunction = async (
     if (!ctx.quotedMsg || !ctx.quotedMsgBody) {
         throw new Error(stringId.pick.usage(ctx))
     }
-
     const list = ctx.quotedMsgBody
         .split('\n')
         .filter((item) => item.trim() !== '')
@@ -181,8 +180,45 @@ const pickHandler: HandlerFunction = async (
         throw new Error(stringId.pick.error.noList())
     }
 
-    const randomIndex = crypto.randomInt(list.length)
-    const pickedItem = list[randomIndex]
+    // Dramatic selection: show thinking, cycle a few candidates, pretend a wrong pick, then reveal
+    const m_id = await _wa.sendMessage(
+        ctx.from,
+        { text: "🤔 Mari kita lihat..." },
+        { ephemeralExpiration: ctx.expiration! }
+    )
 
-    return ctx.reply(`💭 Bot picked: ${pickedItem}`)
+    await delay(2000)
+
+    // Cycle through some candidates
+    const cycles = Math.min(5, Math.max(2, list.length))
+    for (let i = 0; i < cycles; i++) {
+        const idx = crypto.randomInt(list.length)
+        const candidate = list[idx]
+        await _wa.sendMessage(
+            ctx.from,
+            { edit: m_id?.key, text: `🤔 Mungkin: ${candidate}` },
+            { ephemeralExpiration: ctx.expiration! }
+        )
+        await delay(1000)
+        // throw a playful doubt on the penultimate cycle
+        if (i === cycles - 2) {
+            await _wa.sendMessage(
+                ctx.from,
+                { edit: m_id?.key, text: `😬 Bentar, apa aja tadi pilihannya?` },
+                { ephemeralExpiration: ctx.expiration! }
+            )
+            await delay(2000)
+        }
+    }
+
+    const pickedItem = list[crypto.randomInt(list.length)]
+
+    // Final reveal with flourish
+    const result = await _wa.sendMessage(
+        ctx.from,
+        { edit: m_id?.key, text: `🎯 Pilihan Bot: ${pickedItem}` },
+        { ephemeralExpiration: ctx.expiration! }
+    )
+
+    return result
 }
