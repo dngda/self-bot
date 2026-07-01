@@ -4,6 +4,7 @@ import { actions } from '../handler.js'
 import { menu } from '../menu.js'
 import crypto from 'node:crypto'
 import axios from 'axios'
+import _ from 'lodash'
 import { HandlerFunction, MessageContext } from '../types.js'
 
 export default function registerRandomCommands() {
@@ -165,6 +166,17 @@ const pickCmd = () => {
     })
 }
 
+const playfullDoubts = [
+    '🤔 Hmm, pilihannya aneh semua...',
+    '😀 Aku nggak yakin dengan ini...',
+    '💭 Mungkin ada yang lebih baik?',
+    '👀 Aku masih bingung nih...',
+    '😌 Aku nggak yakin sama sekali...',
+    '😀 Mungkin ada yang lebih menarik?',
+    '😂 Apa ini benar-benar pilihan terbaik?',
+    '😬 Bentar, apa aja tadi pilihannya?',
+]
+
 const pickHandler: HandlerFunction = async (
     _wa: WASocket,
     _msg: WAMessage,
@@ -183,7 +195,7 @@ const pickHandler: HandlerFunction = async (
     // Dramatic selection: show thinking, cycle a few candidates, pretend a wrong pick, then reveal
     const m_id = await _wa.sendMessage(
         ctx.from,
-        { text: "🤔 Mari kita lihat..." },
+        { text: '🤔 Mari kita lihat...' },
         { ephemeralExpiration: ctx.expiration! }
     )
 
@@ -204,7 +216,10 @@ const pickHandler: HandlerFunction = async (
         if (i === cycles - 2) {
             await _wa.sendMessage(
                 ctx.from,
-                { edit: m_id?.key, text: `😬 Bentar, apa aja tadi pilihannya?` },
+                {
+                    edit: m_id?.key,
+                    text: _.sample(playfullDoubts) || '🤔 Hmmm....',
+                },
                 { ephemeralExpiration: ctx.expiration! }
             )
             await delay(2000)
