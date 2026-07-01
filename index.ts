@@ -10,7 +10,6 @@ import makeWASocket, {
     ConnectionState,
     GroupMetadata,
     Browsers,
-    proto,
 } from 'baileys'
 import qrTerminal from 'qrcode-terminal'
 import MAIN_LOGGER from './src/utils/logger.js'
@@ -225,12 +224,7 @@ const createSocket = async (
         markOnlineOnConnect: false,
         getMessage: async (key) => {
             const msg = getMessage(key.id!)
-            return (
-                msg?.message ||
-                proto.Message.create({
-                    conversation: 'Failed to fetch message',
-                })
-            )
+            return msg?.message
         },
         shouldIgnoreJid: (jid) => jid?.endsWith('bot'),
         cachedGroupMetadata: async (jid) => groupCache.get(jid),
