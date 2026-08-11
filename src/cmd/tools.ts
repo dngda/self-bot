@@ -337,7 +337,7 @@ export const renderList = (ctx: MessageContext) => {
     const titleText = list[0]?.text || ''
     const title = titleText.charAt(0).toUpperCase() + titleText.slice(1)
 
-    let listText = `🧵 List: ${title}\n`
+    let listText = `🧵 List: ${title}\n\n`
     list.forEach((l, i) => {
         if (i == 0) return
         listText += `${l.checked ? '☒' : '☐'} ${i}. ${l.text}\n`
