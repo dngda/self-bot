@@ -185,9 +185,29 @@ const pickHandler: HandlerFunction = async (
     if (!ctx.quotedMsg || !ctx.quotedMsgBody) {
         throw new Error(stringId.pick.usage(ctx))
     }
+    const cleanInvisibleChars = (text: string) =>
+        text.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim()
+
+    const extractListItem = (line: string) => {
+        const clean = cleanInvisibleChars(line)
+        if (!clean) return null
+
+        // Format dari renderList: "☐ 1. item" / "☒ 2. item"
+        const checklistMatch = clean.match(/^[☐☒]\s+\d+\.\s+(.+)$/)
+        if (checklistMatch?.[1]) return checklistMatch[1].trim()
+
+        // Support format umum: "- item", "* item", "• item", "1. item", "1) item"
+        const bulletOrNumberMatch = clean.match(/^([-*•]|\d+[.)])\s+(.+)$/)
+        if (bulletOrNumberMatch?.[2]) return bulletOrNumberMatch[2].trim()
+
+        return null
+    }
+
     const list = ctx.quotedMsgBody
         .split('\n')
-        .filter((item) => item.trim() !== '')
+        .map(extractListItem)
+        .filter((item): item is string => Boolean(item))
+
     if (list?.length === 0) {
         throw new Error(stringId.pick.error.noList())
     }

@@ -207,8 +207,37 @@ export const handleAddList = async (
     }
 
     const list = ListMemory.get(ctx.from) || []
-    // add body to list
-    list.push({ text: ctx.body!.slice(1).trim(), checked: false })
+    const rawInput = ctx.body?.slice(1).trim() ?? ''
+
+    if (!rawInput) {
+        return await ctx.reply('Isi list tidak boleh kosong!')
+    }
+
+    const cleanInvisibleChars = (text: string) =>
+        text.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim()
+
+    const normalizedItems = rawInput
+        .split('\n')
+        .map(cleanInvisibleChars)
+        .map((line) => line.replace(/^([-*•]|\d+[.)])\s+/, '').trim())
+        .filter((line) => line.length > 0)
+
+    if (normalizedItems.length === 0) {
+        return await ctx.reply('Isi list tidak valid!')
+    }
+
+    const normalizeForCompare = (text: string) => text.toLowerCase()
+    const existingSet = new Set(
+        list.map((item) => normalizeForCompare(cleanInvisibleChars(item.text)))
+    )
+
+    for (const item of normalizedItems) {
+        const key = normalizeForCompare(item)
+        if (existingSet.has(key)) continue
+        list.push({ text: item, checked: false })
+        existingSet.add(key)
+    }
+
     ListMemory.set(ctx.from, list)
 
     await ctx.reactSuccess()
