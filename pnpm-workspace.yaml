@@ -1,12 +1,13 @@
-onlyBuiltDependencies:
-  - '@ffprobe-installer/darwin-arm64'
-  - '@ffprobe-installer/linux-x64'
-  - baileys
-  - canvas
-  - es5-ext
-  - esbuild
-  - protobufjs
-  - sharp
-  - sqlite3
-  - unrs-resolver
-  - youtube-dl-exec
+allowBuilds:
+  '@ffprobe-installer/darwin-arm64': true
+  '@ffprobe-installer/linux-x64': true
+  baileys: true
+  'baileys@git+https://github.com/whiskeysockets/baileys.git': true
+  canvas: true
+  es5-ext: true
+  esbuild: true
+  protobufjs: true
+  sharp: true
+  sqlite3: true
+  unrs-resolver: true
+  youtube-dl-exec: true
