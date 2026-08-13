@@ -24,7 +24,7 @@
         "nodemon": "^3.1.14",
         "prettier": "^2.8.8",
         "ts-jest": "^29.4.12",
-        "tsx": "^4.23.1",
+        "tsx": "^4.23.12",
         "typescript": "^6.0.3",
         "typescript-eslint": "^7.18.0"
     },
@@ -33,14 +33,14 @@
         "@hapi/boom": "^10.0.1",
         "@hono/node-server": "^1.19.17",
         "@types/figlet": "^1.7.0",
-        "@types/lodash": "^4.17.24",
+        "@types/lodash": "^4.17.25",
         "@types/qrcode-terminal": "^0.12.2",
         "@types/random-useragent": "^0.3.3",
         "@types/sequelize": "^4.28.20",
         "@types/sharp": "^0.31.1",
         "@types/sqlite3": "^3.1.11",
-        "audio-decode": "^3.11.4",
-        "axios": "^1.18.1",
+        "audio-decode": "^3.12.0",
+        "axios": "^1.19.0",
         "baileys": "github:whiskeysockets/baileys",
         "canvas": "^2.11.2",
         "chalk": "4.1.2",
@@ -51,7 +51,7 @@
         "form-data": "^4.0.6",
         "genius-lyrics": "^4.4.7",
         "get-video-duration": "^4.1.0",
-        "hono": "^4.12.32",
+        "hono": "^4.13.1",
         "lodash": "^4.18.1",
         "long": "^5.3.2",
         "mathjs": "^11.12.0",
@@ -59,7 +59,7 @@
         "node-cache": "^5.1.2",
         "ocr-space-api-wrapper": "^2.4.8",
         "pino": "7.11.0",
-        "playwright": "^1.62.0",
+        "playwright": "^1.62.1",
         "playwright-extra": "^4.3.6",
         "puppeteer-extra-plugin-stealth": "^2.11.2",
         "qrcode-terminal": "^0.12.0",
@@ -69,7 +69,7 @@
         "sharp": "^0.32.6",
         "sqlite3": "^5.1.7",
         "wa-sticker-formatter": "^4.4.4",
-        "youtube-dl-exec": "^3.1.9"
+        "youtube-dl-exec": "^3.1.12"
     },
     "pnpm": {
         "onlyBuiltDependencies": [
