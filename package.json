@@ -71,23 +71,8 @@
         "wa-sticker-formatter": "^4.4.4",
         "youtube-dl-exec": "^3.1.9"
     },
-    "pnpm": {
-        "onlyBuiltDependencies": [
-            "@ffprobe-installer/darwin-arm64",
-            "@ffprobe-installer/linux-x64",
-            "baileys",
-            "canvas",
-            "es5-ext",
-            "esbuild",
-            "protobufjs",
-            "sharp",
-            "sqlite3",
-            "unrs-resolver",
-            "youtube-dl-exec"
-        ]
-    },
     "trustedDependencies": [
         "protobufjs"
     ],
-    "packageManager": "pnpm@10.24.0+sha256.196f4bd174ebcbd99786b33452f144cb2dc32ef4e7138ed44491e9d43d702d75"
+    "packageManager": "pnpm@12.0.0-rc.4"
 }

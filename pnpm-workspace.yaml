@@ -1,0 +1,12 @@
+onlyBuiltDependencies:
+  - '@ffprobe-installer/darwin-arm64'
+  - '@ffprobe-installer/linux-x64'
+  - baileys
+  - canvas
+  - es5-ext
+  - esbuild
+  - protobufjs
+  - sharp
+  - sqlite3
+  - unrs-resolver
+  - youtube-dl-exec
