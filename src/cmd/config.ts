@@ -74,7 +74,8 @@ const stickerAsCommandCmd = () => {
         usage: (ctx: MessageContext) =>
             `Reply sticker dengan: ${ctx.prefix}scmd <cmd> <arg>
 ➡️ Contoh: ${ctx.prefix}scmd sticker -r -nobg
-    atau hapus scmd dengan: ${ctx.prefix}dscmd <cmd>`,
+    atau hapus scmd dengan: ${ctx.prefix}dscmd <sticker id|index>
+    tanpa quote sticker, gunakan ${ctx.prefix}dscmd untuk melihat daftar`,
         success: (cmd: string) =>
             `✅ Sticker dengan command "${cmd}" berhasil ditambahkan`,
         info: (cmd: string) =>
@@ -103,12 +104,25 @@ const listStickerCommands = (ctx: MessageContext) => {
 
     const replyMsg = entries
         .map(
-            ([sha, { cmd, arg }]) =>
-                `• Command: ${cmd} ${arg}\n  Sticker SHA256: ${sha}`
+            ([sha, { cmd, arg }], index) =>
+                `• [${index + 1}] ${cmd} ${arg}\n  Sticker ID: ${sha}`
         )
         .join('\n\n')
 
-    return ctx.reply(`📋 Daftar Sticker Command:\n\n${replyMsg}`)
+    return ctx.reply(
+        `📋 Daftar Sticker Command:\n\n${replyMsg}\n\nHapus dengan: ${ctx.prefix}dscmd <sticker id|index>`
+    )
+}
+
+const resolveStickerSha = (identifier: string): string | null => {
+    const stickerCommands = configManager.getAllStickerCommands()
+
+    if (configManager.hasStickerCommand(identifier)) return identifier
+
+    const index = Number(identifier)
+    if (!Number.isInteger(index) || index < 1) return null
+
+    return Object.keys(stickerCommands)[index - 1] ?? null
 }
 
 const deleteStickerCommand = async (sha: string, ctx: MessageContext) => {
@@ -160,10 +174,13 @@ const stickerAsCmdHandler: HandlerFunction = async (
         return listStickerCommands(ctx)
     }
 
-    // Handle delete by SHA (without quoted message)
+    // Handle delete by sticker ID or index without a quoted message
     if (ctx.cmd === 'dscmd' && !ctx.quotedMsg) {
-        const sha = ctx.args[0]
-        if (!sha) return ctx.reply(stringId.stickerCmd.usage(ctx))
+        const identifier = ctx.args[0]
+        if (!identifier) return listStickerCommands(ctx)
+
+        const sha = resolveStickerSha(identifier)
+        if (!sha) return deleteStickerCommand(identifier, ctx)
         return deleteStickerCommand(sha, ctx)
     }
 
