@@ -258,6 +258,8 @@ const collectListCmd = () => {
         },
         usage: (ctx: MessageContext) => `📝 CRUD List.
 ➡️ ${ctx.prefix}${ctx.cmd} <nama list>`,
+        info: () =>
+            `*Reply List* dengan\n\`+[content]\` untuk add ke list\n\`-[nomor]\` untuk remove dari list.\n\`e[nomor]\` untuk edit item di list\n\`x[nomor]\` untuk check/uncheck item\nContoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
     }
 
     menu.push({
@@ -363,9 +365,7 @@ const collectListHandler: HandlerFunction = async (
     if (arg == '') {
         const sent = await send(renderList(ctx))
         storeListMessageKey(ctx.from, sent)
-        await send(
-            'Reply list dengan\n`+(isi)` untuk add ke list\n`-(nomor)` untuk remove dari list\n`e(nomor)` untuk edit item di list\n`x(nomor)` untuk check/uncheck item'
-        )
+        await send(stringId.collect_list.info?.() ?? '')
         reactSuccess()
 
         return sent
@@ -402,9 +402,7 @@ const collectListHandler: HandlerFunction = async (
     const sent = await send(`🧵 List: ${listName}!\n☐ 1.\n`)
 
     storeListMessageKey(ctx.from, sent)
-    return await reply(
-        `Reply list dengan\n\`+(isi)\` untuk add ke list\n\`-(nomor)\` untuk remove dari list.\n\`e(nomor)\` untuk edit item di list\n\`x(nomor)\` untuk check/uncheck item`
-    )
+    return await reply(stringId.collect_list.info?.() ?? '')
 }
 
 const reminderCmd = () => {
