@@ -167,11 +167,13 @@ export const handleReplyToStatusList = async (
     const quoted = ctx.quotedMsg?.extendedTextMessage?.text
     if (!quoted?.includes('List Status Update')) return null
 
-    const listJid = quoted?.split('\n').slice(1)
+    const listIndex = parseInt(ctx.body as string) - 1
     const jid =
-        listJid[parseInt(ctx.body as string) - 1]
-            .split(' ')[1]
-            .replace('@', '') + '@s.whatsapp.net'
+        ctx.quotedMsg?.extendedTextMessage?.contextInfo?.mentionedJid?.[
+            listIndex
+        ]
+    if (!jid) throw stringId.getStatus.error.invalidJId
+
     const message = await getStatusListMessage(jid)
 
     return wa.sendMessage(ctx.from, { text: message, mentions: [jid] })

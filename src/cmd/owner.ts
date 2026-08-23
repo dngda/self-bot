@@ -219,7 +219,8 @@ const getStatusHandler: HandlerFunction = async (
     }
 
     if (jid.startsWith('0')) jid = jid.replace('0', '62')
-    if (!jid.endsWith('@s.whatsapp.net')) jid += '@s.whatsapp.net'
+    if (!jid.endsWith('@s.whatsapp.net') && !jid.endsWith('@lid'))
+        jid += '@s.whatsapp.net'
 
     const message = await getStatusListMessage(jid)
 
@@ -230,7 +231,7 @@ export const getStatusListMessage = async (jid: string): Promise<string> => {
     const statuses = getStatus(jid)
     if (!statuses) throw new Error(stringId.getStatus.error.notFound())
 
-    let message = `Status from @${jid.replace('@s.whatsapp.net', '')}\n\n`
+    let message = `Status from @${jid.replace(/(@s.whatsapp.net|@lid)$/, '')}\n\n`
     let i = 1
     for (const status of statuses) {
         const msg = status.message
