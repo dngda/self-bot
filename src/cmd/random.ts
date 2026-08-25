@@ -246,12 +246,19 @@ const pickHandler: HandlerFunction = async (
         }
     }
 
-    const pickedItem = list[crypto.randomInt(list.length)]
+    await _wa.sendMessage(
+        ctx.from,
+        { edit: m_id?.key, text: '👌🏼 Okay ini dia...' },
+        { ephemeralExpiration: ctx.expiration! }
+    )
 
+    await delay(1500)
+
+    const pickedItem = list[crypto.randomInt(list.length)]
     // Final reveal with flourish
     const result = await _wa.sendMessage(
         ctx.from,
-        { edit: m_id?.key, text: `🎯 Bot picked: ${pickedItem}` },
+        { edit: m_id?.key, text: `🎯 ${pickedItem}` },
         { ephemeralExpiration: ctx.expiration! }
     )
 
