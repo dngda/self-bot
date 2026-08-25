@@ -342,7 +342,11 @@ export const renderList = (ctx: MessageContext) => {
     let listText = `🧵 List: ${title}\n\n`
     list.forEach((l, i) => {
         if (i == 0) return
-        listText += `${l.checked ? '☒' : '☐'} ${i}. ${l.text}\n`
+        const [firstLine, ...restLines] = l.text.split('\n')
+        listText += `${l.checked ? '☒' : '☐'} ${i}. ${firstLine}\n`
+        restLines.forEach((line) => {
+            listText += `      ${line}\n`
+        })
     })
 
     if (list.length == 0) {

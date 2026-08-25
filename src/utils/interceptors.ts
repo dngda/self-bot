@@ -218,11 +218,21 @@ export const handleAddList = async (
     const cleanInvisibleChars = (text: string) =>
         text.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim()
 
-    const normalizedItems = rawInput
-        .split('\n')
-        .map(cleanInvisibleChars)
-        .map((line) => line.replace(/^([-*•]|\d+[.)])\s+/, '').trim())
-        .filter((line) => line.length > 0)
+    // Only "-" prefixed lines start a new item; other lines continue the previous item.
+    const normalizedItems: string[] = []
+    for (const rawLine of rawInput.split('\n')) {
+        const line = cleanInvisibleChars(rawLine)
+        if (!line) continue
+
+        const bulletMatch = line.match(/^-\s*(.*)$/)
+        if (bulletMatch) {
+            normalizedItems.push(bulletMatch[1].trim())
+        } else if (normalizedItems.length > 0) {
+            normalizedItems[normalizedItems.length - 1] += `\n${line}`
+        } else {
+            normalizedItems.push(line)
+        }
+    }
 
     if (normalizedItems.length === 0) {
         return await ctx.reply('Isi list tidak valid!')
