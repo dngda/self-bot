@@ -65,8 +65,10 @@ export async function quotly(
     if (json.messages && image.length > 0)
         json.messages[0].media = { url: image }
 
+    const baseURL = process.env.QUOTLY_SERVER || 'http://localhost:4888'
+
     const response = await axios.post<QuoteResponse>(
-        process.env.QUOTLY_SERVER || 'http://localhost:4888' + '/generate',
+        baseURL + '/generate',
         json,
         {
             headers: { 'Content-Type': 'application/json' },
