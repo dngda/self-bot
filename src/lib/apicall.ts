@@ -122,30 +122,6 @@ export async function uploadImage(imageBuffer: Buffer): Promise<string> {
     return url
 }
 
-export async function memegen(
-    top: string,
-    bottom: string,
-    image: string
-): Promise<Buffer> {
-    const topText = top
-        .trim()
-        .replaceAll(' ', '_')
-        .replaceAll('?', '~q')
-        .replaceAll('%', '~p')
-        .replaceAll('#', '~h')
-        .replaceAll('/', '~s')
-    const bottomText = bottom
-        .trim()
-        .replaceAll(' ', '_')
-        .replaceAll('?', '~q')
-        .replaceAll('%', '~p')
-        .replaceAll('#', '~h')
-        .replaceAll('/', '~s')
-    const url = `https://api.memegen.link/images/custom/${topText}/${bottomText}.png?background=${image}`
-    const res = await axios.get(url, { responseType: 'arraybuffer' })
-    return Buffer.from(res.data)
-}
-
 export async function ocr(language: ocrApi.OcrSpaceLanguages, image: Buffer) {
     const path = 'tmp/ocr.jpg'
     fs.writeFileSync(path, image)

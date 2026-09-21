@@ -8,7 +8,7 @@ import { actions } from '../handler.js'
 import stringId from '../language.js'
 import {
     gifToMp4,
-    memegen,
+    createMeme,
     textToPicture,
     uploadImage,
     quotly,
@@ -467,8 +467,7 @@ const memefyHandler: HandlerFunction = async (
     const top = _arg.trim().split('|')[0] || '_'
     const bottom = _arg.trim().split('|')[1] || '_'
 
-    const uploadedImageUrl = await uploadImage(image)
-    const memeBuffer = await memegen(top, bottom, uploadedImageUrl)
+    const memeBuffer = await createMeme(top, bottom, image)
 
     if (cmd === 'memefy') {
         ctx.reactSuccess()

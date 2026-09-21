@@ -1,4 +1,110 @@
-import { createCanvas, type CanvasRenderingContext2D } from 'canvas'
+import {
+    createCanvas,
+    loadImage,
+    type CanvasRenderingContext2D,
+} from 'canvas'
+
+export async function createMeme(
+    top: string,
+    bottom: string,
+    imageBuffer: Buffer
+): Promise<Buffer> {
+    const image = await loadImage(imageBuffer)
+    const canvas = createCanvas(image.width, image.height)
+    const ctx = canvas.getContext('2d')
+
+    ctx.drawImage(image, 0, 0, image.width, image.height)
+
+    const padding = Math.max(12, Math.round(image.width * 0.04))
+    const maxWidth = image.width - padding * 2
+    const fontSize = Math.max(24, Math.min(96, Math.round(image.width * 0.1)))
+    const lineHeight = Math.round(fontSize * 1.05)
+
+    ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'top'
+    ctx.fillStyle = 'white'
+    ctx.strokeStyle = 'black'
+    ctx.lineJoin = 'round'
+    ctx.lineWidth = Math.max(3, Math.round(fontSize * 0.08))
+
+    drawMemeText(ctx, top, image.width / 2, padding, maxWidth, lineHeight)
+
+    const bottomLines = wrapMemeText(ctx, bottom, maxWidth)
+    const bottomY = image.height - padding - bottomLines.length * lineHeight
+    drawMemeLines(ctx, bottomLines, image.width / 2, bottomY, lineHeight)
+
+    return canvas.toBuffer('image/png')
+}
+
+function drawMemeText(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    lineHeight: number
+) {
+    drawMemeLines(ctx, wrapMemeText(ctx, text, maxWidth), x, y, lineHeight)
+}
+
+function drawMemeLines(
+    ctx: CanvasRenderingContext2D,
+    lines: string[],
+    x: number,
+    y: number,
+    lineHeight: number
+) {
+    lines.forEach((line, index) => {
+        const lineY = y + index * lineHeight
+        ctx.strokeText(line, x, lineY)
+        ctx.fillText(line, x, lineY)
+    })
+}
+
+function wrapMemeText(
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number
+): string[] {
+    const normalizedText = text.trim().replaceAll('_', '').toUpperCase()
+    if (!normalizedText) return []
+
+    const words = normalizedText.split(/\s+/)
+    const lines: string[] = []
+    let line = ''
+
+    for (const word of words) {
+        if (ctx.measureText(word).width > maxWidth) {
+            if (line) lines.push(line)
+            line = ''
+            let chunk = ''
+            for (const character of word) {
+                const candidate = `${chunk}${character}`
+                if (ctx.measureText(candidate).width > maxWidth && chunk) {
+                    lines.push(chunk)
+                    chunk = character
+                } else {
+                    chunk = candidate
+                }
+            }
+            line = chunk
+            continue
+        }
+
+        const candidate = line ? `${line} ${word}` : word
+        if (ctx.measureText(candidate).width <= maxWidth) {
+            line = candidate
+            continue
+        }
+
+        if (line) lines.push(line)
+        line = word
+    }
+
+    if (line) lines.push(line)
+    return lines
+}
 
 export const textToPicture = async (
     text: string,
