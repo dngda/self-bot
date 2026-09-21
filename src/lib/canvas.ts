@@ -17,7 +17,7 @@ export async function createMeme(
 
     const padding = Math.max(12, Math.round(image.width * 0.04))
     const maxWidth = image.width - padding * 2
-    const fontSize = Math.max(24, Math.min(96, Math.round(image.width * 0.1)))
+    const fontSize = Math.max(24, Math.min(128, Math.round(image.width * 0.13)))
     const lineHeight = Math.round(fontSize * 1.05)
 
     ctx.font = `900 ${fontSize}px Impact, Arial Black, sans-serif`
