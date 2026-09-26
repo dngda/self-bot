@@ -563,7 +563,7 @@ const quotlyStickerCmd = () => {
 
 const getQuotlyParticipant = (ctx: MessageContext): string => {
     if (ctx.fromMe && !ctx.isQuoted) {
-        return process.env.OWNER_JID!
+        return process.env.OWNER_LID ?? process.env.OWNER_JID ?? ctx.from
     }
     return ctx.contextInfo?.participant || ctx.participant || ctx.from
 }
