@@ -12,32 +12,22 @@ export default function registerGeneralCommands() {
     menuCmd()
     hideTagCmd()
     extCmd()
+    extManageCmd()
 }
 
 type RsaEntry = {
-    type: 'entry'
+    section: string
     name: string
-    value: string | null
-}
-
-type RsaGroup = {
-    type: 'group'
-    name: string
-}
-
-type RsaSection = {
-    id: string
-    title: string
-    rows: Array<RsaEntry | RsaGroup>
-}
-
-type RsaRepo = {
-    sections: RsaSection[]
+    value: string
 }
 
 const rsaRepo = JSON.parse(
     fs.readFileSync('./data/rsa.json', 'utf-8')
-) as RsaRepo
+) as RsaEntry[]
+
+const saveRsaRepo = () => {
+    fs.writeFileSync('./data/rsa.json', JSON.stringify(rsaRepo, null, 4) + '\n')
+}
 
 const pingCmd = () => {
     stringId.ping = {
@@ -189,7 +179,7 @@ const hideTagCmd = () => {
 
 const extCmd = () => {
     stringId.ext = {
-        hint: '📞 _Cari ekstensi dari data RSA_ ',
+        hint: '📞 _Cari ekstensi dari data RSA_',
         error: {
             noArgs: () => '‼️ Tidak ada argumen yang diberikan!',
             notFound: (ctx: MessageContext) =>
@@ -221,35 +211,103 @@ const extHandler: HandlerFunction = async (_wa, _msg, ctx) => {
         .toLowerCase()
         .split(/\s+/)
         .filter(Boolean)
-    const matches = rsaRepo.sections
-        .map((section) => ({
-            sectionTitle: section.title,
-            rows: section.rows.filter((row): row is RsaEntry => {
-                if (row.type !== 'entry' || !row.value) return false
-
-                const searchable = [section.title, row.name, row.value]
-                    .join(' ')
-                    .toLowerCase()
-
-                return queryTokens.every((token) => searchable.includes(token))
-            }),
-        }))
-        .filter((section) => section.rows.length > 0)
+    const matches = rsaRepo.filter((entry) => {
+        const searchable = [entry.section, entry.name, entry.value]
+            .join(' ')
+            .toLowerCase()
+        return queryTokens.every((token) => searchable.includes(token))
+    })
 
     if (matches.length === 0) throw stringId.ext.error.notFound(ctx)
 
-    ctx.reactWait()
+    await ctx.reactWait()
 
     let message = `Query: ${ctx.arg}\n`
-    for (const section of matches) {
-        message += `- ${section.sectionTitle}\n`
-        for (const row of section.rows) {
-            message += `${row.name} : ${row.value}\n`
-        }
+    for (const entry of matches)
+        message += `- ${entry.section}: ${entry.name} : ${entry.value}\n`
+
+    await ctx.reactSuccess()
+    return ctx.reply(message)
+}
+
+const extManageCmd = () => {
+    stringId.extManage = {
+        hint: '🗂️ _Kelola data ekstensi RSA (owner)_',
+        error: {},
+        usage: (ctx: MessageContext) =>
+            `List: ${ctx.prefix}extmanage list
+Tambah: ${ctx.prefix}extmanage add <section> | <nama> | <nilai>
+Edit: ${ctx.prefix}extmanage edit <nomor> <section> | <nama> | <nilai>
+Hapus: ${ctx.prefix}extmanage delete <nomor>`,
     }
 
-    ctx.reactSuccess()
-    return ctx.reply(message)
+    menu.push({
+        command: 'extmanage',
+        hint: stringId.extManage.hint,
+        alias: 'extm',
+        type: 'owner',
+    })
+
+    Object.assign(actions, {
+        extmanage: extManageHandler,
+    })
+}
+
+const extManageHandler: HandlerFunction = async (_wa, _msg, ctx) => {
+    if (!ctx.fromMe) return undefined
+
+    const [operation, ...args] = ctx.arg.trim().split(/\s+/)
+    if (!operation) return ctx.reply(stringId.extManage.usage(ctx))
+
+    if (operation === 'list') {
+        if (rsaRepo.length === 0) return ctx.reply('Data ekstensi kosong.')
+        const list = rsaRepo
+            .map(
+                (entry, index) =>
+                    `${index + 1}. [${entry.section}] ${entry.name}: ${entry.value}`
+            )
+            .join('\n')
+        return ctx.reply(list)
+    }
+
+    if (operation === 'add') {
+        const separator = ctx.arg.indexOf(' ')
+        const payload = separator < 0 ? '' : ctx.arg.slice(separator + 1).trim()
+        const fields = payload.split('|').map((field) => field.trim())
+        if (fields.length !== 3 || fields.some((field) => !field))
+            return ctx.reply(
+                `Format: ${ctx.prefix}extmanage add <section> | <nama> | <nilai>`
+            )
+
+        rsaRepo.push({ section: fields[0], name: fields[1], value: fields[2] })
+        saveRsaRepo()
+        return ctx.reply('Data ekstensi berhasil ditambahkan.')
+    }
+
+    if (operation === 'edit' || operation === 'delete') {
+        const index = Number(args[0]) - 1
+        if (!Number.isInteger(index) || index < 0 || index >= rsaRepo.length)
+            return ctx.reply('Nomor data tidak valid. Gunakan extmanage list.')
+
+        if (operation === 'delete') {
+            const [removed] = rsaRepo.splice(index, 1)
+            saveRsaRepo()
+            return ctx.reply(`Data ${removed.name} berhasil dihapus.`)
+        }
+
+        const payload = ctx.arg.slice(ctx.arg.indexOf(args[0]) + args[0].length).trim()
+        const fields = payload.split('|').map((field) => field.trim())
+        if (fields.length !== 3 || fields.some((field) => !field))
+            return ctx.reply(
+                `Format: ${ctx.prefix}extmanage edit <nomor> <section> | <nama> | <nilai>`
+            )
+
+        rsaRepo[index] = { section: fields[0], name: fields[1], value: fields[2] }
+        saveRsaRepo()
+        return ctx.reply('Data ekstensi berhasil diperbarui.')
+    }
+
+    return ctx.reply(stringId.extManage.usage(ctx))
 }
 
 const hideTagHandler: HandlerFunction = async (

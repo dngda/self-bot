@@ -23,4 +23,10 @@
             "node"
         ]
     },
+    "exclude": [
+        "node_modules",
+        "build",
+        "test",
+        "data"
+    ]
 }
