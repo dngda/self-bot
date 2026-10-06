@@ -20,7 +20,7 @@ const searchPinterestCmd = () => {
             noResult: () => '‼️ Tidak ada hasil.',
         },
         usage: (ctx: MessageContext) =>
-            `🔍 Search gambar di pinterest dengan cara ➡️ ${ctx.prefix}${ctx.cmd} <query>`,
+            `🔍 Search gambar di pinterest dengan cara ➡️ ${ctx.prefix}${ctx.cmd} [jumlah] <query>`,
     }
 
     menu.push({
@@ -40,26 +40,40 @@ const pinterestHandler: HandlerFunction = async (
     _msg: WAMessage,
     ctx: MessageContext
 ) => {
-    const { arg, args } = ctx
-    if (arg == '') throw new Error(stringId.pinterest.usage(ctx))
+    const { args } = ctx
+    if (args.length === 0) throw new Error(stringId.pinterest.usage(ctx))
+
+    const hasQuantity = /^[+-]?\d+$/.test(args[0])
+    const qty = hasQuantity ? Number(args[0]) : 1
+    const query = (hasQuantity ? args.slice(1) : args).join(' ').trim()
+
+    if (qty < 1 || qty > 10) {
+        ctx.reactError()
+        return ctx.reply(`Jumlah harus antara 1 dan 10.`)
+    }
+
+    if (!query) throw new Error(stringId.pinterest.usage(ctx))
+
     ctx.reactWait()
-    const { result } = await pinterest.search(arg)
-    if (result.total == 0) {
+    const response = await pinterest.search(query)
+    const pins =
+        'pins' in response.result && Array.isArray(response.result.pins)
+            ? response.result.pins
+            : []
+    if (!response.status || pins.length === 0) {
         ctx.reactError()
-        return ctx.reply(`Tidak ada hasil.`)
+        return ctx.reply(stringId.pinterest.error.noResult())
     }
 
-    const qty = Number(args[0]) || 1
-    if (qty > 10) {
-        ctx.reactError()
-        return ctx.reply(`Max 10, bro.`)
-    }
-
-    const items = _.sampleSize(result.pins, qty)
+    const items = _.sampleSize(pins, qty)
     for (const item of items) {
         const content = item.media.video
             ? {
-                  video: { url: item.media.video.video_list.V_HLSV4?.url },
+                  video: {
+                      url:
+                          item.media.video.video_list.V_HLSV4?.url ??
+                          item.media.video.video_list.V_HLSV3_MOBILE?.url,
+                  },
                   caption: `Origin: ${item.pin_url}`,
               }
             : {
