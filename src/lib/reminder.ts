@@ -198,16 +198,6 @@ async function getNextRemindersJob(): Promise<ReminderAttributes[]> {
     })
 }
 
-const cleanStaleReminders = async () => {
-    const now = new Date()
-    const reminders = await getAllRemindersList()
-    for (const reminder of reminders) {
-        if (reminder.repeatType === 'none' && reminder.nextRunAt < now) {
-            await deleteReminder(reminder.id)
-        }
-    }
-}
-
 // Helper: Calculate next run date for custom days
 const calculateNextCustomDayRun = (
     currentDate: Date,
@@ -266,6 +256,32 @@ const calculateNextRun = (
     return nextRun
 }
 
+export const calculateNextRunAfterMissed = (
+    currentRunDate: Date,
+    repeatType: string,
+    repeatInterval: number,
+    repeatDays: number[] | null,
+    now: Date
+): Date => {
+    let nextRun = calculateNextRun(
+        currentRunDate,
+        repeatType,
+        repeatInterval,
+        repeatDays
+    )
+
+    while (nextRun <= now) {
+        nextRun = calculateNextRun(
+            nextRun,
+            repeatType,
+            repeatInterval,
+            repeatDays
+        )
+    }
+
+    return nextRun
+}
+
 // Helper: Send reminder message
 const sendReminderMessage = async (
     wa: WASocket,
@@ -280,14 +296,15 @@ const sendReminderMessage = async (
 const processTriggeredReminder = async (
     wa: WASocket,
     reminder: ReminderAttributes,
-    currentRunDate: Date
+    currentRunDate: Date,
+    now: Date
 ): Promise<void> => {
     // Send reminder message
     await sendReminderMessage(wa, reminder)
 
     // Update lastTriggeredAt
     await Reminder.update(
-        { lastTriggeredAt: new Date() },
+        { lastTriggeredAt: now },
         { where: { id: reminder.id } }
     )
 
@@ -296,11 +313,12 @@ const processTriggeredReminder = async (
         // Delete non-recurring reminders after triggering
         await deleteReminder(reminder.id)
     } else {
-        const nextRun = calculateNextRun(
+        const nextRun = calculateNextRunAfterMissed(
             currentRunDate,
             reminder.repeatType,
             reminder.repeatInterval,
-            reminder.repeatDays
+            reminder.repeatDays,
+            now
         )
         await Reminder.update(
             { nextRunAt: nextRun },
@@ -309,18 +327,10 @@ const processTriggeredReminder = async (
     }
 }
 
-// Helper: Check if reminder should trigger now
-const shouldTriggerReminder = (nextRunAt: Date, now: Date): boolean => {
-    // Trigger if nextRunAt is in the past and within the last minute
-    return nextRunAt <= now && nextRunAt.getTime() > now.getTime() - 60000
-}
+const shouldTriggerReminder = (nextRunAt: Date, now: Date): boolean =>
+    nextRunAt <= now && nextRunAt.getTime() > now.getTime() - 30 * 60 * 1000
 
 export const initiateReminderCron = (_wa: WASocket) => {
-    // Clean stale reminders safely
-    cleanStaleReminders().catch((err) =>
-        console.error('cleanStaleReminders failed:', err)
-    )
-
     const job = new CronJob('*/1 * * * *', async () => {
         try {
             const now = new Date()
@@ -333,16 +343,35 @@ export const initiateReminderCron = (_wa: WASocket) => {
 
                 const nextRunAt = new Date(reminder.nextRunAt)
 
-                if (shouldTriggerReminder(nextRunAt, now)) {
-                    try {
-                        await processTriggeredReminder(_wa, reminder, nextRunAt)
-                    } catch (err) {
-                        console.error(
-                            'Failed to process reminder',
-                            reminder.id,
-                            err
+                try {
+                    if (shouldTriggerReminder(nextRunAt, now)) {
+                        await processTriggeredReminder(
+                            _wa,
+                            reminder,
+                            nextRunAt,
+                            now
+                        )
+                    } else if (reminder.repeatType === 'none') {
+                        await deleteReminder(reminder.id)
+                    } else {
+                        const nextRun = calculateNextRunAfterMissed(
+                            nextRunAt,
+                            reminder.repeatType,
+                            reminder.repeatInterval,
+                            reminder.repeatDays,
+                            now
+                        )
+                        await Reminder.update(
+                            { nextRunAt: nextRun },
+                            { where: { id: reminder.id } }
                         )
                     }
+                } catch (err) {
+                    console.error(
+                        'Failed to process reminder',
+                        reminder.id,
+                        err
+                    )
                 }
             }
         } catch (err) {
