@@ -211,20 +211,22 @@ const extHandler: HandlerFunction = async (_wa, _msg, ctx) => {
         .toLowerCase()
         .split(/\s+/)
         .filter(Boolean)
-    const matches = rsaRepo.filter((entry) => {
-        const searchable = [entry.section, entry.name, entry.value]
-            .join(' ')
-            .toLowerCase()
-        return queryTokens.every((token) => searchable.includes(token))
-    })
+    const matches = rsaRepo
+        .map((entry, index) => ({ entry, index: index + 1 }))
+        .filter(({ entry }) => {
+            const searchable = [entry.section, entry.name, entry.value]
+                .join(' ')
+                .toLowerCase()
+            return queryTokens.every((token) => searchable.includes(token))
+        })
 
     if (matches.length === 0) throw stringId.ext.error.notFound(ctx)
 
     await ctx.reactWait()
 
     let message = `Query: ${ctx.arg}\n`
-    for (const entry of matches)
-        message += `- ${entry.section}: ${entry.name} : ${entry.value}\n`
+    for (const { entry, index } of matches)
+        message += `- ${index}. ${entry.section}: ${entry.name} : ${entry.value}\n`
 
     await ctx.reactSuccess()
     return ctx.reply(message)
