@@ -194,21 +194,31 @@ const pickHandler: HandlerFunction = async (
 
         // Format dari renderList: "☐ 1. item" / "☒ 2. item"
         const checklistMatch = clean.match(/^[☐☒]\s+\d+\.\s+(.+)$/)
-        if (checklistMatch?.[1]) return checklistMatch[1].trim()
+        if (checklistMatch?.[1]) {
+            return {
+                item: checklistMatch[1].trim(),
+                unchecked: clean.startsWith('☐'),
+            }
+        }
 
         // Support format umum: "- item", "* item", "• item", "1. item", "1) item"
         const bulletOrNumberMatch = clean.match(/^([-*•]|\d+[.)])\s+(.+)$/)
-        if (bulletOrNumberMatch?.[2]) return bulletOrNumberMatch[2].trim()
+        if (bulletOrNumberMatch?.[2]) {
+            return { item: bulletOrNumberMatch[2].trim(), unchecked: false }
+        }
 
         return null
     }
 
-    const list = ctx.quotedMsgBody
+    const parsedList = ctx.quotedMsgBody
         .split('\n')
         .map(extractListItem)
-        .filter((item): item is string => Boolean(item))
+        .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    const list = ctx.args.some((arg) => arg.toLowerCase() === 'unchecked')
+        ? parsedList.filter((entry) => entry.unchecked).map((entry) => entry.item)
+        : parsedList.map((entry) => entry.item)
 
-    if (list?.length === 0) {
+    if (list.length === 0) {
         throw new Error(stringId.pick.error.noList())
     }
 
