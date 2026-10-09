@@ -546,13 +546,15 @@ const quotlyStickerCmd = () => {
             noText: () => `‼️ No text found`,
         },
         usage: (ctx: MessageContext) =>
-            `Add text or reply msg with ${ctx.prefix}${ctx.cmd} <text>\n`,
+            ctx.cmd === 'qcf'
+                ? `Add text or reply msg with ${ctx.prefix}${ctx.cmd} <jid> <text>\n`
+                : `Add text or reply msg with ${ctx.prefix}${ctx.cmd} <text>\n`,
     }
 
     menu.push({
         command: 'quotly',
         hint: stringId.quote.hint,
-        alias: 'qc',
+        alias: 'qc, qcf',
         type: 'sticker',
     })
 
@@ -566,6 +568,14 @@ const getQuotlyParticipant = (ctx: MessageContext): string => {
         return process.env.OWNER_LID ?? process.env.OWNER_JID ?? ctx.from
     }
     return ctx.contextInfo?.participant || ctx.participant || ctx.from
+}
+
+const normalizeQuotlyParticipant = (participant: string): string => {
+    let jid = participant.replaceAll(' ', '').replaceAll('-', '')
+    if (jid.startsWith('0')) jid = `62${jid.slice(1)}`
+    if (!jid.endsWith('@s.whatsapp.net') && !jid.endsWith('@lid'))
+        jid += '@s.whatsapp.net'
+    return jid
 }
 
 const getQuotlyAvatar = async (
@@ -620,18 +630,30 @@ const quotlyHandler: HandlerFunction = async (
     ctx: MessageContext
 ) => {
     const { arg, isQuoted, replySticker, isQuotedImage, isQuotedSticker } = ctx
-    if ((!arg && !isQuoted) || arg.length > 100)
+    const isCustomParticipant = ctx.cmd === 'qcf'
+    const [participantArg, ...textArgs] = isCustomParticipant
+        ? arg.split(/\s+/)
+        : []
+    const quoteArg = isCustomParticipant ? textArgs.join(' ') : arg
+
+    if (
+        (isCustomParticipant && !participantArg) ||
+        (!quoteArg && !isQuoted) ||
+        (!isCustomParticipant && arg.length > 100)
+    )
         throw new Error(stringId.quote.usage(ctx))
     ctx.reactWait()
 
-    const text = arg?.split('|')[0]?.trim() || ctx.quotedMsgBody || ''
+    const text = quoteArg.split('|')[0]?.trim() || ctx.quotedMsgBody || ''
     if (!text && !isQuotedImage && !isQuotedSticker)
         throw new Error(stringId.quote.error.noText())
     if (text.length > 100) throw new Error(stringId.quote.error.textLimit(100))
 
-    const participant = getQuotlyParticipant(ctx)
+    const participant = isCustomParticipant
+        ? normalizeQuotlyParticipant(participantArg)
+        : getQuotlyParticipant(ctx)
     const pushname =
-        arg?.split('|')[1]?.trim() ||
+        quoteArg.split('|')[1]?.trim() ||
         getPushName(participant) ||
         `+${participant.split('@')[0]}`
 
