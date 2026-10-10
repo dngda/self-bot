@@ -54,6 +54,7 @@ export default function registerToolsCommands() {
     gttsCmd()
     noteCreatorCmd()
     collectListCmd()
+    sortListCmd()
     reminderCmd()
 }
 
@@ -259,7 +260,13 @@ const collectListCmd = () => {
         usage: (ctx: MessageContext) => `📝 CRUD List.
 ➡️ ${ctx.prefix}${ctx.cmd} <nama list>`,
         info: () =>
-            `*Reply List* dengan\n\`+[content]\` untuk add ke list\n\`-[nomor]\` untuk remove dari list.\n\`e[nomor]\` untuk edit item di list\n\`x[nomor]\` untuk check/uncheck item\nContoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
+            `*Reply List* dengan\n
+        \`+[content]\` untuk add ke list\n
+        \`-[nomor]\` untuk remove dari list.\n
+        \`e[nomor]\` untuk edit item di list\n
+        \`x[nomor]\` untuk check/uncheck item\n
+        Gunakan sort <checked|desc|asc> untuk mengurutkan list.\n\n
+        Contoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
     }
 
     menu.push({
@@ -271,6 +278,18 @@ const collectListCmd = () => {
 
     Object.assign(actions, {
         list: collectListHandler,
+    })
+}
+
+const sortListCmd = () => {
+    menu.push({
+        command: 'sort',
+        hint: '↕️ _Sort daftar/list_',
+        type: 'tools',
+    })
+
+    Object.assign(actions, {
+        sort: sortListHandler,
     })
 }
 
@@ -407,6 +426,42 @@ const collectListHandler: HandlerFunction = async (
 
     storeListMessageKey(ctx.from, sent)
     return await reply(stringId.collect_list.info?.() ?? '')
+}
+
+const sortListHandler: HandlerFunction = async (
+    _wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    const list = ListMemory.get(ctx.from)
+    if (!list?.length) {
+        return ctx.reply('‼️ Tidak ada list yang sedang berjalan.')
+    }
+
+    const mode = ctx.args[0]?.toLowerCase()
+    if (!['checked', 'desc', 'asc'].includes(mode ?? '')) {
+        return ctx.reply(`Gunakan: ${ctx.prefix}sort <checked|desc|asc>`)
+    }
+
+    const compareText = (a: ListItem, b: ListItem) =>
+        a.text.toLowerCase().localeCompare(b.text.toLowerCase())
+    const items = list.slice(1)
+
+    if (mode === 'checked') {
+        items.sort(
+            (a, b) => Number(b.checked) - Number(a.checked) || compareText(a, b)
+        )
+    } else {
+        items.sort((a, b) =>
+            mode === 'desc' ? compareText(b, a) : compareText(a, b)
+        )
+    }
+
+    ListMemory.set(ctx.from, [list[0], ...items])
+    await ctx.reactSuccess()
+    const sent = await ctx.send(renderList(ctx))
+    storeListMessageKey(ctx.from, sent)
+    return sent
 }
 
 const reminderCmd = () => {
