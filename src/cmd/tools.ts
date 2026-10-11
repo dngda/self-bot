@@ -265,7 +265,7 @@ const collectListCmd = () => {
 \`-[nomor]\` untuk remove dari list.\n
 \`e[nomor]\` untuk edit item di list\n
 \`x[nomor]\` untuk check/uncheck item\n
-Gunakan sort <checked|desc|asc> untuk mengurutkan list.\n\n
+Gunakan sort <checked|unchecked|desc|asc> untuk mengurutkan list.\n\n
 Contoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
     }
 
@@ -439,8 +439,10 @@ const sortListHandler: HandlerFunction = async (
     }
 
     const mode = ctx.args[0]?.toLowerCase()
-    if (!['checked', 'desc', 'asc'].includes(mode ?? '')) {
-        return ctx.reply(`Gunakan: ${ctx.prefix}sort <checked|desc|asc>`)
+    if (!['checked', 'unchecked', 'desc', 'asc'].includes(mode ?? '')) {
+        return ctx.reply(
+            `Gunakan: ${ctx.prefix}sort <checked|unchecked|desc|asc>`
+        )
     }
 
     const compareText = (a: ListItem, b: ListItem) =>
@@ -450,6 +452,10 @@ const sortListHandler: HandlerFunction = async (
     if (mode === 'checked') {
         items.sort(
             (a, b) => Number(b.checked) - Number(a.checked) || compareText(a, b)
+        )
+    } else if (mode === 'unchecked') {
+        items.sort(
+            (a, b) => Number(a.checked) - Number(b.checked) || compareText(a, b)
         )
     } else {
         items.sort((a, b) =>
