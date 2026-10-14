@@ -260,12 +260,12 @@ const collectListCmd = () => {
         usage: (ctx: MessageContext) => `📝 CRUD List.
 ➡️ ${ctx.prefix}${ctx.cmd} <nama list>`,
         info: () =>
-            `*Reply List* dengan\n
-\`+[content]\` untuk add ke list\n
-\`-[nomor]\` untuk remove dari list.\n
-\`e[nomor]\` untuk edit item di list\n
-\`x[nomor]\` untuk check/uncheck item\n
-Gunakan sort <checked|unchecked|desc|asc> untuk mengurutkan list.\n\n
+            `*Reply List* dengan:
+\`+[content]\` untuk add ke list
+\`-[nomor]\` untuk remove dari list.
+\`e[nomor]\` untuk edit item di list
+\`x[nomor]\` untuk check/uncheck item
+Gunakan sort <checked|unchecked|desc|asc> untuk mengurutkan list.\n
 Contoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
     }
 
