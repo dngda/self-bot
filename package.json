@@ -70,7 +70,7 @@
         "sharp": "^0.32.6",
         "sqlite3": "^5.1.7",
         "wa-sticker-formatter": "^4.4.4",
-        "youtube-dl-exec": "^3.1.12"
+        "youtube-dl-exec": "^3.1.17"
     },
     "trustedDependencies": [
         "protobufjs"

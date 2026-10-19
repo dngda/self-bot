@@ -63,6 +63,7 @@
 - Star this repository 🌟
 - Minimum Node.js version `v14` as this project works well in `v16`
 - Need to install `ffmpeg` globally to be able use animated sticker converter
+- Need `Python 3.11+` (`python3 --version`) for the downloader command (`youtube-dl-exec` runs the bundled `yt-dlp`, which requires it). After upgrading Python, run `pnpm rebuild youtube-dl-exec` to refresh `yt-dlp`
 
 ### How to
 
