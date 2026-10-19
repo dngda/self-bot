@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { AnyMessageContent } from 'baileys'
@@ -62,7 +63,7 @@ app.post('/send', async (c) => {
         return authResponse
     }
 
-    const requestId = Math.random().toString(36).slice(2, 10)
+    const requestId = randomBytes(4).toString('hex')
 
     let data: unknown
     try {
