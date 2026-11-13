@@ -11,6 +11,7 @@ import {
     handleDeleteList,
     handleEditList,
     handleMathEquation,
+    handleMultiListCommands,
     handleNoteCommand,
     handleRepeatCommand,
     handleReplyToContactStatusList,
@@ -204,13 +205,18 @@ const listHandler = async (
     ctx: MessageContext
 ) => {
     const { body } = ctx
-    if (/^\+.+/.test(body as string)) {
+    const bodyStr = body as string
+
+    // Check if it contains comma-separated commands
+    if (/^[+\-xe].*,.*[+\-xe]/.test(bodyStr)) {
+        await handleMultiListCommands(wa, msg, ctx)
+    } else if (/^\+.+/.test(bodyStr)) {
         await handleAddList(wa, msg, ctx)
-    } else if (/^-\d+/.test(body as string)) {
+    } else if (/^-\d+/.test(bodyStr)) {
         await handleDeleteList(wa, msg, ctx)
-    } else if (/^e\d+/.test(body as string)) {
+    } else if (/^e\d+/.test(bodyStr)) {
         await handleEditList(wa, msg, ctx)
-    } else if (/^x\d+/.test(body as string)) {
+    } else if (/^x\d+/.test(bodyStr)) {
         await handleToggleList(wa, msg, ctx)
     }
 }

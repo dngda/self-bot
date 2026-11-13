@@ -262,11 +262,12 @@ const collectListCmd = () => {
         info: () =>
             `*Reply List* dengan:
 \`+[content]\` untuk add ke list
-\`-[nomor]\` untuk remove dari list.
-\`e[nomor]\` untuk edit item di list
+\`-[nomor]\` untuk remove dari list
+\`e[nomor] [content]\` untuk edit item di list
 \`x[nomor]\` untuk check/uncheck item
-Gunakan sort <checked|unchecked|desc|asc> untuk mengurutkan list.\n
-Contoh: \`+Belanja\`, \`-1\`, \`e1 Kertas\`, \`x3\``,
+Gunakan sort <checked|unchecked|desc|asc> untuk mengurutkan list.
+
+Gunakan comma untuk multi-row: \`+test, +tos, -1, -3, x7, x5\``,
     }
 
     menu.push({

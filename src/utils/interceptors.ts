@@ -198,6 +198,142 @@ async function sendList(ctx: MessageContext, wa: WASocket) {
     return sent
 }
 
+export const handleMultiListCommands = async (
+    wa: WASocket,
+    _msg: WAMessage,
+    ctx: MessageContext
+) => {
+    if (!ListMemory.has(ctx.from)) return null
+    if (!ctx.quotedMsgBody?.includes('List:')) {
+        return null
+    }
+
+    const bodyStr = (ctx.body as string).trim()
+    const commands = bodyStr.split(',').map((cmd) => cmd.trim())
+
+    let hasError = false
+    const errors: string[] = []
+
+    for (const command of commands) {
+        if (!command) continue
+
+        const op = command[0]
+        const arg = command.slice(1).trim()
+
+        if (op === '+') {
+            if (!arg) {
+                errors.push(`Invalid add command: "${command}"`)
+                hasError = true
+                continue
+            }
+            // Handle add
+            const list = ListMemory.get(ctx.from) || []
+            const cleanInvisibleChars = (text: string) =>
+                text.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim()
+
+            const normalizeForCompare = (text: string) => text.toLowerCase()
+            const existingSet = new Set(
+                list.map((item) =>
+                    normalizeForCompare(cleanInvisibleChars(item.text))
+                )
+            )
+
+            const key = normalizeForCompare(arg)
+            if (!existingSet.has(key)) {
+                list.push({ text: arg, checked: false })
+                ListMemory.set(ctx.from, list)
+            }
+        } else if (op === '-') {
+            // Handle delete
+            if (!/^\d+$/.test(arg)) {
+                errors.push(`Invalid delete command: "${command}"`)
+                hasError = true
+                continue
+            }
+            const list = ListMemory.get(ctx.from)
+            if (!list) {
+                errors.push(`List not found`)
+                hasError = true
+                continue
+            }
+
+            const index = parseInt(arg)
+            if (index >= list.length || index < 1) {
+                errors.push(`Invalid index: ${index}`)
+                hasError = true
+                continue
+            }
+            list.splice(index, 1)
+            ListMemory.set(ctx.from, list)
+        } else if (op === 'e') {
+            // Handle edit
+            const space = arg.indexOf(' ')
+            if (space === -1) {
+                errors.push(`Invalid edit command: "${command}"`)
+                hasError = true
+                continue
+            }
+            const indexStr = arg.slice(0, space)
+            if (!/^\d+$/.test(indexStr)) {
+                errors.push(`Invalid edit command: "${command}"`)
+                hasError = true
+                continue
+            }
+            const newValue = arg.slice(space + 1).trim()
+            const list = ListMemory.get(ctx.from)
+            if (!list) {
+                errors.push(`List not found`)
+                hasError = true
+                continue
+            }
+
+            const index = parseInt(indexStr)
+            if (index >= list.length || index < 1) {
+                errors.push(`Invalid index: ${index}`)
+                hasError = true
+                continue
+            }
+            if (!newValue) {
+                errors.push(`Edit value cannot be empty: "${command}"`)
+                hasError = true
+                continue
+            }
+            list[index].text = newValue
+            ListMemory.set(ctx.from, list)
+        } else if (op === 'x') {
+            // Handle toggle
+            if (!/^\d+$/.test(arg)) {
+                errors.push(`Invalid toggle command: "${command}"`)
+                hasError = true
+                continue
+            }
+            const list = ListMemory.get(ctx.from)
+            if (!list) {
+                errors.push(`List not found`)
+                hasError = true
+                continue
+            }
+
+            const index = parseInt(arg)
+            if (index >= list.length || index < 1) {
+                errors.push(`Invalid index: ${index}`)
+                hasError = true
+                continue
+            }
+            list[index].checked = !list[index].checked
+            ListMemory.set(ctx.from, list)
+        }
+    }
+
+    await ctx.reactSuccess()
+
+    if (hasError && errors.length > 0) {
+        await ctx.reply(`⚠️ Some commands failed:\n${errors.join('\n')}`)
+    }
+
+    return sendList(ctx, wa)
+}
+
 export const handleAddList = async (
     wa: WASocket,
     _msg: WAMessage,
@@ -218,38 +354,17 @@ export const handleAddList = async (
     const cleanInvisibleChars = (text: string) =>
         text.replace(/[\u200B-\u200D\u2060\uFEFF]/g, '').trim()
 
-    // Only "-" prefixed lines start a new item; other lines continue the previous item.
-    const normalizedItems: string[] = []
-    for (const rawLine of rawInput.split('\n')) {
-        const line = cleanInvisibleChars(rawLine)
-        if (!line) continue
-
-        const bulletMatch = line.match(/^-\s*(.*)$/)
-        if (bulletMatch) {
-            normalizedItems.push(bulletMatch[1].trim())
-        } else if (normalizedItems.length > 0) {
-            normalizedItems[normalizedItems.length - 1] += `\n${line}`
-        } else {
-            normalizedItems.push(line)
-        }
-    }
-
-    if (normalizedItems.length === 0) {
-        return await ctx.reply('Isi list tidak valid!')
-    }
-
     const normalizeForCompare = (text: string) => text.toLowerCase()
     const existingSet = new Set(
         list.map((item) => normalizeForCompare(cleanInvisibleChars(item.text)))
     )
 
-    for (const item of normalizedItems) {
-        const key = normalizeForCompare(item)
-        if (existingSet.has(key)) continue
-        list.push({ text: item, checked: false })
-        existingSet.add(key)
+    const key = normalizeForCompare(rawInput)
+    if (existingSet.has(key)) {
+        return await ctx.reply('Item sudah ada di list!')
     }
 
+    list.push({ text: rawInput, checked: false })
     ListMemory.set(ctx.from, list)
 
     await ctx.reactSuccess()
